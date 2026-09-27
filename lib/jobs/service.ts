@@ -64,23 +64,22 @@ export function buildSnapshot(system: ChannelSystem & { referenceChannels: Refer
 
 /** Belegte Zeitpunkte eines Systems/Formats: aktive Veröffentlichungen + geplante, noch nicht freigegebene Aufträge. */
 export async function occupiedSlots(db: Db, systemId: string, format: ContentFormat, excludeJobId?: string) {
-  const [pubs, jobs] = await Promise.all([
-    db.publication.findMany({
-      where: { systemId, format, status: { in: ["scheduled", "held", "publishing", "reconciling"] }, jobId: excludeJobId ? { not: excludeJobId } : undefined },
-      select: { scheduledAt: true },
-    }),
-    db.productionJob.findMany({
-      where: {
-        systemId,
-        format,
-        status: { in: PRE_APPROVAL_STATUSES },
-        targetSlotAt: { not: null },
-        slotMissedAt: null,
-        id: excludeJobId ? { not: excludeJobId } : undefined,
-      },
-      select: { targetSlotAt: true },
-    }),
-  ]);
+  // Sequenziell, da `db` eine Transaktion (eine Verbindung) sein kann.
+  const pubs = await db.publication.findMany({
+    where: { systemId, format, status: { in: ["scheduled", "held", "publishing", "reconciling"] }, jobId: excludeJobId ? { not: excludeJobId } : undefined },
+    select: { scheduledAt: true },
+  });
+  const jobs = await db.productionJob.findMany({
+    where: {
+      systemId,
+      format,
+      status: { in: PRE_APPROVAL_STATUSES },
+      targetSlotAt: { not: null },
+      slotMissedAt: null,
+      id: excludeJobId ? { not: excludeJobId } : undefined,
+    },
+    select: { targetSlotAt: true },
+  });
   const set = new Set<number>();
   pubs.forEach((p) => set.add(p.scheduledAt.getTime()));
   jobs.forEach((j) => j.targetSlotAt && set.add(j.targetSlotAt.getTime()));

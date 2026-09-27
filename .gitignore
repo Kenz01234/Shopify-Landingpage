@@ -34,3 +34,4 @@ dist/
 !quest-agent-shopify-sections.zip
 
 .DS_Store
+test-results-worker.pid

@@ -72,7 +72,7 @@ export default async function OverviewPage() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 [&>*]:min-w-0">
             <Link href="/app/freigaben" className="group">
               <Stat
                 label="Warten auf dich"
@@ -96,7 +96,7 @@ export default async function OverviewPage() {
             </Link>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] [&>*]:min-w-0">
             <Card>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
@@ -161,7 +161,7 @@ export default async function OverviewPage() {
             </Card>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="mt-6 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
             <Card>
               <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold tracking-[-0.02em]">
                 <CalendarClock className="size-5 text-coral" aria-hidden /> Nächste Veröffentlichungen

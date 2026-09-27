@@ -13,6 +13,9 @@ import { ProviderError, type PublishInput } from "@/providers/types";
  * aktives Abo, gültige Freigabe genau dieser Version, Kanalzuordnung, Slot und Systemstatus.
  * Hängende Uploads werden abgeglichen statt blind wiederholt.
  */
+/** Liegt ein Termin weiter zurück (z. B. nach Worker-Ausfall), wird nicht verspätet veröffentlicht, sondern neu bestätigt. */
+export const LATE_TOLERANCE_MIN = 60;
+
 export async function claimDuePublication(): Promise<Publication | null> {
   const demo = isDemoMode();
   const rows = await prisma.$queryRaw<{ id: string }[]>`
@@ -60,6 +63,9 @@ export async function publishOne(pub: Publication): Promise<string> {
     if (!approvalValid || p.job.status !== "scheduled") {
       await tx.publication.update({ where: { id: p.id }, data: { status: "cancelled", slotKey: null, activeJobKey: null, lastError: "Freigabe ungültig" } });
       return { skip: "Freigabe ungültig" };
+    }
+    if (now.getTime() - p.scheduledAt.getTime() > LATE_TOLERANCE_MIN * 60_000) {
+      return hold("slot_passed", `Termin liegt mehr als ${LATE_TOLERANCE_MIN} Minuten zurück – nicht verspätet veröffentlicht. Bitte neuen Termin bestätigen.`);
     }
     if (p.job.targetSlotAt && p.job.targetSlotAt.getTime() !== p.scheduledAt.getTime()) {
       return hold("slot_passed", "Slot-Zuordnung inkonsistent – bitte Termin bestätigen.");

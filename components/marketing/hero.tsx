@@ -75,7 +75,6 @@ export function Hero() {
         <motion.p
           {...fadeUp(0)}
           className="mx-auto inline-flex items-center gap-2 rounded-full border border-coral/25 bg-surface/80 px-3.5 py-1.5 text-[0.82rem] font-medium text-coral-ink shadow-sm backdrop-blur sm:text-sm"
-          data-thread-anchor="start"
         >
           <span className="relative flex size-2" aria-hidden>
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-coral opacity-60 motion-reduce:animate-none" />
@@ -133,6 +132,7 @@ export function Hero() {
         className="relative mx-auto mt-14 max-w-[76rem] scroll-mt-24 px-4 outline-none sm:px-6"
         aria-label="Interaktive Produktdemo"
       >
+        <span data-thread-anchor="start" className="absolute left-0 top-16 size-1" aria-hidden />
         <div className="grain relative overflow-hidden rounded-[2rem] border border-line bg-bg-tint/70 p-4 shadow-[0_40px_120px_-60px_rgb(var(--shadow-color)/0.35)] backdrop-blur-sm sm:p-6 lg:p-8">
           <div className="relative z-[2]">
             <HeroLoop ref={loopRef} />

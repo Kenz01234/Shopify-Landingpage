@@ -6,7 +6,7 @@ type Variant = "primary" | "secondary" | "ghost" | "approve" | "danger" | "dark"
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-[background,color,border-color,box-shadow,transform] duration-200 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]";
+  "inline-flex max-w-full items-center justify-center gap-2 text-center font-semibold transition-[background,color,border-color,box-shadow,transform] duration-200 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]";
 
 const variants: Record<Variant, string> = {
   primary:
@@ -18,10 +18,11 @@ const variants: Record<Variant, string> = {
   dark: "bg-ink text-bg hover:opacity-90",
 };
 
+// min-h statt fester Höhe: lange Beschriftungen dürfen auf schmalen Bildschirmen umbrechen.
 const sizes: Record<Size, string> = {
-  sm: "h-9 rounded-full px-3.5 text-sm",
-  md: "h-11 rounded-full px-5 text-[0.95rem]",
-  lg: "h-13 rounded-full px-7 text-base",
+  sm: "min-h-9 rounded-full px-3.5 py-1.5 text-sm leading-tight",
+  md: "min-h-11 rounded-full px-5 py-2 text-[0.95rem] leading-tight",
+  lg: "min-h-13 rounded-full px-7 py-2.5 text-base leading-tight",
 };
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {

@@ -68,6 +68,8 @@ export const HeroLoop = forwardRef<HeroLoopHandle, { className?: string }>(funct
   const [started, setStarted] = useState(false);
   const [niche, setNiche] = useState<NicheKey>("space");
   const [revision, setRevision] = useState(false);
+  // Erhöht sich bei jedem Neustart, damit der Timer auch bei unveränderter Phase neu startet.
+  const [run, setRun] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current = PHASES[phase];
@@ -84,6 +86,7 @@ export const HeroLoop = forwardRef<HeroLoopHandle, { className?: string }>(funct
     setPhase(0);
     setPlaying(true);
     setStarted(true);
+    setRun((r) => r + 1);
   }, []);
 
   useImperativeHandle(ref, () => ({ restart }), [restart]);
@@ -99,17 +102,19 @@ export const HeroLoop = forwardRef<HeroLoopHandle, { className?: string }>(funct
     if (!ms) return; // wartet auf Nutzer (Freigabe) oder Ende
     timer.current = setTimeout(() => setPhase((p) => Math.min(p + 1, PHASES.length - 1)), ms);
     return clear;
-  }, [phase, playing, started, inView, current.ms]);
+  }, [phase, playing, started, inView, current.ms, run]);
 
   const approve = () => {
     setRevision(false);
     setPhase(idx("scheduled"));
     setPlaying(true);
+    setRun((r) => r + 1);
   };
   const requestChanges = () => {
     setRevision(true);
     setPhase(idx("script"));
     setPlaying(true);
+    setRun((r) => r + 1);
   };
   const chooseNiche = (k: NicheKey) => {
     setNiche(k);

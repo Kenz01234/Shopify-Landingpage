@@ -78,9 +78,11 @@ export function SiteHeader() {
           <Link href="/login" className="hidden rounded-full px-3 py-2 text-[0.94rem] font-medium text-ink-2 hover:text-ink lg:inline-block">
             Anmelden
           </Link>
-          <ButtonLink href="/demo" size="sm" className="hidden h-10 px-4 sm:inline-flex">
-            Demo öffnen <ArrowRight className="size-4" aria-hidden />
-          </ButtonLink>
+          <span className="hidden min-[480px]:inline-flex">
+            <ButtonLink href="/demo" size="sm" className="h-10 px-4">
+              Demo öffnen <ArrowRight className="size-4" aria-hidden />
+            </ButtonLink>
+          </span>
           <button
             type="button"
             className="grid size-10 place-items-center rounded-full border border-line bg-surface text-ink md:hidden"
