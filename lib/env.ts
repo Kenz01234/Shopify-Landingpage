@@ -40,6 +40,25 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
+  /** demo | instagram (Reels über die Instagram-API mit Instagram-Login) */
+  INSTAGRAM_PROVIDER: z.enum(["demo", "instagram"]).default("demo"),
+  INSTAGRAM_APP_ID: z.string().optional(),
+  INSTAGRAM_APP_SECRET: z.string().optional(),
+  INSTAGRAM_GRAPH_VERSION: z.string().regex(/^v\d+\.\d+$/).default("v23.0"),
+  /** demo | tiktok (Content Posting API, Direct Post) */
+  TIKTOK_PROVIDER: z.enum(["demo", "tiktok"]).default("demo"),
+  TIKTOK_CLIENT_KEY: z.string().optional(),
+  TIKTOK_CLIENT_SECRET: z.string().optional(),
+  /** Sichtbarkeit neuer TikTok-Beiträge; ungeprüfte TikTok-Apps dürfen nur SELF_ONLY */
+  TIKTOK_PRIVACY_LEVEL: z.enum(["SELF_ONLY", "PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "FOLLOWER_OF_CREATOR"]).default("SELF_ONLY"),
+
+  /** Shopify als Verkaufsweg: Webhook orders/paid schaltet den Plan frei */
+  SHOPIFY_SHOP_DOMAIN: z.string().regex(/^[a-z0-9-]+\.myshopify\.com$/).optional(),
+  SHOPIFY_WEBHOOK_SECRET: z.string().optional(),
+  /** Kommagetrennte SKUs oder Varianten-IDs, die den jeweiligen Plan freischalten */
+  SHOPIFY_PLAN_STARTER: z.string().optional(),
+  SHOPIFY_PLAN_STUDIO: z.string().optional(),
+
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_STARTER: z.string().optional(),

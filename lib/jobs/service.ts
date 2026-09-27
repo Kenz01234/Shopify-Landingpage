@@ -42,6 +42,12 @@ export async function jobNote(db: Db, job: { id: string; organizationId: string 
   await db.jobEvent.create({ data: { organizationId: job.organizationId, jobId: job.id, kind, message } });
 }
 
+/** Mindestvorlauf für einen Termin – verhindert „sofort“-Veröffentlichungen aus Versehen. */
+export const MIN_LEAD_MS = 2 * 60_000;
+
+/** Belegt einen Slot (System, Format, Zeit), solange eine Veröffentlichung aktiv ist. */
+export const slotKeyFor = (systemId: string, format: ContentFormat, at: Date) => `${systemId}:${format}:${at.toISOString()}`;
+
 export function buildSnapshot(system: ChannelSystem & { referenceChannels: ReferenceChannel[] }): ConfigSnapshot {
   return {
     configVersion: system.configVersion,
@@ -59,6 +65,7 @@ export function buildSnapshot(system: ChannelSystem & { referenceChannels: Refer
     timezone: system.timezone,
     reviewMode: system.reviewMode,
     referenceChannels: system.referenceChannels.map((r) => r.url),
+    shortPlatforms: system.shortPlatforms,
   };
 }
 
@@ -117,7 +124,8 @@ export async function createManualJob(
   const now = orgNow(system.organization);
   if (!sub || !isEntitled(sub, now)) throw new AppError("NOT_ENTITLED", entitlementReason(sub, now) ?? "Kein aktives Abo.", 402);
 
-  const scenario = isDemoMode() && ["success", "transient_failure", "permanent_failure"].includes(input.demoScenario ?? "") ? input.demoScenario! : "success";
+  const scenario =
+    isDemoMode() && ["success", "transient_failure", "permanent_failure", "instagram_failure"].includes(input.demoScenario ?? "") ? input.demoScenario! : "success";
 
   try {
     const job = await prisma.$transaction(async (tx) => {
@@ -244,6 +252,7 @@ export async function retryJob(ctx: Ctx, jobId: string) {
     if (job.status !== "failed") throw new AppError("NOT_FAILED", "Nur fehlgeschlagene Aufträge können wiederholt werden.", 409);
     const system = await tx.channelSystem.findFirst({ where: { id: job.systemId, organizationId: ctx.orgId } });
     if (!system || system.status === "archived") throw new AppError("SYSTEM_INACTIVE", "Das System ist archiviert.", 409);
+    if (job.failedStep === "publishing") return retryFailedPlatforms(tx, ctx, job);
     const wd = (job.workingData ?? {}) as Record<string, unknown>;
     const resumeFrom = job.failedStep && job.failedStep !== "queued" ? job.failedStep : undefined;
     await transitionJob(tx, job, "queued", resumeFrom ? `Erneuter Versuch ab Schritt „${STATUS_META[resumeFrom].label}“.` : "Erneuter Versuch.", {
@@ -262,4 +271,42 @@ export async function retryJob(ctx: Ctx, jobId: string) {
     await audit(tx, { orgId: ctx.orgId, actor: ctx.actor ?? { type: "user", userId: ctx.userId }, action: "job.retry", targetType: "job", targetId: job.id });
     return job.id;
   });
+}
+
+/**
+ * Erneuter Veröffentlichungsversuch nur für die fehlgeschlagenen Plattformen. Bereits veröffentlichte Plattformen
+ * werden nie wiederholt. Neuer Termin: frühestens jetzt + Mindestvorlauf. Die Freigabe muss noch gültig sein.
+ */
+async function retryFailedPlatforms(tx: Tx, ctx: Ctx, job: ProductionJob) {
+  const pub = await tx.publication.findFirst({
+    where: { jobId: job.id, organizationId: ctx.orgId, status: "failed" },
+    include: { targets: true, approval: true, system: { include: { organization: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  const failed = pub?.targets.filter((t) => t.status === "failed") ?? [];
+  if (!pub || !failed.length) throw new AppError("NOTHING_TO_RETRY", "Es gibt keine fehlgeschlagene Plattform zum Wiederholen.", 409);
+  const approvalValid = pub.approval.decision === "approved" && !pub.approval.revokedAt && job.currentVersionId === pub.versionId;
+  if (!approvalValid) throw new AppError("APPROVAL_INVALID", "Die Freigabe ist nicht mehr gültig. Bitte den Inhalt erneut freigeben.", 409);
+  const now = orgNow(pub.system.organization);
+  const at = new Date(Math.max(pub.scheduledAt.getTime(), Math.ceil((now.getTime() + MIN_LEAD_MS) / 60_000) * 60_000));
+  await tx.publicationTarget.updateMany({ where: { publicationId: pub.id, status: "failed" }, data: { status: "pending", lastError: null, providerUploadId: null } });
+  try {
+    await tx.publication.update({
+      where: { id: pub.id },
+      data: { status: "scheduled", scheduledAt: at, slotKey: slotKeyFor(pub.systemId, pub.format, at), activeJobKey: job.id, heldReason: null, lastError: null, lockedUntil: null },
+    });
+  } catch (e) {
+    if (isUniqueViolation(e)) throw conflict("Zu diesem Zeitpunkt ist bereits eine andere Veröffentlichung geplant. Bitte kurz warten und erneut versuchen.");
+    throw e;
+  }
+  const labels = failed.map((t) => ({ youtube: "YouTube", instagram: "Instagram", tiktok: "TikTok" })[t.platform]).join(", ");
+  await transitionJob(tx, job, "scheduled", `Erneuter Veröffentlichungsversuch nur für ${labels}.`, {
+    targetSlotAt: at,
+    lastErrorCode: null,
+    lastErrorMessage: null,
+    failedStep: null,
+    demoScenario: "success",
+  });
+  await audit(tx, { orgId: ctx.orgId, actor: ctx.actor ?? { type: "user", userId: ctx.userId }, action: "publication.retry", targetType: "publication", targetId: pub.id, meta: { platforms: failed.map((t) => t.platform) } });
+  return job.id;
 }

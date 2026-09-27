@@ -277,5 +277,10 @@ export function demoScript(
       ? `${topic.hook} #shorts`
       : `${topic.hook}\n\nIn diesem Video: ${topic.parts.map((p) => p.split(".")[0]).join(" · ")}.\n\nHinweis: Dieses Video wurde mit KI-Unterstützung erstellt (Skript und Stimme) und vor der Veröffentlichung geprüft.`;
   void revisionNote;
-  return { script, title: title.slice(0, 100), description, tags: topic.tags, thumbnailText: topic.thumb };
+  const hashtags = topic.tags
+    .slice(0, 4)
+    .map((t) => `#${t.replace(/[^\p{L}\p{N}]/gu, "")}`)
+    .join(" ");
+  const caption = format === "short" ? `${topic.hook}\n\n${hashtags}\n\nMit KI-Unterstützung erstellt.` : undefined;
+  return { script, title: title.slice(0, 100), description, tags: topic.tags, thumbnailText: topic.thumb, caption };
 }

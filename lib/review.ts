@@ -228,6 +228,8 @@ export const editSchema = z.object({
   script: z.string().min(1, "Skript fehlt").max(40000),
   thumbnailText: z.string().max(60, "Höchstens 60 Zeichen"),
   tags: z.array(z.string().trim().min(1).max(60)).max(30),
+  /** Beitragstext für Instagram/TikTok (nur Shorts); leer = aus Titel und Tags abgeleitet */
+  caption: z.string().max(2200, "Höchstens 2.200 Zeichen (Limit von Instagram und TikTok)").nullish(),
   changeNote: z.string().max(300).optional(),
 });
 
@@ -245,7 +247,9 @@ export async function saveEdit(ctx: Ctx, jobId: string, input: z.infer<typeof ed
     const base = job.currentVersion!;
     const tagsEqual = base.tags.join("\u0000") === input.tags.join("\u0000");
     const scriptChanged = base.script !== input.script;
-    if (base.title === input.title && base.description === input.description && !scriptChanged && base.thumbnailText === input.thumbnailText && tagsEqual) {
+    const caption = job.format === "short" ? input.caption?.trim() || null : null;
+    const captionEqual = (base.caption ?? null) === caption;
+    if (base.title === input.title && base.description === input.description && !scriptChanged && base.thumbnailText === input.thumbnailText && tagsEqual && captionEqual) {
       throw new AppError("NO_CHANGES", "Es gibt keine Änderungen zum Speichern.", 422);
     }
     const requiresRerender = base.stage === "final" && scriptChanged;
@@ -274,6 +278,7 @@ export async function saveEdit(ctx: Ctx, jobId: string, input: z.infer<typeof ed
         script: input.script,
         thumbnailText: input.thumbnailText,
         tags: input.tags,
+        caption,
         sources: base.sources as Prisma.InputJsonValue,
         autoCheck: check as unknown as Prisma.InputJsonValue,
         createdByType: "user",
@@ -303,7 +308,7 @@ export async function saveEdit(ctx: Ctx, jobId: string, input: z.infer<typeof ed
           revisionCount: { increment: 1 },
           revisionNote: "Skript manuell geändert",
           nextRunAt: new Date(),
-          workingData: { ...wd, script: input.script, title: input.title, description: input.description, tags: input.tags, thumbnailText: input.thumbnailText, resumeFrom: "voiceover" } as Prisma.InputJsonValue,
+          workingData: { ...wd, script: input.script, title: input.title, description: input.description, tags: input.tags, thumbnailText: input.thumbnailText, caption: caption ?? undefined, resumeFrom: "voiceover" } as Prisma.InputJsonValue,
         });
       }
     }

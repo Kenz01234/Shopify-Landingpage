@@ -169,7 +169,7 @@ export function NewJobDialog({
         {error && <InlineAlert tone="error">{error}</InlineAlert>}
         <fieldset className="grid gap-2 sm:grid-cols-2">
           <legend className="mb-2 text-sm font-semibold">Format</legend>
-          {longformEnabled && <RadioCard name="format" value="longform" checked={format === "longform"} onChange={() => setFormat("longform")} title="Longform-Video" text="16:9, deine Ziellänge" />}
+          {longformEnabled && <RadioCard name="format" value="longform" checked={format === "longform"} onChange={() => { setFormat("longform"); if (scenario === "instagram_failure") setScenario("success"); }} title="Longform-Video" text="16:9, deine Ziellänge" />}
           {shortsEnabled && <RadioCard name="format" value="short" checked={format === "short"} onChange={() => setFormat("short")} title="Short" text="9:16, kurz" />}
         </fieldset>
         {demo && (
@@ -178,6 +178,16 @@ export function NewJobDialog({
             <RadioCard name="scenario" value="success" checked={scenario === "success"} onChange={setScenario} title="Normaler Ablauf" text="Läuft bis zur Freigabe-Inbox." />
             <RadioCard name="scenario" value="transient_failure" checked={scenario === "transient_failure"} onChange={setScenario} title="Technischer Fehler mit Wiederholung" text="Rendering schlägt einmal fehl und wird automatisch wiederholt – ohne Doppelbuchung." />
             <RadioCard name="scenario" value="permanent_failure" checked={scenario === "permanent_failure"} onChange={setScenario} title="Dauerhafter Providerfehler" text="Stimmen-Dienst scheitert mehrfach – Auftrag wird angehalten und kann manuell wiederholt werden." />
+            {format === "short" && (
+              <RadioCard
+                name="scenario"
+                value="instagram_failure"
+                checked={scenario === "instagram_failure"}
+                onChange={setScenario}
+                title="Instagram lehnt den Upload ab"
+                text="YouTube und TikTok klappen, Instagram nicht. „Erneut versuchen“ wiederholt nur Instagram – nichts wird doppelt hochgeladen."
+              />
+            )}
           </fieldset>
         )}
       </div>

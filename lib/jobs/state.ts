@@ -52,11 +52,13 @@ export const TRANSITIONS: Record<JobStatus, JobStatus[]> = {
   approved: ["scheduled", "awaiting_approval", "cancelled"],
   scheduled: ["publishing", "held", "awaiting_approval", "changes_requested", "cancelled"],
   held: ["scheduled", "awaiting_approval", "changes_requested", "cancelled"],
-  publishing: ["published", "reconciling", "failed", "held"],
+  /** „scheduled“: nach einer Unterbrechung zwischen zwei Plattformen geht es mit den offenen weiter */
+  publishing: ["published", "reconciling", "failed", "held", "scheduled"],
   reconciling: ["published", "failed", "scheduled"],
   published: [],
   retry_scheduled: ["queued", "researching", "scripting", "voiceover", "rendering", "quality_check", "failed", "cancelled"],
-  failed: ["queued", "cancelled"],
+  /** „scheduled“ nur für den erneuten Veröffentlichungsversuch fehlgeschlagener Plattformen */
+  failed: ["queued", "scheduled", "cancelled"],
   rejected: [],
   cancelled: [],
 };

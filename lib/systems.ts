@@ -10,6 +10,13 @@ import { occurrencesBetween, formatInZone, adjustmentText } from "@/lib/time";
 import { transitionJob, type Ctx } from "@/lib/jobs/service";
 import { releaseQuota } from "@/lib/quota";
 import { audit } from "@/lib/audit";
+import { PLATFORM_KEYS, type PlatformKey } from "@/lib/platforms";
+
+/** Feste Reihenfolge, keine Duplikate; ohne Shorts bleibt YouTube als neutraler Standard gespeichert. */
+function normalizePlatforms(input: SystemInput): PlatformKey[] {
+  const list = PLATFORM_KEYS.filter((p) => input.shortPlatforms?.includes(p));
+  return input.shortsEnabled && list.length ? list : ["youtube"];
+}
 
 export async function allocationUsedByOthers(db: Tx | typeof prisma, orgId: string, excludeSystemId?: string) {
   const systems = await db.channelSystem.findMany({
@@ -70,6 +77,7 @@ export async function createSystem(ctx: Ctx, raw: unknown) {
         voiceLabel: voice?.label ?? input.voiceKey,
         longformEnabled: input.longformEnabled,
         shortsEnabled: input.shortsEnabled,
+        shortPlatforms: normalizePlatforms(input),
         longformPerPeriod: input.longformEnabled ? input.longformPerPeriod : 0,
         longformMinutes: input.longformMinutes,
         shortsPerPeriod: input.shortsEnabled ? input.shortsPerPeriod : 0,
@@ -109,6 +117,7 @@ export async function updateSystem(ctx: Ctx, systemId: string, raw: unknown) {
         voiceLabel: voice?.label ?? input.voiceKey,
         longformEnabled: input.longformEnabled,
         shortsEnabled: input.shortsEnabled,
+        shortPlatforms: normalizePlatforms(input),
         longformPerPeriod: input.longformEnabled ? input.longformPerPeriod : 0,
         longformMinutes: input.longformMinutes,
         shortsPerPeriod: input.shortsEnabled ? input.shortsPerPeriod : 0,

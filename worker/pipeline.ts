@@ -150,7 +150,7 @@ export async function processJob(job: ProductionJob, workerId: string): Promise<
         const s = await production.script(ctx);
         // Ein bereits bestätigtes/manuell bearbeitetes Skript bleibt maßgeblich.
         const script = wd.scriptApproved && wd.script ? wd.script : s.script;
-        const next: WorkingData = { ...wd, script, title: wd.title ?? s.title, description: s.description, tags: s.tags, thumbnailText: s.thumbnailText };
+        const next: WorkingData = { ...wd, script, title: wd.title ?? s.title, description: s.description, tags: s.tags, thumbnailText: s.thumbnailText, caption: s.caption ?? wd.caption };
         if (job.revisionCount > 0 && !wd.scriptApproved) next.title = s.title;
         if (ctx.config.reviewMode === "script_and_final" && !wd.scriptApproved) {
           const version = await createVersion(job, "script", {
@@ -395,6 +395,7 @@ async function finishQualityCheck(job: ProductionJob, workerId: string) {
           script: input.script,
           thumbnailText: input.thumbnailText,
           tags: input.tags,
+          caption: fresh.format === "short" ? (wd.caption ?? null) : null,
           sources: input.sources as unknown as Prisma.InputJsonValue,
           autoCheck: check as unknown as Prisma.InputJsonValue,
           createdByType: "system",

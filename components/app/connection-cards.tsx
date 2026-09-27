@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AudioLines, Loader2, Send, Workflow, MonitorPlay as YtIcon, ShieldCheck } from "lucide-react";
+import { AudioLines, Loader2, Send, Workflow, ShieldCheck } from "lucide-react";
+import { PlatformIcon } from "@/components/brand/platform-icon";
+import { PLATFORMS, type PlatformKey } from "@/lib/platforms";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
@@ -30,14 +32,50 @@ function Card({ icon, title, who, status, children }: { icon: React.ReactNode; t
   );
 }
 
+export type PlatformConnectionView = {
+  platform: PlatformKey;
+  publishMode: "simulated" | "live";
+  configured: boolean;
+  status: string;
+  displayName: string | null;
+  lastError: string | null;
+};
+
+const PLATFORM_COPY: Record<PlatformKey, { title: string; who: string; connectLabel: string; safety: string[]; live: string; credentials: string }> = {
+  youtube: {
+    title: "YouTube",
+    who: "Videos und Shorts · offizieller Google-OAuth-Ablauf",
+    connectLabel: "Mit Google verbinden",
+    safety: ["Wir fragen nie nach deinem Google-Passwort.", "Minimale Berechtigungen: Upload + Kanal lesen. Token verschlüsselt gespeichert."],
+    live: "Freigegebene Inhalte werden zum Termin über die YouTube Data API hochgeladen.",
+    credentials: "GOOGLE_CLIENT_ID/SECRET",
+  },
+  instagram: {
+    title: "Instagram",
+    who: "Reels · offizieller Instagram-Login",
+    connectLabel: "Mit Instagram verbinden",
+    safety: ["Braucht ein Instagram-Professional-Konto (Business oder Creator).", "Berechtigungen: Profil lesen + Beiträge veröffentlichen. Token verschlüsselt gespeichert."],
+    live: "Freigegebene Shorts werden zum Termin als Reel veröffentlicht.",
+    credentials: "INSTAGRAM_APP_ID/SECRET",
+  },
+  tiktok: {
+    title: "TikTok",
+    who: "Hochformat-Videos · offizieller TikTok-Login",
+    connectLabel: "Mit TikTok verbinden",
+    safety: ["Berechtigungen: Profil lesen + Videos veröffentlichen. Token verschlüsselt gespeichert.", "Bis TikTok die App geprüft hat, sind Beiträge nur für dich sichtbar (privat)."],
+    live: "Freigegebene Shorts werden zum Termin direkt auf TikTok veröffentlicht.",
+    credentials: "TIKTOK_CLIENT_KEY/SECRET",
+  },
+};
+
 export function ConnectionCards({
   demo,
-  youtube,
+  platforms,
   n8n,
   elevenlabs,
 }: {
   demo: boolean;
-  youtube: { publishMode: string; oauthConfigured: boolean; status: string; mode: string | null; displayName: string | null; scopes: string[]; tokenExpiresAt: string | null; lastError: string | null };
+  platforms: PlatformConnectionView[];
   n8n: { mode: string; configured: boolean; lastAcceptedAt: string | null };
   elevenlabs: { mode: string; configured: boolean };
 }) {
@@ -46,15 +84,15 @@ export function ConnectionCards({
   const [busy, setBusy] = useState<string | null>(null);
   const [check, setCheck] = useState<string | null>(null);
 
-  const yt = async (action: "start" | "demo" | "disconnect") => {
-    setBusy(action);
+  const act = async (platform: PlatformKey, action: "start" | "demo" | "disconnect") => {
+    setBusy(`${platform}:${action}`);
     try {
-      const r = await apiFetch<{ redirect?: string }>(`/api/connections/youtube/${action}`, { body: {} });
+      const r = await apiFetch<{ redirect?: string }>(`/api/connections/${platform}/${action}`, { body: {} });
       if (r.redirect) {
         window.location.href = r.redirect;
         return;
       }
-      toast({ tone: "ok", title: action === "demo" ? "Demo-Kanal verbunden (simuliert)" : "Verbindung getrennt" });
+      toast({ tone: "ok", title: action === "demo" ? `Demo-Verbindung zu ${PLATFORMS[platform].label} hergestellt (simuliert)` : "Verbindung getrennt" });
       router.refresh();
     } catch (e) {
       toast({ tone: "error", title: "Nicht möglich", text: e instanceof ApiError ? e.message : undefined });
@@ -63,48 +101,59 @@ export function ConnectionCards({
     }
   };
 
-  const ytStatus: Status =
-    youtube.status === "connected"
+  const statusOf = (v: PlatformConnectionView): Status =>
+    v.status === "connected"
       ? { label: "Verbunden", tone: "ok" }
-      : youtube.status === "demo"
+      : v.status === "demo"
         ? { label: "Demo (simuliert)", tone: "demo" }
-        : youtube.status === "revoked" || youtube.status === "expired"
+        : v.status === "revoked" || v.status === "expired"
           ? { label: "Zugriff widerrufen", tone: "error" }
           : { label: "Nicht verbunden", tone: "muted" };
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <Card icon={<YtIcon className="size-5" />} title="YouTube-Kanal" who="Dein Kanal · offizieller Google-OAuth-Ablauf" status={ytStatus}>
-        {youtube.displayName && <p className="font-medium text-ink">{youtube.displayName}</p>}
-        <p className="mt-1">
-          {youtube.publishMode === "demo"
-            ? "Veröffentlichungen laufen im Demo-Modus und werden nur simuliert – auch mit verbundenem Kanal wird nichts hochgeladen."
-            : "Freigegebene Inhalte werden zum Termin über die YouTube Data API hochgeladen."}
-        </p>
-        <ul className="mt-3 space-y-1 text-xs text-ink-3">
-          <li className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" /> Wir fragen nie nach deinem Google-Passwort.</li>
-          <li className="flex items-center gap-1.5"><ShieldCheck className="size-3.5" /> Minimale Berechtigungen: Upload + Kanal lesen. Token verschlüsselt gespeichert.</li>
-        </ul>
-        {youtube.lastError && <p className="mt-2 text-xs text-coral-ink">{youtube.lastError}</p>}
-        <div className="mt-auto flex flex-wrap gap-2 pt-4">
-          {youtube.status !== "connected" && (
-            <Button onClick={() => yt("start")} disabled={!!busy} title={youtube.oauthConfigured ? undefined : "Google-OAuth ist vom Betreiber noch nicht eingerichtet"}>
-              {busy === "start" && <Loader2 className="size-4 animate-spin" />} Mit Google verbinden
-            </Button>
-          )}
-          {demo && youtube.status !== "demo" && youtube.status !== "connected" && (
-            <Button variant="secondary" onClick={() => yt("demo")} disabled={!!busy}>
-              Demo-Kanal verbinden
-            </Button>
-          )}
-          {(youtube.status === "connected" || youtube.status === "demo") && (
-            <Button variant="danger" onClick={() => yt("disconnect")} disabled={!!busy}>
-              {busy === "disconnect" && <Loader2 className="size-4 animate-spin" />} Trennen
-            </Button>
-          )}
-        </div>
-        {!youtube.oauthConfigured && <p className="mt-2 text-xs text-ink-3">Hinweis: GOOGLE_CLIENT_ID/SECRET sind nicht gesetzt – „Mit Google verbinden“ meldet das ehrlich.</p>}
-      </Card>
+      <div className="grid gap-5 lg:col-span-2 lg:grid-cols-3">
+        {platforms.map((v) => {
+          const copy = PLATFORM_COPY[v.platform];
+          const b = (a: string) => busy === `${v.platform}:${a}`;
+          return (
+            <Card key={v.platform} icon={<PlatformIcon platform={v.platform} className="size-6 rounded-lg" />} title={copy.title} who={copy.who} status={statusOf(v)}>
+              {v.displayName && <p className="font-medium text-ink">{v.displayName}</p>}
+              <p className="mt-1">
+                {v.publishMode === "simulated"
+                  ? "Veröffentlichungen werden nur simuliert – auch mit verbundenem Konto wird nichts hochgeladen."
+                  : copy.live}
+              </p>
+              <ul className="mt-3 space-y-1 text-xs text-ink-3">
+                {copy.safety.map((line) => (
+                  <li key={line} className="flex items-start gap-1.5">
+                    <ShieldCheck className="mt-0.5 size-3.5 shrink-0" /> {line}
+                  </li>
+                ))}
+              </ul>
+              {v.lastError && <p className="mt-2 text-xs text-coral-ink">{v.lastError}</p>}
+              <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                {v.status !== "connected" && (
+                  <Button onClick={() => act(v.platform, "start")} disabled={!!busy} title={v.configured ? undefined : `${copy.title}-Anbindung ist vom Betreiber noch nicht eingerichtet`}>
+                    {b("start") && <Loader2 className="size-4 animate-spin" />} {copy.connectLabel}
+                  </Button>
+                )}
+                {demo && v.status !== "demo" && v.status !== "connected" && (
+                  <Button variant="secondary" onClick={() => act(v.platform, "demo")} disabled={!!busy}>
+                    {b("demo") && <Loader2 className="size-4 animate-spin" />} Demo verbinden
+                  </Button>
+                )}
+                {(v.status === "connected" || v.status === "demo") && (
+                  <Button variant="danger" onClick={() => act(v.platform, "disconnect")} disabled={!!busy}>
+                    {b("disconnect") && <Loader2 className="size-4 animate-spin" />} Trennen
+                  </Button>
+                )}
+              </div>
+              {!v.configured && <p className="mt-2 text-xs text-ink-3">Hinweis: {copy.credentials} sind nicht gesetzt – „{copy.connectLabel}“ meldet das ehrlich.</p>}
+            </Card>
+          );
+        })}
+      </div>
 
       <Card
         icon={<Workflow className="size-5" />}

@@ -6,7 +6,7 @@ const schema = z.object({
   systemId: z.string().min(1),
   format: z.enum(["longform", "short"]),
   clientKey: z.string().uuid(),
-  demoScenario: z.enum(["success", "transient_failure", "permanent_failure"]).optional(),
+  demoScenario: z.enum(["success", "transient_failure", "permanent_failure", "instagram_failure"]).optional(),
 });
 
 export const POST = api(async ({ req, ctx }) => {

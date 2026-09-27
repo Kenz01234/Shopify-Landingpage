@@ -86,8 +86,10 @@ export const step3Schema = z
     voiceKey: z.string().min(1, "Bitte eine Stimme wählen"),
     longformEnabled: z.boolean(),
     shortsEnabled: z.boolean(),
+    shortPlatforms: z.array(z.enum(["youtube", "instagram", "tiktok"])).max(3),
   })
-  .refine((v) => v.longformEnabled || v.shortsEnabled, { message: "Mindestens ein Format aktivieren", path: ["longformEnabled"] });
+  .refine((v) => v.longformEnabled || v.shortsEnabled, { message: "Mindestens ein Format aktivieren", path: ["longformEnabled"] })
+  .refine((v) => !v.shortsEnabled || v.shortPlatforms.length > 0, { message: "Bitte mindestens eine Plattform für Shorts wählen", path: ["shortPlatforms"] });
 
 export const step4Base = z.object({
   longformPerPeriod: z.number().int().min(0),
@@ -107,7 +109,16 @@ export const step6Schema = z.object({
 
 export const systemInputSchema = step1Schema
   .merge(step2Schema)
-  .merge(z.object({ tone: z.string(), style: z.string(), voiceKey: z.string(), longformEnabled: z.boolean(), shortsEnabled: z.boolean() }))
+  .merge(
+    z.object({
+      tone: z.string(),
+      style: z.string(),
+      voiceKey: z.string(),
+      longformEnabled: z.boolean(),
+      shortsEnabled: z.boolean(),
+      shortPlatforms: z.array(z.enum(["youtube", "instagram", "tiktok"])).max(3).default(["youtube"]),
+    }),
+  )
   .merge(step4Base)
   .merge(step5Schema)
   .merge(step6Schema);
@@ -174,6 +185,7 @@ export const EMPTY_SYSTEM_INPUT: SystemInput = {
   voiceKey: "demo-ruhig",
   longformEnabled: true,
   shortsEnabled: true,
+  shortPlatforms: ["youtube", "instagram", "tiktok"],
   longformPerPeriod: 8,
   longformMinutes: 7,
   shortsPerPeriod: 12,

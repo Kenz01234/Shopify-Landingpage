@@ -27,6 +27,8 @@ import {
 } from "@/lib/validation/system";
 import { parseYouTubeChannel } from "@/lib/youtube-url";
 import { DEMO_VOICES } from "@/lib/voices";
+import { PLATFORM_KEYS, PLATFORMS, type PlatformKey } from "@/lib/platforms";
+import { PlatformIcon } from "@/components/brand/platform-icon";
 import { ASSUMPTIONS, PLANS, type PlanKey } from "@/lib/plans";
 import { WEEKDAYS_DE, WEEKDAYS_LONG_DE, occurrencesBetween, formatInZone, resolveLocal, adjustmentText, isValidTimeZone } from "@/lib/time";
 
@@ -46,7 +48,7 @@ const TIMEZONES = ["Europe/Berlin", "Europe/Vienna", "Europe/Zurich", "Europe/Lo
 const FIELD_STEP: Record<string, number> = {
   name: 1, niche: 1, topics: 1, audience: 1, language: 1,
   referenceChannels: 2,
-  tone: 3, style: 3, voiceKey: 3, longformEnabled: 3, shortsEnabled: 3,
+  tone: 3, style: 3, voiceKey: 3, longformEnabled: 3, shortsEnabled: 3, shortPlatforms: 3,
   longformPerPeriod: 4, longformMinutes: 4, shortsPerPeriod: 4, shortSeconds: 4,
   timezone: 5, slots: 5, slotsShort: 5,
   reviewMode: 6,
@@ -542,9 +544,51 @@ function Step3({ data, set, errors }: StepProps) {
       <fieldset className="space-y-4 rounded-2xl border border-line p-4">
         <legend className="px-1 text-sm font-semibold">Formate</legend>
         <Toggle checked={data.longformEnabled} onChange={(v) => { set("longformEnabled", v); if (!v) set("longformPerPeriod", 0); }} label="Longform-Videos (16:9)" description="Ausführliche Videos für deinen Kanal." />
+        {data.longformEnabled && (
+          <p className="-mt-2 flex items-center gap-1.5 pl-1 text-xs text-ink-3">
+            <PlatformIcon platform="youtube" className="size-4 rounded-[5px]" /> Videos erscheinen auf deinem YouTube-Kanal.
+          </p>
+        )}
         <Toggle checked={data.shortsEnabled} onChange={(v) => { set("shortsEnabled", v); if (!v) set("shortsPerPeriod", 0); }} label="Shorts (9:16)" description="Kurze Hochkant-Clips aus deinen Themen." />
+        {data.shortsEnabled && <PlatformPicker value={data.shortPlatforms} onChange={(v) => set("shortPlatforms", v)} error={errors.shortPlatforms} />}
         {errors.longformEnabled && <p className="text-sm font-medium text-coral-ink">{errors.longformEnabled}</p>}
       </fieldset>
+    </div>
+  );
+}
+
+/** Plattformen für Shorts: ein Short wird auf allen gewählten Plattformen veröffentlicht (zählt einmal im Kontingent). */
+function PlatformPicker({ value, onChange, error }: { value: PlatformKey[]; onChange: (v: PlatformKey[]) => void; error?: string }) {
+  const toggle = (p: PlatformKey) => onChange(PLATFORM_KEYS.filter((k) => (k === p ? !value.includes(k) : value.includes(k))));
+  return (
+    <div role="group" aria-label="Plattformen für Shorts" className="rounded-2xl bg-surface-2 p-3">
+      <p className="px-1 text-sm font-semibold">Shorts veröffentlichen auf</p>
+      <div className="mt-2 grid gap-2 sm:grid-cols-3">
+        {PLATFORM_KEYS.map((p) => {
+          const on = value.includes(p);
+          return (
+            <label
+              key={p}
+              className={cn(
+                "flex cursor-pointer items-start gap-2.5 rounded-xl border bg-surface p-3 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-coral/40",
+                on ? "border-coral/60 shadow-[0_0_0_1px_var(--color-coral)]" : "border-line hover:border-line-strong",
+              )}
+            >
+              <input type="checkbox" className="sr-only" checked={on} onChange={() => toggle(p)} />
+              <PlatformIcon platform={p} className="mt-0.5 size-6 rounded-lg" />
+              <span className="min-w-0">
+                <span className="flex items-center gap-1.5 text-sm font-semibold">
+                  {PLATFORMS[p].shortLabel}
+                  {on && <Check className="size-3.5 text-coral-ink" aria-hidden />}
+                </span>
+                <span className="block text-xs text-ink-3">{PLATFORMS[p].hint}</span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      <p className="mt-2 px-1 text-xs text-ink-3">Ein Short erscheint gleichzeitig auf allen gewählten Plattformen und zählt dabei nur einmal im Kontingent.</p>
+      {error && <p className="mt-1 px-1 text-sm font-medium text-coral-ink">{error}</p>}
     </div>
   );
 }
@@ -757,6 +801,9 @@ function Step7({ data, plan, onEdit }: { data: SystemInput; plan: PlanKey; onEdi
         <>
           {data.longformEnabled ? `${data.longformPerPeriod} Videos à ${data.longformMinutes} Min.` : "Keine Videos"} · {data.shortsEnabled ? `${data.shortsPerPeriod} Shorts à ${data.shortSeconds} Sek.` : "Keine Shorts"}
           <span className="text-ink-3"> (Plan {PLANS[plan].name})</span>
+          <span className="mt-1 block">
+            Plattformen: {[data.longformEnabled && "YouTube (Videos)", ...(data.shortsEnabled ? data.shortPlatforms.map((p) => PLATFORMS[p].shortLabel) : [])].filter(Boolean).join(" · ")}
+          </span>
         </>
       ),
     },

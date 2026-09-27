@@ -1,9 +1,8 @@
 import fs from "node:fs";
-import { prisma } from "@/lib/db";
-import { decryptJson, encryptJson } from "@/lib/crypto";
-import { appUrl, env } from "@/lib/env";
+import { env } from "@/lib/env";
 import { resolveStorageKey } from "@/lib/storage";
-import { ProviderError, type PublishInput, type PublishingProvider, type PublishResult } from "@/providers/types";
+import { loadTokens, markRevoked, saveTokens } from "@/providers/connection-tokens";
+import { ProviderError, type PlatformConnector, type PublishInput, type PublishingProvider, type PublishResult, type StoredTokens } from "@/providers/types";
 
 /**
  * YouTube-Adapter (Live, UNGETESTET – es liegen keine OAuth-Zugangsdaten vor).
@@ -16,29 +15,12 @@ import { ProviderError, type PublishInput, type PublishingProvider, type Publish
  */
 export const YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.readonly"];
 
-type Tokens = { access_token: string; refresh_token?: string; expires_at: number };
-
 export function youtubeConfigured() {
   const e = env();
   return !!(e.GOOGLE_CLIENT_ID && e.GOOGLE_CLIENT_SECRET && e.CREDENTIALS_ENCRYPTION_KEY);
 }
 
-export function buildAuthUrl(state: string) {
-  const e = env();
-  const p = new URLSearchParams({
-    client_id: e.GOOGLE_CLIENT_ID!,
-    redirect_uri: `${appUrl()}/api/connections/youtube/callback`,
-    response_type: "code",
-    scope: YOUTUBE_SCOPES.join(" "),
-    access_type: "offline",
-    include_granted_scopes: "true",
-    prompt: "consent",
-    state,
-  });
-  return `https://accounts.google.com/o/oauth2/v2/auth?${p}`;
-}
-
-async function tokenRequest(body: Record<string, string>): Promise<Tokens> {
+async function tokenRequest(body: Record<string, string>): Promise<StoredTokens> {
   const e = env();
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
@@ -54,10 +36,6 @@ async function tokenRequest(body: Record<string, string>): Promise<Tokens> {
   return { access_token: json.access_token, refresh_token: json.refresh_token, expires_at: Date.now() + (json.expires_in ?? 3600) * 1000 };
 }
 
-export async function exchangeCode(code: string) {
-  return tokenRequest({ code, grant_type: "authorization_code", redirect_uri: `${appUrl()}/api/connections/youtube/callback` });
-}
-
 export async function fetchOwnChannel(accessToken: string) {
   const res = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&mine=true", {
     headers: { authorization: `Bearer ${accessToken}` },
@@ -70,36 +48,52 @@ export async function fetchOwnChannel(accessToken: string) {
   return { id: ch.id, title: ch.snippet?.title ?? ch.id, uploadsPlaylist: ch.contentDetails?.relatedPlaylists?.uploads ?? null };
 }
 
-export function sealTokens(t: Tokens) {
-  return encryptJson(t);
-}
+export const youtubeConnector: PlatformConnector = {
+  platform: "youtube",
+  scopes: YOUTUBE_SCOPES,
+  configured: youtubeConfigured,
+  authUrl(state, redirectUri) {
+    const p = new URLSearchParams({
+      client_id: env().GOOGLE_CLIENT_ID!,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: YOUTUBE_SCOPES.join(" "),
+      access_type: "offline",
+      include_granted_scopes: "true",
+      prompt: "consent",
+      state,
+    });
+    return `https://accounts.google.com/o/oauth2/v2/auth?${p}`;
+  },
+  async connect(code, redirectUri) {
+    const tokens = await tokenRequest({ code, grant_type: "authorization_code", redirect_uri: redirectUri });
+    const channel = await fetchOwnChannel(tokens.access_token);
+    return { tokens, accountId: channel.id, accountName: channel.title };
+  },
+  async revoke(t) {
+    await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(t.refresh_token ?? t.access_token)}`, { method: "POST", signal: AbortSignal.timeout(10_000) });
+  },
+};
 
 async function accessTokenFor(connectionId: string) {
-  const conn = await prisma.providerConnection.findUnique({ where: { id: connectionId } });
-  if (!conn || conn.status !== "connected" || !conn.encryptedCredentials) {
-    throw new ProviderError("YOUTUBE_NOT_CONNECTED", "Kein verbundener YouTube-Kanal.", false, "youtube");
-  }
-  const t = decryptJson<Tokens>(conn.encryptedCredentials);
+  const { conn, tokens: t } = await loadTokens(connectionId, "youtube");
   if (t.expires_at - 60_000 > Date.now()) return t.access_token;
   if (!t.refresh_token) throw new ProviderError("YOUTUBE_REVOKED", "Kein Refresh-Token vorhanden – bitte neu verbinden.", false, "youtube");
   try {
     const fresh = await tokenRequest({ refresh_token: t.refresh_token, grant_type: "refresh_token" });
-    await prisma.providerConnection.update({
-      where: { id: conn.id },
-      data: { encryptedCredentials: sealTokens({ ...fresh, refresh_token: t.refresh_token }), tokenExpiresAt: new Date(fresh.expires_at), lastCheckedAt: new Date() },
-    });
+    await saveTokens(conn.id, { ...fresh, refresh_token: t.refresh_token });
     return fresh.access_token;
   } catch (e) {
-    if (e instanceof ProviderError && e.code === "YOUTUBE_REVOKED") {
-      await prisma.providerConnection.update({ where: { id: conn.id }, data: { status: "revoked", lastError: e.message } });
-    }
+    if (e instanceof ProviderError && e.code === "YOUTUBE_REVOKED") await markRevoked(conn.id, e.message);
     throw e;
   }
 }
 
-const marker = (publicationId: string) => `qa-${publicationId.slice(-12)}`;
+const marker = (targetId: string) => `qa-${targetId.slice(-12)}`;
+const videoUrl = (id: string, format: string) => (format === "short" ? `https://youtube.com/shorts/${id}` : `https://youtu.be/${id}`);
 
 export class YouTubePublishingProvider implements PublishingProvider {
+  readonly platform = "youtube" as const;
   readonly name = "youtube" as const;
   readonly mode = "live" as const;
 
@@ -110,7 +104,7 @@ export class YouTubePublishingProvider implements PublishingProvider {
     const filePath = resolveStorageKey(input.videoStorageKey);
     const size = fs.statSync(filePath).size;
     const meta = {
-      snippet: { title: input.title, description: input.description, tags: [...input.tags, marker(input.publicationId)] },
+      snippet: { title: input.title, description: input.description, tags: [...input.tags, marker(input.targetId)] },
       status: { privacyStatus: "public", selfDeclaredMadeForKids: false, containsSyntheticMedia: true },
     };
     const init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
@@ -138,7 +132,7 @@ export class YouTubePublishingProvider implements PublishingProvider {
       });
       if (put.ok) {
         const json = (await put.json()) as { id?: string };
-        if (json.id) return { status: "published", providerVideoId: json.id };
+        if (json.id) return { status: "published", providerPostId: json.id, url: videoUrl(json.id, input.format) };
       }
       return { status: "unknown", detail: `Upload-Antwort ${put.status}` };
     } catch (e) {
@@ -162,8 +156,8 @@ export class YouTubePublishingProvider implements PublishingProvider {
     const vids = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${ids}`, { headers: { authorization: `Bearer ${token}` } });
     if (!vids.ok) return { status: "unknown" as const };
     const found = ((await vids.json()) as { items?: { id: string; snippet?: { tags?: string[] } }[] }).items?.find((v) =>
-      v.snippet?.tags?.includes(marker(input.publicationId)),
+      v.snippet?.tags?.includes(marker(input.targetId)),
     );
-    return found ? { status: "published" as const, providerVideoId: found.id } : { status: "not_found" as const };
+    return found ? { status: "published" as const, providerPostId: found.id, url: videoUrl(found.id, input.format) } : { status: "not_found" as const };
   }
 }

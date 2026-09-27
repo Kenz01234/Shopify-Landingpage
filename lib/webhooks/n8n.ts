@@ -47,6 +47,8 @@ export const n8nCallbackSchema = z.object({
       script: z.string().max(60000),
       tags: z.array(z.string().max(60)).max(30),
       thumbnailText: z.string().max(60),
+      /** Optional: Beitragstext für Instagram/TikTok (Shorts) */
+      caption: z.string().max(2200).optional(),
       sources: z.array(sourceSchema).max(50),
       media: z.array(mediaSchema).max(10),
     })
@@ -129,6 +131,7 @@ export async function handleN8nCallback(raw: string, headers: Headers): Promise<
             script: r.script,
             tags: r.tags,
             thumbnailText: r.thumbnailText,
+            caption: r.caption,
             sources: r.sources,
             pendingMedia: r.media,
             generation: job.revisionCount + 1,

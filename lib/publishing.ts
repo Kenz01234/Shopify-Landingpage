@@ -3,18 +3,24 @@ import { prisma, type Db, type Tx } from "@/lib/db";
 import { AppError, conflict, isUniqueViolation, notFound } from "@/lib/errors";
 import { orgNow } from "@/lib/clock";
 import { nextFreeOccurrences, formatInZone, adjustmentText, type SlotAdjustment } from "@/lib/time";
-import { occupiedSlots, transitionJob, type Ctx } from "@/lib/jobs/service";
+import { MIN_LEAD_MS, occupiedSlots, slotKeyFor, transitionJob, type Ctx } from "@/lib/jobs/service";
 import { isEntitled, entitlementReason } from "@/lib/billing/subscription";
-import { env } from "@/lib/env";
 import { audit } from "@/lib/audit";
+import { platformsFor, type PlatformKey } from "@/lib/platforms";
+import { platformPublishMode } from "@/providers";
+import type { ConfigSnapshot } from "@/providers/types";
 
-/** Mindestvorlauf für einen Termin – verhindert „sofort“-Veröffentlichungen aus Versehen. */
-export const MIN_LEAD_MS = 2 * 60_000;
+export { MIN_LEAD_MS, slotKeyFor } from "@/lib/jobs/service";
 
-export const slotKeyFor = (systemId: string, format: ContentFormat, at: Date) => `${systemId}:${format}:${at.toISOString()}`;
+/** Plattformen eines Auftrags laut Konfigurations-Snapshot (ältere Snapshots: nur YouTube). */
+export function jobPlatforms(job: Pick<ProductionJob, "format" | "configSnapshot">): PlatformKey[] {
+  const snap = job.configSnapshot as unknown as Partial<ConfigSnapshot> | null;
+  return platformsFor(job.format, snap?.shortPlatforms);
+}
 
-export function publicationMode(): "simulated" | "live" {
-  return env().PUBLISH_PROVIDER === "youtube" ? "live" : "simulated";
+/** Gesamtmodus einer Veröffentlichung: „live“, sobald mindestens eine Plattform echt veröffentlicht. */
+export function publicationMode(platforms: PlatformKey[]): "simulated" | "live" {
+  return platforms.some((p) => platformPublishMode(p) === "live") ? "live" : "simulated";
 }
 
 export async function freeSlotsForJob(ctx: Ctx, jobId: string, count = 6) {
@@ -68,11 +74,12 @@ export async function assertSchedulable(
   if (clash) throw conflict("Zu diesem Zeitpunkt ist in diesem System bereits eine Veröffentlichung dieses Formats geplant.");
 }
 
-/** Legt die Veröffentlichung an (innerhalb der Freigabe-Transaktion). */
+/** Legt die Veröffentlichung samt Ziel je Plattform an (innerhalb der Freigabe-Transaktion). */
 export async function createPublication(
   tx: Tx,
   p: { job: ProductionJob; versionId: string; approvalId: string; at: Date },
 ) {
+  const platforms = jobPlatforms(p.job);
   try {
     return await tx.publication.create({
       data: {
@@ -84,11 +91,15 @@ export async function createPublication(
         format: p.job.format,
         scheduledAt: p.at,
         status: "scheduled",
-        mode: publicationMode(),
+        mode: publicationMode(platforms),
         slotKey: slotKeyFor(p.job.systemId, p.job.format, p.at),
         activeJobKey: p.job.id,
         idempotencyKey: `pub:${p.job.id}:${p.approvalId}`,
+        targets: {
+          create: platforms.map((platform) => ({ organizationId: p.job.organizationId, platform, mode: platformPublishMode(platform) })),
+        },
       },
+      include: { targets: true },
     });
   } catch (e) {
     if (isUniqueViolation(e)) throw conflict("Der Termin ist inzwischen belegt oder der Auftrag ist bereits eingeplant.");
@@ -146,7 +157,7 @@ export const HELD_REASON_DE: Record<string, string> = {
   system_paused: "System ist pausiert – Veröffentlichung wird zurückgehalten.",
   subscription_inactive: "Abo nicht aktiv – Veröffentlichung wird zurückgehalten.",
   slot_passed: "Der Termin ist verstrichen – bitte neuen Termin bestätigen.",
-  not_connected: "Kein YouTube-Kanal verbunden.",
+  not_connected: "Eine Plattform ist nicht verbunden – bitte unter „Verbindungen“ verbinden.",
 };
 
 export type CalendarItem = {
@@ -164,13 +175,18 @@ export type CalendarItem = {
   timezone: string;
   heldReason?: string | null;
   slotMissed?: boolean;
+  platforms: { platform: PlatformKey; status: string }[];
 };
 
 export async function calendarItems(orgId: string, from: Date, to: Date): Promise<CalendarItem[]> {
   const [pubs, pending] = await Promise.all([
     prisma.publication.findMany({
       where: { organizationId: orgId, scheduledAt: { gte: from, lt: to }, status: { not: "cancelled" } },
-      include: { system: { select: { name: true, timezone: true } }, version: { select: { title: true } } },
+      include: {
+        system: { select: { name: true, timezone: true } },
+        version: { select: { title: true } },
+        targets: { select: { platform: true, status: true }, orderBy: { platform: "asc" } },
+      },
       orderBy: { scheduledAt: "asc" },
     }),
     prisma.productionJob.findMany({
@@ -197,6 +213,7 @@ export async function calendarItems(orgId: string, from: Date, to: Date): Promis
     title: p.version.title,
     timezone: p.system.timezone,
     heldReason: p.heldReason,
+    platforms: p.targets.map((t) => ({ platform: t.platform as PlatformKey, status: t.status })),
   }));
   for (const j of pending) {
     items.push({
@@ -211,6 +228,7 @@ export async function calendarItems(orgId: string, from: Date, to: Date): Promis
       title: j.currentVersion?.title ?? j.topic ?? "Thema wird recherchiert",
       timezone: j.system.timezone,
       slotMissed: !!j.slotMissedAt,
+      platforms: jobPlatforms(j).map((platform) => ({ platform, status: "planned" })),
     });
   }
   return items.sort((a, b) => a.at.localeCompare(b.at));

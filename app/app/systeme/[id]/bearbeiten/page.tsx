@@ -40,6 +40,7 @@ export default async function EditSystemPage({ params }: { params: Promise<{ id:
           voiceKey: system.voiceKey,
           longformEnabled: system.longformEnabled,
           shortsEnabled: system.shortsEnabled,
+          shortPlatforms: system.shortPlatforms,
           longformPerPeriod: system.longformPerPeriod,
           longformMinutes: system.longformMinutes,
           shortsPerPeriod: system.shortsPerPeriod,

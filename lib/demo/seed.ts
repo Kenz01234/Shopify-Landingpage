@@ -10,6 +10,7 @@ import { fixtures } from "@/providers/demo/fixtures";
 import { findDemoVoice } from "@/lib/voices";
 import { parseYouTubeChannel } from "@/lib/youtube-url";
 import type { ConfigSnapshot } from "@/providers/types";
+import { platformsFor, type PlatformKey } from "@/lib/platforms";
 
 /**
  * Idempotentes Demo-Seeding. Legt nur Demo-Konten an (isDemo = true) und nur im Demo-Modus.
@@ -60,6 +61,7 @@ type SystemSpec = {
   reviewMode: ReviewMode;
   refs: string[];
   slots: { format: ContentFormat; weekday: number; localTime: string }[];
+  shortPlatforms: PlatformKey[];
 };
 
 async function createSystem(orgId: string, s: SystemSpec) {
@@ -83,6 +85,7 @@ async function createSystem(orgId: string, s: SystemSpec) {
       shortSeconds: s.shortSeconds,
       timezone: "Europe/Berlin",
       reviewMode: s.reviewMode,
+      shortPlatforms: s.shortPlatforms,
       // Erst nach dem Seeden aktivieren: sonst belegt ein parallel laufender Scheduler dieselben Slots
       status: "paused",
       activatedAt: new Date(Date.now() - 20 * 86400000),
@@ -213,6 +216,7 @@ async function seedJob(system: Awaited<ReturnType<typeof createSystem>>, sub: Aw
         script: script.script,
         thumbnailText: script.thumbnailText,
         tags: script.tags,
+        caption: spec.format === "short" ? (script.caption ?? null) : null,
         sources: research.sources as unknown as Prisma.InputJsonValue,
         autoCheck: check as unknown as Prisma.InputJsonValue,
         createdByType: "system",
@@ -247,6 +251,17 @@ async function seedJob(system: Awaited<ReturnType<typeof createSystem>>, sub: Aw
           providerVideoId: active ? null : `demo-${job.id.slice(-10)}`,
           publishedAt: active ? null : spec.publish.at,
           attempt: active ? 0 : 1,
+          targets: {
+            create: platformsFor(spec.format, system.shortPlatforms as PlatformKey[]).map((platform) => ({
+              organizationId: system.organizationId,
+              platform,
+              mode: "simulated" as const,
+              status: active ? ("pending" as const) : ("simulated" as const),
+              providerPostId: active ? null : `demo-${platform.slice(0, 2)}-${job.id.slice(-10)}`,
+              publishedAt: active ? null : spec.publish!.at,
+              attempt: active ? 0 : 1,
+            })),
+          },
         },
       });
     }
@@ -329,6 +344,7 @@ export async function seedDemoData() {
     shortSeconds: 45,
     reviewMode: "final_only",
     refs: ["@demo-referenz-kosmos", "https://www.youtube.com/@demo-referenz-wissen"],
+    shortPlatforms: ["youtube", "instagram", "tiktok"],
     slots: [
       { format: "longform", weekday: 1, localTime: "18:00" },
       { format: "longform", weekday: 3, localTime: "18:00" },
@@ -352,6 +368,7 @@ export async function seedDemoData() {
     shortSeconds: 40,
     reviewMode: "topic_and_final",
     refs: ["@demo-referenz-geschichte"],
+    shortPlatforms: ["youtube", "tiktok"],
     slots: [
       { format: "longform", weekday: 4, localTime: "19:00" },
       { format: "short", weekday: 7, localTime: "11:00" },
@@ -363,6 +380,7 @@ export async function seedDemoData() {
   const longSlots = occurrencesBetween(kosmos.slots.filter((s) => s.format === "longform"), "Europe/Berlin", now, horizon);
   const shortSlots = occurrencesBetween(kosmos.slots.filter((s) => s.format === "short"), "Europe/Berlin", now, horizon);
   const pastLong = nextFreeOccurrences(kosmos.slots, "Europe/Berlin", "longform", new Date(now.getTime() - 6 * 86400000), new Set(), 1)[0];
+  const pastShort = nextFreeOccurrences(kosmos.slots, "Europe/Berlin", "short", new Date(now.getTime() - 5 * 86400000), new Set(), 1)[0];
 
   await seedJob(kosmos, sub1, {
     format: "longform",
@@ -370,6 +388,13 @@ export async function seedDemoData() {
     slotAt: pastLong.utc,
     events: ["Automatisch für den nächsten Slot angelegt.", "Demoproduktion abgeschlossen.", "Version 1 freigegeben.", "Demo-Veröffentlichung simuliert – nichts wurde zu YouTube hochgeladen."],
     publish: { at: pastLong.utc, status: "simulated" },
+  }, kunde.id);
+  await seedJob(kosmos, sub1, {
+    format: "short",
+    status: "published",
+    slotAt: pastShort.utc,
+    events: ["Automatisch für den nächsten Slot angelegt.", "Demoproduktion abgeschlossen.", "Version 1 freigegeben.", "Demo-Veröffentlichung auf YouTube, Instagram, TikTok simuliert – nichts wurde hochgeladen."],
+    publish: { at: pastShort.utc, status: "simulated" },
   }, kunde.id);
   await seedJob(kosmos, sub1, {
     format: "longform",
@@ -414,8 +439,15 @@ export async function seedDemoData() {
     events: ["Automatisch für den nächsten Slot angelegt.", "Themenvorschlag wartet auf deine Bestätigung."],
   }, kunde.id);
 
-  await prisma.providerConnection.create({
-    data: { organizationId: org1.id, provider: "youtube", mode: "demo", status: "demo", displayName: "Demo-Kanal (simuliert)", scopes: [] },
+  await prisma.providerConnection.createMany({
+    data: (["youtube", "instagram", "tiktok"] as const).map((provider) => ({
+      organizationId: org1.id,
+      provider,
+      mode: "demo",
+      status: "demo" as const,
+      displayName: `Demo-${provider === "youtube" ? "Kanal" : "Konto"} (simuliert)`,
+      scopes: [],
+    })),
   });
 
   // --- Kunde 2: Starter-Plan, eigenes System (für Mandantentrennung)
@@ -435,6 +467,7 @@ export async function seedDemoData() {
     shortSeconds: 30,
     reviewMode: "final_only",
     refs: ["@demo-referenz-meer", "@demo-referenz-natur"],
+    shortPlatforms: ["youtube", "instagram"],
     slots: [
       { format: "longform", weekday: 2, localTime: "17:30" },
       { format: "short", weekday: 5, localTime: "08:00" },

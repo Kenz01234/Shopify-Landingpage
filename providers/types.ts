@@ -1,4 +1,5 @@
 import type { ContentFormat, RightsStatus } from "@/generated/prisma/client";
+import type { PlatformKey } from "@/lib/platforms";
 
 /** Fehler eines (echten oder simulierten) Dienstes – mit verständlicher Meldung. */
 export class ProviderError extends Error {
@@ -53,6 +54,8 @@ export type ConfigSnapshot = {
   timezone: string;
   reviewMode: "final_only" | "topic_and_final" | "script_and_final";
   referenceChannels: string[];
+  /** Plattformen für Shorts (fehlt in älteren Snapshots → nur YouTube) */
+  shortPlatforms?: PlatformKey[];
 };
 
 export type WorkingData = {
@@ -67,6 +70,8 @@ export type WorkingData = {
   description?: string;
   tags?: string[];
   thumbnailText?: string;
+  /** Beitragstext für Instagram/TikTok (Shorts) */
+  caption?: string;
   scene?: string;
   audioAssetId?: string;
   generation?: number;
@@ -75,7 +80,7 @@ export type WorkingData = {
 };
 
 export type ResearchResult = { topic: string; proposals: string[]; summary: string; sources: SourceNote[]; scene: string };
-export type ScriptResult = { script: string; title: string; description: string; tags: string[]; thumbnailText: string };
+export type ScriptResult = { script: string; title: string; description: string; tags: string[]; thumbnailText: string; caption?: string };
 
 export type MediaResult = {
   kind: "video" | "short" | "audio";
@@ -112,27 +117,57 @@ export interface VoiceProvider {
   synthesize(ctx: JobContext, text: string): Promise<MediaResult>;
 }
 
+export type { PlatformKey };
+
 export type PublishInput = {
+  /** Plattform-Ziel – dient zugleich als Idempotenz-Markierung beim Abgleich */
+  targetId: string;
   publicationId: string;
   orgId: string;
+  platform: PlatformKey;
   title: string;
   description: string;
+  /** Beitragstext für Instagram/TikTok */
+  caption: string;
   tags: string[];
   format: ContentFormat;
   scheduledAt: Date;
   videoStorageKey: string | null;
+  /** Nur Instagram: befristeter, signierter HTTPS-Link auf das Video (Instagram lädt es selbst herunter) */
+  publicVideoUrl?: string | null;
   connectionId: string | null;
+  /** Zwischen-ID eines früheren, unklaren Uploads (Abgleich) */
+  uploadId?: string | null;
+  /** Wird sofort aufgerufen, sobald die Plattform eine Upload-ID vergibt – damit ein Absturz nie zu einem Doppel-Upload führt */
+  onUploadId?: (id: string) => Promise<void>;
+  /** Nur Demo: diese Plattform schlägt beim ersten Versuch fehl */
+  demoFail?: boolean;
 };
 
 export type PublishResult =
-  | { status: "simulated"; providerVideoId: string }
-  | { status: "published"; providerVideoId: string }
+  | { status: "simulated" | "published"; providerPostId: string; url?: string | null }
   | { status: "unknown"; detail: string };
 
+export type ReconcileResult = { status: "published"; providerPostId: string; url?: string | null } | { status: "not_found" } | { status: "unknown" };
+
 export interface PublishingProvider {
-  readonly name: "demo" | "youtube";
+  readonly platform: PlatformKey;
+  readonly name: "demo" | PlatformKey;
   readonly mode: "demo" | "live";
   publish(input: PublishInput): Promise<PublishResult>;
   /** Klärt einen unklaren Upload ab – ohne erneut hochzuladen. */
-  reconcile(input: PublishInput): Promise<{ status: "published"; providerVideoId: string } | { status: "not_found" } | { status: "unknown" }>;
+  reconcile(input: PublishInput): Promise<ReconcileResult>;
+}
+
+/** Gespeicherte (verschlüsselte) OAuth-Tokens einer Plattform-Verbindung */
+export type StoredTokens = { access_token: string; refresh_token?: string; expires_at: number; refresh_expires_at?: number; user_id?: string };
+
+/** OAuth-Anbindung einer Plattform für die Verbindungsseite */
+export interface PlatformConnector {
+  readonly platform: PlatformKey;
+  readonly scopes: string[];
+  configured(): boolean;
+  authUrl(state: string, redirectUri: string): string;
+  connect(code: string, redirectUri: string): Promise<{ tokens: StoredTokens; accountId: string; accountName: string }>;
+  revoke?(tokens: StoredTokens): Promise<void>;
 }

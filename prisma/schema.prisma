@@ -112,6 +112,8 @@ model Organization {
   assets        Asset[]
   approvals     Approval[]
   publications  Publication[]
+  publicationTargets PublicationTarget[]
+  shopifyOrders ShopifyOrder[]
   quotaCounters QuotaCounter[]
   quotaEntries  QuotaEntry[]
   connections   ProviderConnection[]
@@ -264,6 +266,8 @@ model ChannelSystem {
   shortSeconds      Int
   timezone          String        @default("Europe/Berlin")
   reviewMode        ReviewMode    @default(final_only)
+  /// Plattformen für Shorts (Longform geht immer zu YouTube)
+  shortPlatforms    Platform[]    @default([youtube])
   status            SystemStatus  @default(active)
   /// Wird bei jeder Konfigurationsänderung erhöht; Aufträge speichern einen Snapshot.
   configVersion     Int           @default(1)
@@ -435,6 +439,8 @@ model ContentVersion {
   script           String
   thumbnailText    String
   tags             String[]
+  /// Beitragstext für Instagram/TikTok (Shorts); leer = aus Titel und Tags abgeleitet
+  caption          String?
   /// Quellen- und Materialhinweise inkl. Rechtestatus je Eintrag
   sources          Json          @default("[]")
   /// Ergebnis der automatischen Prüfung (keine menschliche Freigabe)
@@ -580,9 +586,75 @@ model Publication {
   system       ChannelSystem  @relation(fields: [systemId], references: [id], onDelete: Cascade)
   version      ContentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
   approval     Approval       @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+  targets      PublicationTarget[]
 
   @@index([status, scheduledAt])
   @@index([organizationId, scheduledAt])
+}
+
+enum Platform {
+  youtube
+  instagram
+  tiktok
+}
+
+enum TargetStatus {
+  pending
+  publishing
+  reconciling
+  simulated
+  published
+  failed
+}
+
+/// Ziel einer Veröffentlichung auf genau einer Plattform. Termin, Slot und Freigabe liegen an der Publication;
+/// jede Plattform hat eigenen Status, eigene Beitrags-ID und eigenen Abgleich (nie doppelt hochladen).
+model PublicationTarget {
+  id               String          @id @default(cuid())
+  organizationId   String
+  publicationId    String
+  platform         Platform
+  mode             PublicationMode
+  status           TargetStatus    @default(pending)
+  /// ID des Beitrags bei der Plattform (Demo: „demo-…“)
+  providerPostId   String?
+  /// Zwischen-ID eines Uploads (Instagram-Container, TikTok-publish_id) – für den Abgleich ohne Neu-Upload
+  providerUploadId String?
+  url              String?
+  attempt          Int             @default(0)
+  lastError        String?
+  publishedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  publication  Publication  @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  @@unique([publicationId, platform])
+  @@index([organizationId])
+}
+
+/// Kauf eines Plans über Shopify (Webhook orders/paid). Ohne passendes Konto wartet der Kauf,
+/// bis sich jemand mit derselben E-Mail-Adresse registriert.
+model ShopifyOrder {
+  id             String        @id @default(cuid())
+  shopDomain     String
+  orderId        String
+  orderName      String?
+  email          String
+  plan           PlanKey
+  periodStart    DateTime
+  periodEnd      DateTime
+  /// paid | cancelled
+  status         String
+  organizationId String?
+  claimedAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@unique([shopDomain, orderId])
+  @@index([email, status])
 }
 
 model JobEvent {
@@ -606,6 +678,8 @@ model JobEvent {
 
 enum ProviderKey {
   youtube
+  instagram
+  tiktok
   n8n
   elevenlabs
   telegram

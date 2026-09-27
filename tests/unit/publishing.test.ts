@@ -92,6 +92,8 @@ describe("Veröffentlichung & Scheduler", () => {
     await approve(ctx, job.id, { versionId: job.currentVersionId!, stage: "final", scheduledAt: slots.slots[0].at });
     const pub = await prisma.publication.findFirstOrThrow({ where: { jobId: job.id } });
     await prisma.publication.update({ where: { id: pub.id }, data: { status: "publishing", lockedUntil: new Date(Date.now() - 1000) } });
+    // Absturz mitten im YouTube-Upload: das Ziel steht auf „publishing“
+    await prisma.publicationTarget.updateMany({ where: { publicationId: pub.id }, data: { status: "publishing", attempt: 1 } });
     await prisma.productionJob.update({ where: { id: job.id }, data: { status: "publishing" } });
     expect(await recoverStalePublishing()).toBeGreaterThanOrEqual(1);
     expect((await prisma.publication.findUniqueOrThrow({ where: { id: pub.id } })).status).toBe("reconciling");
