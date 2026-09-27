@@ -57,9 +57,9 @@ Passwort: Wert von `DEMO_PASSWORD` (Standard in `.env.example`: `QuestDemo-2026!
 ## Tests
 
 ```bash
-npm test               # Vitest: 57 Backend-Tests auf je Lauf neu angelegter Test-DB (quest_agent_test_run_*)
+npm test               # Vitest: 59 Backend-Tests auf je Lauf neu angelegter Test-DB (quest_agent_test_run_*)
 npm run typecheck
-npx playwright test    # E2E gegen laufende App (+ Worker; startet ggf. selbst) – setzt nur Demo-Konten zurück
+npx playwright test    # 21 E2E-Tests gegen laufende App (+ Worker; startet ggf. selbst) – setzt nur Demo-Konten zurück
 ```
 
 Ergebnisse und Befehle: [docs/PRUEFBERICHT.md](docs/PRUEFBERICHT.md). Screenshots der tatsächlichen Umsetzung: [`docs/screenshots/`](docs/screenshots/).

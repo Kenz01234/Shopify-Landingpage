@@ -1,0 +1,125 @@
+# Prüfbericht
+
+Stand: 27.09.2026. Alle Angaben beziehen sich auf Läufe in der lokalen Entwicklungsumgebung dieses Projekts. Nichts davon ist ein öffentliches Deployment. Es wurden **keine** echten Zahlungen, YouTube-Uploads, ElevenLabs-Aufrufe oder Änderungen an einer n8n-Instanz ausgelöst.
+
+Die Einteilung ist streng:
+
+- **Lokal bestanden** = Befehl ausgeführt, Ergebnis gesehen.
+- **Ungetestet** = nicht ausgeführt, meist weil Zugangsdaten oder ein echtes Konto fehlen.
+- **Offen** = bekannte Einschränkung oder Entscheidung.
+
+## Umgebung
+
+| Komponente | Version |
+| --- | --- |
+| Node.js | 22.22.2 |
+| PostgreSQL (nativ) | 16.13 |
+| PostgreSQL (Docker) | `postgres:16-alpine` |
+| Docker / Compose | 29.3.1 / v2 |
+| Next.js / React | 16.3.6 / 19.3 |
+| Prisma | 7.10 (Treiber-Adapter `@prisma/adapter-pg`) |
+| Better Auth | 1.7.6 |
+| Vitest | 5.0.2 |
+| Playwright | 1.56.1, nur Chromium |
+| TypeScript | 5.9 |
+
+## Ausgeführte Befehle und Ergebnisse
+
+| Befehl | Ergebnis |
+| --- | --- |
+| `npm run typecheck` | ✅ keine Fehler |
+| `npm run build` | ✅ Produktions-Build erfolgreich |
+| `npm test` (Vitest) | ✅ **59 von 59** Tests in 11 Dateien bestanden, ca. 15 s. Jeder Lauf nutzt eine frisch angelegte Test-Datenbank (`quest_agent_test_run_<Zeitstempel>`), die danach gelöscht wird. |
+| `npx playwright test` (gegen `next start` + Worker) | ✅ **21 von 21** Tests bestanden, ca. 2,4 min. Zwei Läufe direkt nacheinander waren beide grün. |
+| `npm run setup` auf leerer Datenbank | ✅ Migration `20260927150829_init` und Demo-Seed erfolgreich. Erneuter Aufruf ist idempotent: Seed wird übersprungen, keine Fehler. |
+| `npx tsx prisma/seed.ts --reset` bei laufendem Worker, 3× | ✅ ohne Fehler. Danach sind alle Demo-Systeme aktiv und haben keine doppelten Slot-Aufträge. |
+| `docker compose up --build` auf leeren Volumes | ✅ `db` gesund, `migrate` hat Migration und Seed ausgeführt, `app` antwortet mit HTTP 200, `worker` läuft (Heartbeat). Hinweis zum Build siehe „Offen“. |
+| `docker compose restart` | ✅ ein zuvor im Funnel angelegtes System („Tiefsee Test“) und der Login dieses Kontos waren danach erhalten |
+| Nativer Neustart von App und Worker | ✅ Login eines vor dem Neustart angelegten Funnel-Kontos: HTTP 200. System „Tiefsee Test“ ist aktiv, mit 2 Referenzkanälen und 5 Slots. |
+| Secret-Suche in `.next/static` | ✅ 0 Treffer für die Werte von `BETTER_AUTH_SECRET`, `DEMO_PASSWORD`, `CREDENTIALS_ENCRYPTION_KEY` und `DATABASE_URL` |
+| Secret-Suche in den App- und Worker-Logs | ✅ 0 Treffer für `BETTER_AUTH_SECRET` und `DEMO_PASSWORD` |
+| `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 262 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
+| `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 95 KB |
+| Shopify Theme Check (`@shopify/theme-check-node` 3.29.1) auf `shopify/` | ✅ 0 Befunde. Die Section hat 40 Einstellungen und liegt damit unter dem Shopify-Limit. |
+| Vorschau der Section mit LiquidJS, hell und dunkel, 1440 px und 390 px | ✅ rendert. Das ist nur eine Näherung, **kein** echter Shopify-Shop (siehe „Ungetestet“). |
+
+## Abnahmeszenarien (Abschnitt 11 des Auftrags)
+
+| # | Szenario | Status | Nachweis |
+| --- | --- | --- | --- |
+| 1 | Frischer lokaler Start, Migration und Seed | ✅ lokal bestanden | `npm run setup` auf leerer Datenbank; `docker compose up --build` auf leeren Volumes |
+| 2 | Registrierung, Login, Logout, Demo-Einstieg; Demo-Konten nicht im Produktionsbetrieb aktiv | ✅ lokal bestanden | E2E `funnel` (Registrierung), `account` (Passwort-Login und Logout, danach ist `/app` gesperrt), `helpers.demoLogin` (Demo-Einstieg), `a11y` (Fehlermeldungen). Ohne `DEMO_MODE=true` legt der Seed keine Demo-Konten an. In Produktion bricht der Start mit `DEMO_MODE` ab, außer `ALLOW_DEMO_IN_PRODUCTION` ist gesetzt (`lib/env.ts`). |
+| 3 | System mit Nische, zwei Referenzkanälen und getrennten Longform- und Shorts-Zeitplänen | ✅ lokal bestanden | E2E `funnel`: Wizard mit „Video-Slots (Longform)“ und „Shorts-Slots“, zwei Kanäle |
+| 4 | Nach Reload und Serverneustart bleiben System und Konfiguration erhalten | ✅ lokal bestanden | E2E `funnel` (Reload); nativer Neustart und `docker compose restart` (siehe oben) |
+| 5 | Demo-Auftrag läuft über den Worker bis zur Freigabe; Status kommt aus dem Backend | ✅ lokal bestanden | E2E `approval` Test 2 (Worker bis `awaiting_approval`, Kontingent verbucht); Unit `worker.test.ts` |
+| 6 | Inhaltsänderung erzeugt eine neue Version und entzieht der alten Freigabe die Gültigkeit | ✅ lokal bestanden | E2E `approval` Test 1 (neue Version); Unit `review.test.ts` („entzieht einer Freigabe die Gültigkeit …“, „lehnt Freigabe einer veralteten Version ab“) |
+| 7 | Freigabe plant ein; ohne Freigabe keine Veröffentlichung, auch bei fälligem Slot | ✅ lokal bestanden | E2E `approval` Test 1; Unit `publishing.test.ts` („veröffentlicht ohne Freigabe nichts …“) |
+| 8 | Demo-Veröffentlichung nachvollziehbar und sichtbar simuliert; Demo-Zeitsteuerung | ✅ lokal bestanden | E2E `approval` Test 1: Kalender → „Fällige Demo-Jobs ausführen“ → Worker setzt Publication auf `simulated`, Job auf `published` |
+| 9 | Pausieren: keine neuen Zyklen, geplante Veröffentlichungen zurückhalten | ✅ lokal bestanden | Unit `publishing.test.ts` („hält … bei pausiertem System zurück“, „pausierte Systeme erzeugen keine neuen Zyklen“); E2E `account` (Pausieren und Fortsetzen über die Oberfläche, bleibt nach Reload erhalten) |
+| 10 | Kontingente auch bei parallelen Requests nicht überschreitbar; Wiederholungen buchen nicht doppelt | ✅ lokal bestanden | Unit `quota.test.ts` (40 parallele Reservierungen, Idempotenz, doppeltes Absenden, Retry) |
+| 11 | Zweiter Benutzer kann fremde Systeme, Jobs, Medien und Adminfunktionen weder lesen noch ändern, auch nicht per manipulierter URL | ✅ lokal bestanden | E2E `isolation` (404 für fremde Seiten und APIs inkl. Medien und Thumbnails, 404 für Admin, 403 bei fremder Herkunft, 401 ohne Anmeldung); Unit `tenancy.test.ts` |
+| 12 | Doppelte Webhooks, verspätete Ergebnisse und Worker-Neustart führen nicht zu doppelten Aufträgen oder Credits | ✅ lokal bestanden | Unit `webhooks.test.ts` (n8n-Duplikate, verspätete und fremde Läufe, Stripe-Idempotenz und Reihenfolge); `worker.test.ts` (abgelaufene Lease nach Absturz, gleichzeitige Claims); `publishing.test.ts` (kein erneuter Upload nach Absturz, Abgleich) |
+| 13 | Planwechsel und Kündigung im Demo-Modus bedienbar und persistent; echte Zahlung getrennt | ✅ Demo lokal bestanden · ⚪ echte Zahlung ungetestet | Unit `billing.test.ts`; E2E `funnel` (Demo-Checkout), `account` (Kündigen und Zurücknehmen, bleibt nach Reload erhalten). Stripe-Testmodus siehe „Ungetestet“. |
+| 14 | Desktop und Mobil bei 360, 390, 768 und 1440 px; keine abgeschnittene Navigation, kein abgeschnittener Kalender, keine abgeschnittenen Dialoge | ✅ lokal bestanden (mit Einschränkung) | E2E `responsive`: 8 Tests, 9 öffentliche und 11 App-Seiten je Breite ohne horizontalen Überlauf, mobile Menüs bedienbar. Dialoge wurden in diesen Breiten nur stichprobenartig per Screenshot geprüft, nicht systematisch. |
+| 15 | Alle sichtbaren Buttons wirken sinnvoll; Tastatur, Fokus, reduzierte Bewegung, Lade- und Fehlerzustände | 🟡 teilweise automatisiert | E2E `a11y`: Skip-Link, Fokus bis zum CTA, Hero bei `prefers-reduced-motion` schrittweise bedienbar, Dunkelmodus bleibt erhalten, Formularfehler. Die Hauptabläufe sind durch die übrigen E2E-Tests abgedeckt. Es gibt **keinen** automatisierten Klick-Test aller Buttons. Nicht angebundene Live-Funktionen sind im Demo-Modus deaktiviert oder als „Demo“ gekennzeichnet. |
+| 16 | Keine Secrets im Frontend, in Logs oder im ZIP; Build und Tests ausführen | ✅ lokal bestanden | Secret-Suchen siehe oben; Build, Vitest, Playwright |
+
+## Im Zuge der Prüfung gefundene und behobene Fehler
+
+- **Race zwischen Demo-Seed und laufendem Scheduler.**
+  - Symptom: `seed --reset` brach sporadisch mit `Unique constraint failed … ProductionJob_idempotencyKey_key` ab, weil der Scheduler dieselben Slots schon belegt hatte.
+  - Fix: Der Seed legt Systeme pausiert an und aktiviert sie erst am Ende.
+  - Betrifft auch „Demo zurücksetzen“ im Admin-Bereich bei laufendem Worker.
+- **Freigabe-Bestätigung verschwand.**
+  - Symptom: „Eingeplant für …“ blitzte nur auf, weil nach dem Neuladen der Daten der Freigegeben-Zustand die Bestätigung ersetzte. Der E2E-Test schlug deshalb in 2 von 3 Gesamtläufen fehl.
+  - Fix: Der serverseitige Zustand zeigt jetzt dauerhaft „Eingeplant für &lt;Termin&gt;“.
+- **Hero-Animation.** Ein Klick auf „Den Loop entdecken“ während Phase 0 hielt den Timer an. Behoben.
+- **Horizontaler Überlauf bei 360 px.** Header-Button, Übersichts-Grid und Buttons ohne Umbruch verursachten Überlauf. Behoben.
+- **Seitenleiste im Kundenbereich.** Der Hintergrund endete bei langen Seiten nach einer Bildschirmhöhe. Behoben.
+
+## Ungetestet (bewusst, fehlende Zugänge oder Auftrag)
+
+- **n8n live:** kein Workflow und keine Webhook-URL vorhanden. Getestet sind nur der Vertrag (HMAC, Zeitfenster, Idempotenz) und der Demo-Adapter. Die laufende n8n-Produktion wurde nicht angefasst.
+- **ElevenLabs:** kein API-Schlüssel. Der Adapter ist geschrieben, wurde aber nie gegen die API ausgeführt.
+- **YouTube Data API und Google OAuth:** keine Client-ID. Kein echter Upload.
+- **Stripe:** kein Testmodus-Schlüssel. Checkout, Portal und Webhook-Signaturprüfung sind gegen die Stripe-Bibliothek implementiert. Die Webhook-Verarbeitung ist per Unit-Test mit Testereignissen geprüft, die über `stripe.webhooks.generateTestHeaderString` signiert wurden, **nicht** gegen Stripe selbst.
+- **Echter Shopify-Shop:** Die Section ist per Theme Check und LiquidJS-Vorschau geprüft, aber nicht in einem echten Theme-Editor.
+- **Andere Browser:** Firefox und Safari/WebKit wurden nicht getestet, nur Chromium.
+- **Screenreader:** Tests mit NVDA oder VoiceOver wurden nicht durchgeführt.
+- **Lighthouse und Performance-Messung:** nicht durchgeführt. Geprüft wurde im Code nur, dass die Animationen `transform`, `opacity` und beim roten Faden die SVG-Strichlänge (`stroke-dashoffset`) nutzen, also keine Layout-Eigenschaften, und dass sie reduzierte Bewegung respektieren.
+- **E-Mail-Versand:** nicht angebunden. Die Verifizierung ist aus.
+- **Last- und Dauerbetrieb** mit vielen Mandanten: nicht getestet.
+
+## Offen / Hinweise
+
+- **Docker-Build in dieser Umgebung.** Die Sandbox leitet ausgehenden Verkehr über einen Proxy mit eigener CA. Für den Build wurde deshalb eine temporäre Kopie des `Dockerfile` verwendet. Sie ergänzt nur das CA-Zertifikat und die Proxy-Variablen und wurde mit `--network host` gebaut. Sie liegt nicht im Repository. Das `Dockerfile` im Repository ist sonst identisch, wurde aber ohne diese Ergänzung in dieser Umgebung nicht gebaut.
+- **pg-Warnung.** In der Vitest-Ausgabe erscheint `DeprecationWarning: Calling client.query() when the client is already executing a query …` (pg 8).
+  - Quelle ist das Zusammenspiel von `@prisma/adapter-pg` und `pg` bei Transaktionen, nicht der Projektcode. Die eigenen Abfragen in `occupiedSlots` laufen bereits sequenziell.
+  - Derzeit harmlos. Beim Update auf `pg@9` beobachten.
+- **Compose ist nur für lokal gedacht.** `compose.yaml` enthält lokale Standardwerte für `BETTER_AUTH_SECRET` und `CREDENTIALS_ENCRYPTION_KEY` sowie den Demo-Modus. Das ist nicht für einen Produktivbetrieb gedacht.
+- **Demo-Medien.** Die Piper-Stimmen basieren laut Modellkarte auf einer englischen Basisstimme. Deren Lizenz ist vor einer kommerziellen Nutzung zu prüfen (siehe `storage/fixtures/HERKUNFT.md`).
+- **Offene Produktentscheidungen:** Preise, Steuern, Überarbeitungen und Kontingentregeln siehe [ANNAHMEN.md](ANNAHMEN.md).
+- **Rechtstexte** sind Entwürfe mit markierten Lücken.
+
+## Screenshots
+
+Die Screenshots erzeugt `tests/e2e/screenshots.spec.ts` automatisch gegen die laufende App (keine generierten Bilder). Sie liegen unter [`docs/screenshots/`](screenshots/):
+
+| Bereich | Desktop (1440 px) | Mobil (390 px) |
+| --- | --- | --- |
+| Startseite | `desktop-startseite.png`, `desktop-startseite-dunkel.png` | `mobil-startseite.png` |
+| Loop-Demo im Freigabe-Moment | `desktop-startseite-loop-freigabe.png` | `mobil-startseite-loop-freigabe.png` |
+| Konfigurator | `desktop-startseite-konfigurator.png` | `mobil-startseite-konfigurator.png` |
+| Wizard (Schritt 1, Kanal-Validierung) | `desktop-wizard-schritt1.png`, `desktop-wizard-validierung.png` | `mobil-wizard-schritt1.png`, `mobil-wizard-validierung.png` |
+| Freigabe | `desktop-freigabe.png` | `mobil-freigabe.png` |
+| Kalender | `desktop-kalender.png` | `mobil-kalender.png` |
+| Übersicht, Produktion, Abo | `desktop-uebersicht.png`, `desktop-produktion.png`, `desktop-abo.png` | `mobil-uebersicht.png`, `mobil-produktion.png`, `mobil-abo.png` |
+
+## Erneut prüfen
+
+```bash
+npm run typecheck && npm test
+npm run build && npm run start      # Terminal 1
+npm run worker                      # Terminal 2 (Playwright startet sonst selbst einen)
+npx playwright test                 # setzt nur die Demo-Konten zurück
+```
