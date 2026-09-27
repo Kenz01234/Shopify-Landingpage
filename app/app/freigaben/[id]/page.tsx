@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/ui/misc";
 import { DemoTag } from "@/components/ui/badge";
 import { JobStatusBadge, FormatTag } from "@/components/app/bits";
 import { ReviewEditor } from "@/components/app/review/review-editor";
-import { freeSlotsForJob } from "@/lib/publishing";
+import { freeSlotsForJob, jobPlatforms } from "@/lib/publishing";
+import { PLATFORM_KEYS, type PlatformKey } from "@/lib/platforms";
 import { isDemoMode } from "@/lib/env";
 import { formatDateTimeDe } from "@/lib/time";
 import type { AutoCheckResult } from "@/lib/autocheck";
@@ -24,7 +25,12 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
       currentVersion: true,
       versions: { orderBy: { number: "desc" }, select: { id: true, number: true, stage: true, createdByType: true, changeNote: true, createdAt: true, title: true } },
       approvals: { orderBy: { createdAt: "desc" }, include: { version: { select: { number: true } } } },
-      publications: { where: { status: { in: ["scheduled", "held", "simulated", "published", "publishing", "reconciling"] } }, orderBy: { createdAt: "desc" }, take: 1 },
+      publications: {
+        where: { status: { in: ["scheduled", "held", "simulated", "published", "publishing", "reconciling", "failed"] } },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        include: { targets: { select: { platform: true, status: true, url: true, lastError: true } } },
+      },
     },
   });
   if (!job || !job.currentVersion) notFound();
@@ -63,6 +69,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           timezone: tz,
           systemName: job.system.name,
           systemPaused: job.system.status === "paused",
+          platforms: jobPlatforms(job),
         }}
         version={{
           id: v.id,
@@ -73,6 +80,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           script: v.script,
           thumbnailText: v.thumbnailText,
           tags: v.tags,
+          caption: v.caption,
           requiresRerender: v.requiresRerender,
           sources: (v.sources as unknown as SourceNote[]) ?? [],
           autoCheck: (v.autoCheck as unknown as AutoCheckResult) ?? null,
@@ -104,7 +112,21 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           revokedReason: a.revokedReason,
           scheduledFor: a.scheduledFor?.toISOString() ?? null,
         }))}
-        publication={pub ? { id: pub.id, status: pub.status, scheduledAt: pub.scheduledAt.toISOString(), mode: pub.mode, heldReason: pub.heldReason, versionId: pub.versionId } : null}
+        publication={
+          pub
+            ? {
+                id: pub.id,
+                status: pub.status,
+                scheduledAt: pub.scheduledAt.toISOString(),
+                mode: pub.mode,
+                heldReason: pub.heldReason,
+                versionId: pub.versionId,
+                targets: pub.targets
+                  .map((t) => ({ platform: t.platform as PlatformKey, status: t.status, url: t.url, lastError: t.lastError }))
+                  .sort((a, b) => PLATFORM_KEYS.indexOf(a.platform) - PLATFORM_KEYS.indexOf(b.platform)),
+              }
+            : null
+        }
         slots={slots.slots}
         demo={isDemoMode()}
       />

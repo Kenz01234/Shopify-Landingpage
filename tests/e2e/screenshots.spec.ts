@@ -52,6 +52,10 @@ test("Screenshots: Kundenbereich", async ({ page }) => {
     await page.getByLabel("Referenzkanal 1", { exact: true }).fill("@vorbild-eins");
     await page.getByLabel("Referenzkanal 2", { exact: true }).fill("youtube.com/watch?v=abc");
     await page.screenshot({ path: `${OUT}/${tag}-wizard-validierung.png`, fullPage: true });
+    await page.getByLabel("Referenzkanal 2", { exact: true }).fill("@vorbild-zwei");
+    await page.getByRole("button", { name: "Weiter", exact: true }).click();
+    await page.getByRole("group", { name: "Plattformen für Shorts" }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${OUT}/${tag}-wizard-plattformen.png`, fullPage: true });
     await page.request.delete("/api/wizard-draft", { headers: { origin: "http://localhost:3000" } });
     await page.goto(`/app/freigaben/${job.id}`);
     await page.waitForTimeout(1000);

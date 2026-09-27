@@ -7,6 +7,10 @@ import { PageHeader, Card, InlineAlert } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
 import { DemoTag } from "@/components/ui/badge";
 import { JobStatusBadge, FormatTag, PipelineBar, PublicationBadge } from "@/components/app/bits";
+import { PlatformChip } from "@/components/brand/platform-icon";
+import { PLATFORM_KEYS, type PlatformKey } from "@/lib/platforms";
+
+const sortTargets = <T extends { platform: string }>(list: T[]) => [...list].sort((a, b) => PLATFORM_KEYS.indexOf(a.platform as PlatformKey) - PLATFORM_KEYS.indexOf(b.platform as PlatformKey));
 import { JobLiveRefresher, JobControls } from "@/components/app/job-live";
 import { CANCELLABLE_STATUSES, PROCESSING_STATUSES, REVIEW_STATUSES, STATUS_META } from "@/lib/jobs/state";
 import { formatDateTimeDe } from "@/lib/time";
@@ -27,7 +31,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
       system: true,
       currentVersion: true,
       events: { orderBy: { createdAt: "desc" }, take: 60 },
-      publications: { orderBy: { createdAt: "desc" } },
+      publications: { orderBy: { createdAt: "desc" }, include: { targets: true } },
       versions: { orderBy: { number: "desc" }, select: { id: true, number: true, stage: true, createdByType: true, changeNote: true, createdAt: true } },
     },
   });
@@ -75,12 +79,18 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
           </InlineAlert>
         )}
         {job.status === "failed" && (
-          <InlineAlert tone="error" className="mt-5" title="Produktion angehalten">
+          <InlineAlert tone="error" className="mt-5" title={job.failedStep === "publishing" ? "Veröffentlichung unvollständig" : "Produktion angehalten"}>
             <span className="flex items-start gap-2">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-coral" aria-hidden />
               <span>
-                {job.lastErrorMessage ?? "Unbekannter Fehler."} {job.failedStep && <>Betroffener Schritt: {STATUS_META[job.failedStep].label}.</>} „Erneut versuchen“ setzt
-                an diesem Schritt fort und bucht nichts doppelt.
+                {job.lastErrorMessage ?? "Unbekannter Fehler."}{" "}
+                {job.failedStep === "publishing" ? (
+                  <>„Erneut versuchen“ veröffentlicht nur auf den fehlgeschlagenen Plattformen – bereits veröffentlichte werden nicht erneut hochgeladen.</>
+                ) : (
+                  <>
+                    {job.failedStep && <>Betroffener Schritt: {STATUS_META[job.failedStep].label}.</>} „Erneut versuchen“ setzt an diesem Schritt fort und bucht nichts doppelt.
+                  </>
+                )}
               </span>
             </span>
           </InlineAlert>
@@ -143,12 +153,21 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               <h2 className="mb-3 font-display text-lg font-semibold tracking-[-0.02em]">Veröffentlichung</h2>
               <ul className="space-y-2 text-sm">
                 {job.publications.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between gap-2">
-                    <span>{formatDateTimeDe(p.scheduledAt, tz, "ccc, d. LLL, HH:mm")}</span>
-                    <span className="flex items-center gap-1.5">
-                      <PublicationBadge status={p.status} />
-                      {p.mode === "simulated" && <DemoTag />}
-                    </span>
+                  <li key={p.id} className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{formatDateTimeDe(p.scheduledAt, tz, "ccc, d. LLL, HH:mm")}</span>
+                      <span className="flex items-center gap-1.5">
+                        <PublicationBadge status={p.status} />
+                        {p.mode === "simulated" && <DemoTag />}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {sortTargets(p.targets).map((t) => (
+                        <span key={t.id} title={t.lastError ?? undefined}>
+                          <PlatformChip platform={t.platform as PlatformKey} format={job.format} status={t.status} url={t.url} />
+                        </span>
+                      ))}
+                    </div>
                   </li>
                 ))}
               </ul>

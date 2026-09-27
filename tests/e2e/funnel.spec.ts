@@ -46,6 +46,11 @@ test("Funnel: Konfigurator → Registrierung → Demo-Checkout → vorbefüllter
   await page.getByRole("button", { name: "Weiter", exact: true }).click();
   // Schritt 3 + 4
   await expect(page.getByRole("heading", { name: "Wie soll es klingen und aussehen?" })).toBeVisible();
+  // Plattformen für Shorts: standardmäßig alle drei, Instagram abwählen
+  const platforms = page.getByRole("group", { name: "Plattformen für Shorts" });
+  await expect(platforms.getByRole("checkbox")).toHaveCount(3);
+  await platforms.getByText("Instagram Reels").click();
+  await expect(platforms.getByRole("checkbox", { checked: true })).toHaveCount(2);
   await page.getByRole("button", { name: "Weiter", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Wie viel soll produziert werden?" })).toBeVisible();
   await page.getByRole("button", { name: "Weiter", exact: true }).click();
@@ -64,5 +69,7 @@ test("Funnel: Konfigurator → Registrierung → Demo-Checkout → vorbefüllter
   await expect(page.getByRole("heading", { name: "Tiefsee Test" })).toBeVisible();
   await expect(page.getByText("@tiefsee-vorbild")).toBeVisible();
   await expect(page.getByText("@zweites-vorbild")).toBeVisible();
+  await expect(page.getByText("TikTok", { exact: true })).toBeVisible();
+  await expect(page.getByText("Instagram Reels")).toHaveCount(0);
   await noHorizontalOverflow(page);
 });

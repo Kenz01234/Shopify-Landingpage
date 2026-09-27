@@ -34,13 +34,13 @@ export async function overviewData(orgId: string) {
     }),
     prisma.publication.findMany({
       where: { organizationId: orgId, status: { in: ["scheduled", "held"] } },
-      include: { system: { select: { name: true, timezone: true } }, version: { select: { title: true } } },
+      include: { system: { select: { name: true, timezone: true } }, version: { select: { title: true } }, targets: { select: { platform: true, status: true, url: true } } },
       orderBy: { scheduledAt: "asc" },
       take: 5,
     }),
     prisma.publication.findMany({
       where: { organizationId: orgId, status: { in: ["simulated", "published", "failed"] } },
-      include: { system: { select: { name: true, timezone: true } }, version: { select: { title: true } } },
+      include: { system: { select: { name: true, timezone: true } }, version: { select: { title: true } }, targets: { select: { platform: true, status: true, url: true } } },
       orderBy: { scheduledAt: "desc" },
       take: 3,
     }),

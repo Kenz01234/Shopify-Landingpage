@@ -8,6 +8,8 @@ import { JobStatusBadge, FormatTag, PublicationBadge, PipelineBar, Thumb } from 
 import { Badge, DemoTag } from "@/components/ui/badge";
 import { formatDateTimeDe } from "@/lib/time";
 import { PLANS } from "@/lib/plans";
+import { PlatformIcons } from "@/components/brand/platform-icon";
+import type { PlatformKey } from "@/lib/platforms";
 import { SUBSCRIPTION_STATUS_DE } from "@/lib/billing/subscription";
 
 export const metadata = { title: "Übersicht" };
@@ -179,7 +181,8 @@ export default async function OverviewPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold">{p.version.title}</p>
                         <p className="flex items-center gap-1.5 text-xs text-ink-3">
-                          <FormatTag format={p.format} /> {p.system.name} · {formatDateTimeDe(p.scheduledAt, p.system.timezone, "d. LLL")}
+                          <FormatTag format={p.format} /> <PlatformIcons platforms={p.targets.map((t) => ({ platform: t.platform as PlatformKey, status: t.status }))} /> {p.system.name} ·{" "}
+                          {formatDateTimeDe(p.scheduledAt, p.system.timezone, "d. LLL")}
                         </p>
                       </div>
                       <PublicationBadge status={p.status} />
@@ -193,7 +196,10 @@ export default async function OverviewPage() {
                   <ul className="space-y-1.5 text-sm">
                     {d.recent.map((p) => (
                       <li key={p.id} className="flex items-center justify-between gap-2">
-                        <span className="truncate text-ink-2">{p.version.title}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <PlatformIcons platforms={p.targets.map((t) => ({ platform: t.platform as PlatformKey, status: t.status }))} />
+                          <span className="truncate text-ink-2">{p.version.title}</span>
+                        </span>
                         <span className="flex shrink-0 items-center gap-2">
                           <PublicationBadge status={p.status} />
                           {p.mode === "simulated" && <DemoTag />}

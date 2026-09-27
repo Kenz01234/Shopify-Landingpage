@@ -12,6 +12,8 @@ import { orgNow } from "@/lib/clock";
 import { WEEKDAYS_LONG_DE, formatDateTimeDe } from "@/lib/time";
 import { REVIEW_MODES, TONES, STYLES, LANGUAGES } from "@/lib/validation/system";
 import { isDemoMode } from "@/lib/env";
+import { PlatformChip } from "@/components/brand/platform-icon";
+import type { PlatformKey } from "@/lib/platforms";
 import { ensureCounter, systemUsage } from "@/lib/quota";
 
 export const metadata = { title: "System" };
@@ -96,6 +98,10 @@ export default async function SystemDetailPage({ params, searchParams }: { param
                   <br />
                   {system.shortsEnabled ? `${system.shortsPerPeriod} Shorts à ${system.shortSeconds} Sek.` : "Keine Shorts"}
                   {usage && system.shortsEnabled && <span className="text-ink-3"> ({usage.short} belegt)</span>}
+                  <span className="mt-2 flex flex-wrap gap-1.5">
+                    {system.longformEnabled && <PlatformChip platform="youtube" format="longform" />}
+                    {system.shortsEnabled && system.shortPlatforms.map((p) => <PlatformChip key={p} platform={p as PlatformKey} format="short" />)}
+                  </span>
                 </>
               }
             />

@@ -35,6 +35,8 @@ import { RIGHTS_LABEL, type AutoCheckResult, type CheckStatus } from "@/lib/auto
 import { formatInZone, parseLocalDateTimeInput, toLocalInputValue, adjustmentText, type SlotAdjustment } from "@/lib/time";
 import type { SourceNote } from "@/providers/types";
 import { HELD_REASON_DE_CLIENT } from "@/components/app/review/held-reasons";
+import { PlatformChip } from "@/components/brand/platform-icon";
+import { captionFor, PLATFORMS, type PlatformKey } from "@/lib/platforms";
 
 type Job = {
   id: string;
@@ -47,6 +49,7 @@ type Job = {
   timezone: string;
   systemName: string;
   systemPaused: boolean;
+  platforms: PlatformKey[];
 };
 type Version = {
   id: string;
@@ -57,6 +60,7 @@ type Version = {
   script: string;
   thumbnailText: string;
   tags: string[];
+  caption: string | null;
   requiresRerender: boolean;
   sources: SourceNote[];
   autoCheck: AutoCheckResult | null;
@@ -76,6 +80,15 @@ type Asset = {
   license: string | null;
   editNote: string | null;
 };
+type Publication = {
+  id: string;
+  status: string;
+  scheduledAt: string;
+  mode: string;
+  heldReason: string | null;
+  versionId: string;
+  targets: { platform: PlatformKey; status: string; url: string | null; lastError: string | null }[];
+};
 type Slot = { at: string; label: string; adjustment: SlotAdjustment; adjustmentText: string | null; isTarget: boolean };
 
 export function ReviewEditor(props: {
@@ -84,7 +97,7 @@ export function ReviewEditor(props: {
   assets: Asset[];
   versions: { id: string; number: number; stage: string; createdByType: string; changeNote: string | null; createdAt: string; title: string; current: boolean }[];
   approvals: { id: string; decision: string; stage: string; versionNumber: number; comment: string | null; createdAt: string; revokedAt: string | null; revokedReason: string | null; scheduledFor: string | null }[];
-  publication: { id: string; status: string; scheduledAt: string; mode: string; heldReason: string | null; versionId: string } | null;
+  publication: Publication | null;
   slots: Slot[];
   demo: boolean;
 }) {
@@ -232,6 +245,7 @@ function TextEditor({ job, version, editable, approvedState }: { job: Job; versi
     script: version.script,
     thumbnailText: version.thumbnailText,
     tags: version.tags.join(", "),
+    caption: version.caption ?? "",
     changeNote: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -243,7 +257,9 @@ function TextEditor({ job, version, editable, approvedState }: { job: Job; versi
     form.description !== version.description ||
     form.script !== version.script ||
     form.thumbnailText !== version.thumbnailText ||
+    form.caption.trim() !== (version.caption ?? "") ||
     tags.join("|") !== version.tags.join("|");
+  const socialPlatforms = job.format === "short" ? job.platforms.filter((p) => p !== "youtube") : [];
   const scriptChanged = form.script !== version.script && version.stage === "final";
 
   const save = async () => {
@@ -251,7 +267,16 @@ function TextEditor({ job, version, editable, approvedState }: { job: Job; versi
     setErrors({});
     try {
       const r = await apiFetch<{ number: number; approvalRevoked: boolean; requiresRerender: boolean }>(`/api/jobs/${job.id}/versions`, {
-        body: { baseVersionId: version.id, title: form.title, description: form.description, script: form.script, thumbnailText: form.thumbnailText, tags, changeNote: form.changeNote || undefined },
+        body: {
+          baseVersionId: version.id,
+          title: form.title,
+          description: form.description,
+          script: form.script,
+          thumbnailText: form.thumbnailText,
+          tags,
+          caption: job.format === "short" ? form.caption.trim() || null : undefined,
+          changeNote: form.changeNote || undefined,
+        },
       });
       toast({
         tone: r.approvalRevoked ? "info" : "ok",
@@ -297,6 +322,25 @@ function TextEditor({ job, version, editable, approvedState }: { job: Job; versi
               <Input id="t-tags" value={form.tags} disabled={disabled} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
             </Field>
           </div>
+          {socialPlatforms.length > 0 && (
+            <Field
+              label={`Beitragstext für ${socialPlatforms.map((p) => PLATFORMS[p].label).join(" & ")}`}
+              htmlFor="t-caption"
+              optional
+              error={errors.caption}
+              hint={form.caption.trim() ? `${form.caption.length}/2200 Zeichen` : "Leer lassen = aus Titel und Tags erzeugt (siehe Platzhalter)."}
+            >
+              <Textarea
+                id="t-caption"
+                rows={4}
+                value={form.caption}
+                maxLength={2200}
+                disabled={disabled}
+                placeholder={captionFor({ caption: null, title: form.title, tags }, socialPlatforms[0])}
+                onChange={(e) => setForm({ ...form, caption: e.target.value })}
+              />
+            </Field>
+          )}
           <Field label="Skript" htmlFor="t-script" error={errors.script} hint={scriptChanged ? "Skriptänderungen lösen eine neue Vertonung und einen neuen Schnitt aus." : "Wird von der KI-Stimme gesprochen."}>
             <Textarea id="t-script" rows={10} value={form.script} disabled={disabled} onChange={(e) => setForm({ ...form, script: e.target.value })} className="font-[450]" />
           </Field>
@@ -585,6 +629,20 @@ function SlotPicker({
   );
 }
 
+/** Stand je Plattform – mit Link, sobald der Beitrag online ist */
+function TargetList({ publication, format }: { publication: Publication; format: "longform" | "short" }) {
+  if (!publication.targets.length) return null;
+  return (
+    <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Stand je Plattform">
+      {publication.targets.map((t) => (
+        <li key={t.platform} title={t.lastError ?? undefined}>
+          <PlatformChip platform={t.platform} format={format} status={t.status} url={t.url} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function DecisionPanel({ job, version, publication, slots, demo }: Parameters<typeof ReviewEditor>[0]) {
   const router = useRouter();
   const toast = useToast();
@@ -646,6 +704,7 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
             {publication.mode === "simulated" ? "Demo: Die Veröffentlichung wird zum Termin nur simuliert." : "Wird zum Termin veröffentlicht."} Vorher prüft Quest Agent erneut Abo, Freigabe und Kanal.
           </p>
         )}
+        <TargetList publication={publication} format={job.format} />
         {publication.heldReason && <InlineAlert tone="warn" className="mt-3">{HELD_REASON_DE_CLIENT[publication.heldReason] ?? publication.heldReason}</InlineAlert>}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => setDialog("reschedule")}>
@@ -680,6 +739,23 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
     );
   }
 
+  if (publication && ["publishing", "reconciling", "simulated", "published", "failed"].includes(publication.status)) {
+    const live = publication.status === "published";
+    return (
+      <div className="card p-5">
+        <p className="flex items-center gap-2 font-display text-lg font-semibold">
+          <CheckCircle2 className="size-5 text-ok-ink" aria-hidden />
+          {publication.status === "simulated" ? "Demo-Veröffentlichung simuliert" : live ? "Veröffentlicht" : publication.status === "failed" ? "Teilweise fehlgeschlagen" : "Wird veröffentlicht"}
+        </p>
+        <p className="mt-1 text-sm text-ink-2">
+          Termin {formatInZone(new Date(publication.scheduledAt), job.timezone)} ({job.timezone})
+          {publication.mode === "simulated" && " – im Demo-Modus wird nichts hochgeladen."}
+        </p>
+        <TargetList publication={publication} format={job.format} />
+      </div>
+    );
+  }
+
   if (!reviewStatus) {
     return (
       <div className="card p-5 text-sm text-ink-2">
@@ -708,6 +784,16 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
         <InlineAlert tone="info" className="mt-3">
           Das System ist pausiert. Du kannst freigeben – die Veröffentlichung wird bis zur Fortsetzung zurückgehalten.
         </InlineAlert>
+      )}
+      {version.stage === "final" && (
+        <div className="mt-4">
+          <p className="mb-2 text-sm font-semibold">Wird veröffentlicht auf</p>
+          <div className="flex flex-wrap gap-1.5">
+            {job.platforms.map((p) => (
+              <PlatformChip key={p} platform={p} format={job.format} />
+            ))}
+          </div>
+        </div>
       )}
       {version.stage === "final" && (
         <div className="mt-4">

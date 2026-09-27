@@ -14,7 +14,7 @@ export const PLATFORMS: Record<
     label: "YouTube",
     shortLabel: "YouTube Shorts",
     longLabel: "YouTube",
-    hint: "Videos im Querformat und Shorts",
+    hint: "Shorts im Hochformat – Videos im Querformat gehen immer zu YouTube",
     captionLimit: 5000,
     accent: "#ff0033",
   },

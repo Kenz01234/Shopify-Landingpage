@@ -12,6 +12,7 @@ import { InlineAlert } from "@/components/ui/misc";
 import { Badge, DemoTag } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/toast";
 import { FormatTag, PublicationBadge, JobStatusBadge } from "@/components/app/bits";
+import { PlatformChip, PlatformIcons } from "@/components/brand/platform-icon";
 import { apiFetch, ApiError } from "@/lib/client-api";
 import { cn } from "@/lib/cn";
 import { WEEKDAYS_LONG_DE, parseLocalDateTimeInput, toLocalInputValue, adjustmentText } from "@/lib/time";
@@ -180,6 +181,7 @@ function CalendarChip({ item, tz, onOpen }: { item: CalendarItem; tz: string; on
         <FormatTag format={item.format} className="scale-90" />
       </span>
       <span className="mt-0.5 line-clamp-2 block text-[0.78rem] font-medium leading-snug text-ink">{item.title}</span>
+      <PlatformIcons platforms={item.platforms} className="mt-1" />
       <span className="mt-0.5 block truncate text-[0.68rem] text-ink-3">
         {item.systemName} · {item.kind === "pending" ? (item.slotMissed ? "Termin verstrichen" : "wartet auf Produktion/Freigabe") : item.mode === "simulated" ? `${statusLabel(item.status)} · Demo` : statusLabel(item.status)}
       </span>
@@ -257,6 +259,11 @@ function ItemDialog({ item, onClose, nowIso }: { item: CalendarItem | null; onCl
             <FormatTag format={item.format} />
             {item.kind === "publication" ? <PublicationBadge status={item.status} /> : <JobStatusBadge status={item.status as JobStatus} />}
             {item.mode === "simulated" && <DemoTag>simuliert</DemoTag>}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {item.platforms.map((p) => (
+              <PlatformChip key={p.platform} platform={p.platform} format={item.format} status={p.status} />
+            ))}
           </div>
           {item.kind === "pending" && (
             <InlineAlert tone={item.slotMissed ? "warn" : "info"}>
