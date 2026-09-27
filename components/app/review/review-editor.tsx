@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
   Check,
@@ -594,7 +594,7 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
   const [dialog, setDialog] = useState<null | "approve" | "changes" | "reject" | "reschedule">(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
 
   const call = async (path: string, body: unknown, success: (r: Record<string, unknown>) => void) => {
     setBusy(true);
@@ -616,7 +616,7 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
     call(`/api/jobs/${job.id}/approve`, { versionId: version.id, stage: version.stage, scheduledAt: version.stage === "final" ? slot.at : undefined }, (r) => {
       if (version.stage === "final") {
         const label = String(r.label ?? "");
-        setDone(label);
+        setDone(true);
         toast({ tone: "ok", title: "Freigegeben und eingeplant", text: `${label} (${job.timezone})${demo ? " – Demo: Veröffentlichung wird nur simuliert." : ""}` });
       } else {
         toast({ tone: "ok", title: version.stage === "topic" ? "Thema bestätigt" : "Skript bestätigt", text: "Die Produktion läuft weiter." });
@@ -628,14 +628,24 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
 
   if (["approved", "scheduled", "held"].includes(job.status) && publication) {
     return (
-      <div className="card p-5">
+      <motion.div
+        className="card p-5"
+        initial={done ? (reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 }) : false}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+      >
         <p className="flex items-center gap-2 font-display text-lg font-semibold">
           <CheckCircle2 className="size-5 text-ok-ink" aria-hidden /> Version {version.number} ist freigegeben
         </p>
-        <p className="mt-1 text-sm text-ink-2">
-          Termin: <strong>{formatInZone(new Date(publication.scheduledAt), job.timezone)}</strong> ({job.timezone}) · <PublicationBadge status={publication.status} />{" "}
-          {publication.mode === "simulated" && <DemoTag>simuliert</DemoTag>}
+        <p className="mt-1 text-sm text-ink-2" role={done ? "status" : undefined}>
+          {publication.status === "scheduled" ? "Eingeplant für" : "Termin:"} <strong>{formatInZone(new Date(publication.scheduledAt), job.timezone)}</strong> ({job.timezone}) ·{" "}
+          <PublicationBadge status={publication.status} /> {publication.mode === "simulated" && <DemoTag>simuliert</DemoTag>}
         </p>
+        {publication.status === "scheduled" && (
+          <p className="mt-1 text-xs text-ink-3">
+            {publication.mode === "simulated" ? "Demo: Die Veröffentlichung wird zum Termin nur simuliert." : "Wird zum Termin veröffentlicht."} Vorher prüft Quest Agent erneut Abo, Freigabe und Kanal.
+          </p>
+        )}
         {publication.heldReason && <InlineAlert tone="warn" className="mt-3">{HELD_REASON_DE_CLIENT[publication.heldReason] ?? publication.heldReason}</InlineAlert>}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => setDialog("reschedule")}>
@@ -666,7 +676,7 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
         >
           <SlotPicker slots={slots} tz={job.timezone} value={slot} onChange={setSlot} suggestedSlotAt={job.suggestedSlotAt} />
         </Dialog>
-      </div>
+      </motion.div>
     );
   }
 
@@ -681,21 +691,6 @@ function DecisionPanel({ job, version, publication, slots, demo }: Parameters<ty
   const selectedLabel = slot.at ? formatInZone(new Date(slot.at), job.timezone) : null;
   return (
     <div className="card relative overflow-hidden p-5">
-      <AnimatePresence>
-        {done && (
-          <motion.div
-            className="absolute inset-0 z-10 grid place-items-center bg-surface/95 p-6 text-center"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <div>
-              <CheckCircle2 className="mx-auto size-10 text-ok-ink" aria-hidden />
-              <p className="mt-2 font-display text-lg font-semibold">Eingeplant für {done}</p>
-              <p className="text-sm text-ink-3">{demo ? "Demo: Die Veröffentlichung wird zum Termin nur simuliert." : "Wird zum Termin veröffentlicht."}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <p className="font-display text-xl font-semibold tracking-[-0.02em]">Du hast das letzte Wort.</p>
       <p className="mt-1 text-sm text-ink-3">
         {version.stage === "final"

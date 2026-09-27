@@ -83,7 +83,8 @@ async function createSystem(orgId: string, s: SystemSpec) {
       shortSeconds: s.shortSeconds,
       timezone: "Europe/Berlin",
       reviewMode: s.reviewMode,
-      status: "active",
+      // Erst nach dem Seeden aktivieren: sonst belegt ein parallel laufender Scheduler dieselben Slots
+      status: "paused",
       activatedAt: new Date(Date.now() - 20 * 86400000),
     },
   });
@@ -449,6 +450,8 @@ export async function seedDemoData() {
 
   // --- Admin: eigene Organisation ohne Abo
   await createOrg(admin.id, "Quest-Agent-Betrieb (Demo)");
+
+  await prisma.channelSystem.updateMany({ where: { id: { in: [kosmos.id, geschichte.id, tiefsee.id] } }, data: { status: "active" } });
 
   await prisma.auditEvent.create({ data: { actorType: "system", action: "demo.seeded", meta: { at: new Date().toISOString() } } });
   return { skipped: false };
