@@ -1,0 +1,60 @@
+{
+  "name": "quest-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quest Agent – Faceless-YouTube-System mit menschlicher Freigabe (Website, Kundenbereich, Backend, Worker).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "worker": "tsx worker/index.ts",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "setup": "prisma generate && prisma migrate deploy && tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "shopify:zip": "node scripts/build-shopify-zip.mjs",
+    "project:zip": "node scripts/build-project-zip.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/inter-tight": "^5.3.0",
+    "@fontsource/caveat": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "better-auth": "^1.7.6",
+    "lucide-react": "^1.48.0",
+    "luxon": "^3.7.2",
+    "motion": "^13.4.4",
+    "next": "^16.3.6",
+    "pg": "^8.23.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "stripe": "^22.6.2",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/luxon": "^3.7.5",
+    "@types/node": "^22.20.4",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "dotenv": "^18.0.4",
+    "postcss": "^8.5.28",
+    "prisma": "^7.10.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9",
+    "vitest": "^5.0.2"
+  }
+}

@@ -1,0 +1,36 @@
+# Abhängigkeiten
+node_modules/
+.pnpm-store/
+
+# Next.js / Build
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Prisma-Client (wird per `prisma generate` erzeugt)
+generated/
+
+# Umgebung / Geheimnisse
+.env
+.env.*
+!.env.example
+
+# Laufzeitdaten
+storage/uploads/
+storage/tmp/
+*.log
+
+# Tests
+test-results/
+playwright-report/
+blob-report/
+coverage/
+
+# Artefakte
+dist/
+*.zip
+!quest-agent-shopify-sections.zip
+
+.DS_Store

@@ -1,0 +1,689 @@
+// Quest Agent – Datenmodell
+// Jede kundengebundene Tabelle trägt `organizationId`; Zugriffe werden serverseitig
+// immer über die Organisation der angemeldeten Person gefiltert (siehe lib/tenancy.ts).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Authentifizierung (Tabellen nach Better-Auth-Vertrag)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String       @id
+  name          String
+  email         String       @unique
+  emailVerified Boolean      @default(false)
+  image         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  /// Plattformrolle: nur serverseitig gesetzt (Seed/Admin), nie aus Requests übernommen.
+  platformRole  PlatformRole @default(customer)
+  isDemo        Boolean      @default(false)
+
+  sessions    Session[]
+  accounts    Account[]
+  memberships Membership[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ---------------------------------------------------------------------------
+// Mandanten
+// ---------------------------------------------------------------------------
+
+enum PlatformRole {
+  customer
+  admin
+}
+
+enum MemberRole {
+  owner
+  member
+}
+
+model Organization {
+  id                     String   @id @default(cuid())
+  name                   String
+  isDemo                 Boolean  @default(false)
+  /// Nur im Demo-Modus wirksam: verschiebt die „Jetzt“-Zeit für Scheduler/Publisher dieser Organisation.
+  demoClockOffsetMinutes Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  memberships   Membership[]
+  subscription  Subscription?
+  systems       ChannelSystem[]
+  jobs          ProductionJob[]
+  versions      ContentVersion[]
+  assets        Asset[]
+  approvals     Approval[]
+  publications  Publication[]
+  quotaCounters QuotaCounter[]
+  quotaEntries  QuotaEntry[]
+  connections   ProviderConnection[]
+  auditEvents   AuditEvent[]
+  jobEvents     JobEvent[]
+  wizardDrafts  WizardDraft[]
+  refChannels   ReferenceChannel[]
+  slots         ScheduleSlot[]
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           MemberRole   @default(owner)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Abo & Kontingente
+// ---------------------------------------------------------------------------
+
+enum PlanKey {
+  starter
+  studio
+}
+
+enum SubscriptionStatus {
+  incomplete
+  active
+  past_due
+  canceled
+}
+
+enum BillingProviderKey {
+  demo
+  stripe
+  shopify
+}
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  organizationId         String             @unique
+  plan                   PlanKey
+  status                 SubscriptionStatus
+  provider               BillingProviderKey @default(demo)
+  providerCustomerId     String?
+  providerSubscriptionId String?            @unique
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean            @default(false)
+  canceledAt             DateTime?
+  /// Herabstufung wird zum Periodenende wirksam (Demo-Regel).
+  pendingPlan            PlanKey?
+  /// Nur Demo: nächste Verlängerung schlägt fehl.
+  demoFailNextRenewal    Boolean            @default(false)
+  /// Zeitstempel des zuletzt verarbeiteten Provider-Ereignisses (Reihenfolgeschutz).
+  lastProviderEventAt    DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum ContentFormat {
+  longform
+  short
+}
+
+/// Zähler je Organisation, Abo-Periode und Format. Buchungen erfolgen ausschließlich
+/// über bedingte UPDATEs (siehe lib/quota.ts), damit parallele Anfragen das Limit nie überschreiten.
+model QuotaCounter {
+  id             String        @id @default(cuid())
+  organizationId String
+  periodStart    DateTime
+  periodEnd      DateTime
+  format         ContentFormat
+  limit          Int
+  reserved       Int           @default(0)
+  consumed       Int           @default(0)
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entries        QuotaEntry[]
+
+  @@unique([organizationId, periodStart, format])
+}
+
+enum QuotaAction {
+  reserve
+  consume
+  release
+}
+
+/// Kontingentbuchung (Journal). Der eindeutige Idempotenzschlüssel verhindert Doppelbuchungen.
+model QuotaEntry {
+  id             String        @id @default(cuid())
+  organizationId String
+  counterId      String
+  jobId          String?
+  format         ContentFormat
+  action         QuotaAction
+  amount         Int           @default(1)
+  idempotencyKey String        @unique
+  note           String?
+  createdAt      DateTime      @default(now())
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  counter        QuotaCounter  @relation(fields: [counterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([jobId])
+}
+
+// ---------------------------------------------------------------------------
+// Kanal-Systeme
+// ---------------------------------------------------------------------------
+
+enum SystemStatus {
+  active
+  paused
+  archived
+}
+
+enum ReviewMode {
+  final_only
+  topic_and_final
+  script_and_final
+}
+
+model ChannelSystem {
+  id                String        @id @default(cuid())
+  organizationId    String
+  name              String
+  niche             String
+  topics            String[]
+  audience          String
+  language          String        @default("de")
+  tone              String
+  style             String
+  voiceKey          String
+  voiceLabel        String
+  longformEnabled   Boolean       @default(true)
+  shortsEnabled     Boolean       @default(true)
+  longformPerPeriod Int
+  longformMinutes   Int
+  shortsPerPeriod   Int
+  shortSeconds      Int
+  timezone          String        @default("Europe/Berlin")
+  reviewMode        ReviewMode    @default(final_only)
+  status            SystemStatus  @default(active)
+  /// Wird bei jeder Konfigurationsänderung erhöht; Aufträge speichern einen Snapshot.
+  configVersion     Int           @default(1)
+  youtubeConnectionId String?
+  activatedAt       DateTime?
+  pausedAt          DateTime?
+  archivedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  referenceChannels ReferenceChannel[]
+  slots             ScheduleSlot[]
+  jobs              ProductionJob[]
+  publications      Publication[]
+
+  @@index([organizationId, status])
+}
+
+model ReferenceChannel {
+  id             String        @id @default(cuid())
+  organizationId String
+  systemId       String
+  input          String
+  url            String
+  kind           String
+  identifier     String
+  createdAt      DateTime      @default(now())
+  system         ChannelSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([systemId, url])
+}
+
+model ScheduleSlot {
+  id             String        @id @default(cuid())
+  organizationId String
+  systemId       String
+  format         ContentFormat
+  /// ISO-Wochentag: 1 = Montag … 7 = Sonntag
+  weekday        Int
+  /// Lokale Uhrzeit „HH:mm“ in der Zeitzone des Systems
+  localTime      String
+  system         ChannelSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([systemId, format, weekday, localTime])
+}
+
+model WizardDraft {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  step           Int          @default(1)
+  data           Json
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+// ---------------------------------------------------------------------------
+// Produktion
+// ---------------------------------------------------------------------------
+
+enum JobStatus {
+  draft
+  queued
+  researching
+  awaiting_topic_approval
+  scripting
+  awaiting_script_approval
+  voiceover
+  rendering
+  quality_check
+  awaiting_approval
+  changes_requested
+  approved
+  scheduled
+  held
+  publishing
+  reconciling
+  published
+  retry_scheduled
+  failed
+  rejected
+  cancelled
+}
+
+enum JobOrigin {
+  schedule
+  manual
+}
+
+model ProductionJob {
+  id                 String        @id @default(cuid())
+  organizationId     String
+  systemId           String
+  format             ContentFormat
+  status             JobStatus     @default(queued)
+  origin             JobOrigin
+  /// Nur Demo: success | transient_failure | permanent_failure
+  demoScenario       String        @default("success")
+  configVersion      Int
+  configSnapshot     Json
+  /// Geplanter Veröffentlichungsslot (UTC)
+  targetSlotAt       DateTime?
+  idempotencyKey     String        @unique
+  topic              String?
+  /// Zwischenergebnisse der Produktionsschritte
+  workingData        Json          @default("{}")
+  /// Bei retry_scheduled: Schritt, der erneut ausgeführt wird
+  retryStep          JobStatus?
+  attempt            Int           @default(0)
+  maxAttempts        Int           @default(3)
+  nextRunAt          DateTime?
+  lockedBy           String?
+  lockedUntil        DateTime?
+  lastErrorCode      String?
+  lastErrorMessage   String?
+  failedStep         JobStatus?
+  revisionCount      Int           @default(0)
+  revisionNote       String?
+  cancelReason       String?
+  externalRunId      String?
+  externalAcceptedAt DateTime?
+  lastExternalSeq    Int           @default(0)
+  currentVersionId   String?       @unique
+  /// Kontingentstatus dieses Auftrags: none | reserved | consumed | released
+  quotaState         String        @default("none")
+  quotaCounterId     String?
+  /// Live-Modus: Auftrag liegt beim externen Produktionsdienst und wartet auf Rückmeldungen
+  awaitingExternal   Boolean       @default(false)
+  slotMissedAt       DateTime?
+  suggestedSlotAt    DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  system         ChannelSystem    @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  currentVersion ContentVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  versions       ContentVersion[] @relation("JobVersions")
+  events         JobEvent[]
+  approvals      Approval[]
+  publications   Publication[]
+  assets         Asset[]
+
+  @@index([status, nextRunAt])
+  @@index([organizationId, status])
+  @@index([systemId, format, targetSlotAt])
+  @@index([systemId, format, quotaCounterId])
+}
+
+enum ReviewStage {
+  topic
+  script
+  final
+}
+
+/// Inhaltsversion. Jede Änderung erzeugt eine neue Version; Freigaben gelten genau für eine Version.
+model ContentVersion {
+  id               String        @id @default(cuid())
+  organizationId   String
+  jobId            String
+  number           Int
+  stage            ReviewStage
+  title            String
+  description      String
+  script           String
+  thumbnailText    String
+  tags             String[]
+  /// Quellen- und Materialhinweise inkl. Rechtestatus je Eintrag
+  sources          Json          @default("[]")
+  /// Ergebnis der automatischen Prüfung (keine menschliche Freigabe)
+  autoCheck        Json          @default("{}")
+  createdByType    String
+  createdByUserId  String?
+  changeNote       String?
+  requiresRerender Boolean       @default(false)
+  /// Welche Mediengeneration (Render-Durchlauf) zu dieser Version gehört
+  mediaGeneration  Int           @default(0)
+  durationSec      Int?
+  createdAt        DateTime      @default(now())
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job          ProductionJob    @relation("JobVersions", fields: [jobId], references: [id], onDelete: Cascade)
+  currentOf    ProductionJob?   @relation("CurrentVersion")
+  approvals    Approval[]
+  assets       Asset[]
+  publications Publication[]
+
+  @@unique([jobId, number])
+}
+
+enum AssetKind {
+  video
+  short
+  audio
+  thumbnail
+}
+
+enum RightsStatus {
+  own_production
+  demo_fixture
+  licensed
+  public_domain
+  unknown
+  needs_review
+}
+
+model Asset {
+  id             String        @id @default(cuid())
+  organizationId String
+  jobId          String?
+  versionId      String?
+  kind           AssetKind
+  /// Render-Durchlauf des Auftrags, aus dem die Datei stammt
+  generation     Int           @default(0)
+  /// Interner Speicherschlüssel – wird nie an Clients ausgeliefert
+  storageKey     String
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  durationSec    Float?
+  width          Int?
+  height         Int?
+  origin         String
+  rightsStatus   RightsStatus  @default(unknown)
+  sourceLabel    String?
+  sourceUrl      String?
+  license        String?
+  editNote       String?
+  createdAt      DateTime      @default(now())
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job          ProductionJob?  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  version      ContentVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, kind])
+  @@index([jobId])
+}
+
+enum ApprovalDecision {
+  approved
+  changes_requested
+  rejected
+}
+
+model Approval {
+  id             String           @id @default(cuid())
+  organizationId String
+  jobId          String
+  versionId      String
+  userId         String
+  stage          ReviewStage
+  decision       ApprovalDecision
+  comment        String?
+  scheduledFor   DateTime?
+  revokedAt      DateTime?
+  revokedReason  String?
+  createdAt      DateTime         @default(now())
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job          ProductionJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  version      ContentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  publications Publication[]
+
+  @@index([jobId, createdAt])
+}
+
+enum PublicationStatus {
+  scheduled
+  held
+  publishing
+  reconciling
+  simulated
+  published
+  failed
+  cancelled
+}
+
+enum PublicationMode {
+  simulated
+  live
+}
+
+model Publication {
+  id              String            @id @default(cuid())
+  organizationId  String
+  jobId           String
+  systemId        String
+  versionId       String
+  approvalId      String
+  format          ContentFormat
+  scheduledAt     DateTime
+  status          PublicationStatus @default(scheduled)
+  mode            PublicationMode
+  /// Belegt einen Slot (system:format:zeit) solange die Veröffentlichung aktiv ist – verhindert Kollisionen.
+  slotKey         String?           @unique
+  /// Genau eine aktive Veröffentlichung je Auftrag.
+  activeJobKey    String?           @unique
+  idempotencyKey  String            @unique
+  providerVideoId String?
+  attempt         Int               @default(0)
+  lockedUntil     DateTime?
+  heldReason      String?
+  lastError       String?
+  publishedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job          ProductionJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  system       ChannelSystem  @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  version      ContentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  approval     Approval       @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+  @@index([organizationId, scheduledAt])
+}
+
+model JobEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  jobId          String
+  fromStatus     JobStatus?
+  toStatus       JobStatus?
+  kind           String
+  message        String
+  createdAt      DateTime     @default(now())
+  job            ProductionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Verbindungen, Webhooks, Audit, Betrieb
+// ---------------------------------------------------------------------------
+
+enum ProviderKey {
+  youtube
+  n8n
+  elevenlabs
+  telegram
+}
+
+enum ConnectionStatus {
+  demo
+  connected
+  not_connected
+  error
+  revoked
+  expired
+}
+
+model ProviderConnection {
+  id                   String           @id @default(cuid())
+  organizationId       String
+  provider             ProviderKey
+  mode                 String
+  status               ConnectionStatus
+  displayName          String?
+  externalAccountId    String?
+  /// AES-256-GCM-verschlüsselte Zugangsdaten (nur kundenindividuelle Tokens, z. B. YouTube-Refresh-Token)
+  encryptedCredentials String?
+  scopes               String[]
+  tokenExpiresAt       DateTime?
+  lastCheckedAt        DateTime?
+  lastError            String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  provider    String
+  eventId     String
+  eventType   String
+  status      String    @default("received")
+  payload     Json
+  error       String?
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+
+  @@unique([provider, eventId])
+}
+
+model AuditEvent {
+  id             String        @id @default(cuid())
+  organizationId String?
+  actorUserId    String?
+  actorType      String
+  action         String
+  targetType     String?
+  targetId       String?
+  meta           Json          @default("{}")
+  createdAt      DateTime      @default(now())
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([action, createdAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  topic     String
+  message   String
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model WorkerHeartbeat {
+  id         String   @id
+  startedAt  DateTime
+  lastBeatAt DateTime
+  info       Json     @default("{}")
+}
