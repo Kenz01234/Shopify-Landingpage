@@ -39,7 +39,7 @@ Die Einteilung ist streng:
 | Nativer Neustart von App und Worker | ✅ Login eines vor dem Neustart angelegten Funnel-Kontos: HTTP 200. System „Tiefsee Test“ ist aktiv, mit 2 Referenzkanälen und 5 Slots. |
 | Secret-Suche in `.next/static` | ✅ 0 Treffer für die Werte von `BETTER_AUTH_SECRET`, `DEMO_PASSWORD`, `CREDENTIALS_ENCRYPTION_KEY` und `DATABASE_URL` |
 | Secret-Suche in den App- und Worker-Logs | ✅ 0 Treffer für `BETTER_AUTH_SECRET` und `DEMO_PASSWORD` |
-| `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 264 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
+| `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 268 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
 | `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 98 KB |
 | `npm run shopify:theme` | ✅ `dist/horizon-quest-agent-theme.zip`, 1,4 MB. Enthält Shopify Horizon 4.2.0 von GitHub und die Section als Startseite. Hochladbar über „Theme hochladen“. Nur für den eigenen Shop bestimmt (Horizon-Lizenz), daher nicht im Repository. |
 | `npm run shopify:check` | ✅ **20 von 20** bestanden. Einzelheiten stehen in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft). |
