@@ -23,6 +23,10 @@ export default defineConfig({
       STRIPE_WEBHOOK_SECRET: "whsec_test_secret_for_signature_checks",
       STRIPE_PRICE_STARTER: "price_test_starter",
       STRIPE_PRICE_STUDIO: "price_test_studio",
+      SHOPIFY_SHOP_DOMAIN: "quest-test.myshopify.com",
+      SHOPIFY_WEBHOOK_SECRET: "shopify-test-signing-secret",
+      SHOPIFY_PLAN_STARTER: "QA-STARTER",
+      SHOPIFY_PLAN_STUDIO: "QA-STUDIO,4711",
     },
   },
 });

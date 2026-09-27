@@ -11,13 +11,16 @@ Stand: 27.09.2026. Diese Datei trennt klar zwischen **lokal funktionsfähig**, *
 | Worker (Jobs, Scheduler, Publisher) | **echt**, Produktionsschritte simuliert | `worker/` | lokal getestet | Betrieb als Dienst (systemd/Container), Monitoring |
 | Recherche/Skript/Schnitt | **simuliert** (`providers/demo/production.ts`) | `providers/n8n.ts` + `app/api/webhooks/n8n` | Vertrag lokal mit signierten Test-Callbacks getestet, **kein** echter n8n-Aufruf | Webhook-URL, gemeinsames Geheimnis, n8n-Workflow, der den Vertrag erfüllt; Lizenzklärung |
 | KI-Stimme | **simuliert** (lokale Piper-Hörproben, CC0-Datensätze) | `providers/elevenlabs.ts` | **ungetestet** | API-Schlüssel, Modell-ID, Voice-ID-Auswahl |
-| Veröffentlichung | **simuliert** (`status = simulated`) | `providers/youtube.ts` + OAuth-Routen | **ungetestet** | Google-Cloud-Projekt, OAuth-Client, ggf. Verifizierung/Audit, ausdrücklich freigegebener Live-Test |
+| Veröffentlichung YouTube | **simuliert** (`status = simulated`) | `providers/youtube.ts` + `app/api/connections/[platform]` | **ungetestet** | Google-Cloud-Projekt, OAuth-Client, ggf. Verifizierung/Audit, ausdrücklich freigegebener Live-Test |
+| Veröffentlichung Instagram (Reels) | **simuliert** | `providers/instagram.ts` + signierte Medienlinks (`app/api/public-media`) | **ungetestet** | Meta-App mit Instagram-Login, App Review, Instagram-Professional-Konto, öffentlich erreichbare HTTPS-`APP_URL` |
+| Veröffentlichung TikTok | **simuliert** | `providers/tiktok.ts` | **ungetestet** | TikTok-Developer-App mit Content Posting API (Direct Post), App-Audit (sonst nur private Beiträge), UX-Vorgaben von TikTok |
 | Zahlung | **simuliert** (Demo-Billing) | `providers/stripe.ts` + `app/api/webhooks/stripe` | Signaturprüfung/Idempotenz/Reihenfolge lokal mit Stripe-SDK-Testsignaturen getestet, **kein** API-Aufruf | Stripe-Testschlüssel, Preis-IDs, Webhook-Endpunkt; später Live-Freigabe |
 | Telegram | – | – | – | bewusst nicht gebaut (späterer Zugang) |
 | Discord, Windows-EXE | – | – | – | nicht beauftragt, nicht gebaut |
-| Shopify | Section-Paket | `shopify/` | Theme Check 0 Befunde, lokale Render-Vorschau | Einbau in Theme-Kopie; Shopify als Verkaufsweg bräuchte Abo-App + Synchronisierung (nicht umgesetzt) |
+| Shopify-Theme | Theme bzw. Section-Paket | `shopify/`, `npm run shopify:check` | Theme Check, Upload-Regeln, Style-Isolation und Editor-Simulation lokal; **nicht** in einem echten Shop | Theme hochladen und im echten Editor prüfen |
+| Shopify als Verkaufsweg | Webhook-Verarbeitung lokal mit selbst signierten Test-Webhooks getestet | `lib/billing/shopify.ts` + `app/api/webhooks/shopify` | **kein** echter Shop-Webhook | Abo-Produkte (z. B. Shopify Subscriptions), Webhooks `orders/paid` + `orders/cancelled`, Signaturschlüssel, SKU-Zuordnung, gehostete App, E-Mail-Verifizierung |
 
-Umschalten erfolgt ausschließlich über Umgebungsvariablen (`PRODUCTION_PROVIDER`, `VOICE_PROVIDER`, `PUBLISH_PROVIDER`, `BILLING_PROVIDER`). Demo- und Live-Adapter erfüllen dieselben Verträge (`providers/types.ts`). Fehlende Konfiguration führt zu einer verständlichen Fehlermeldung – nie zu einem stillen „Erfolg“.
+Umschalten erfolgt ausschließlich über Umgebungsvariablen (`PRODUCTION_PROVIDER`, `VOICE_PROVIDER`, `PUBLISH_PROVIDER` für YouTube, `INSTAGRAM_PROVIDER`, `TIKTOK_PROVIDER`, `BILLING_PROVIDER`) – je Plattform einzeln. Demo- und Live-Adapter erfüllen dieselben Verträge (`providers/types.ts`). Fehlende Konfiguration führt zu einer verständlichen Fehlermeldung – nie zu einem stillen „Erfolg“.
 
 ## n8n
 
@@ -102,6 +105,42 @@ Die offizielle n8n-OEM-Seite (https://n8n.io/oem/) ordnet laut den mitgelieferte
 - Vor jedem Upload werden aktive Berechtigung (Abo), gültige Freigabe genau dieser Version, Kanalzuordnung, Slot und Systemstatus erneut geprüft.
 - Hinweise aus der Recherche (Websuche; die offizielle Seite https://developers.google.com/youtube/v3/docs/videos/insert war aus dieser Umgebung nicht abrufbar): Uploads aus **nicht verifizierten** API-Projekten (nach 28.07.2020 erstellt) werden auf „privat“ beschränkt, bis ein Audit erfolgt ist. Laut Sekundärquellen wurde die Quota-Berechnung für `videos.insert` 2025/2026 geändert (eigener Upload-Topf) – **vor dem Livegang in der offiziellen Revision History prüfen**.
 - **Status: ungetestet. Keine echten Uploads.** Ein Live-Test braucht eine ausdrückliche Freigabe.
+
+## Mehrere Plattformen (YouTube, Instagram, TikTok)
+
+- Longform geht immer zu **YouTube**. Shorts gehen je System wahlweise zu **YouTube Shorts**, **Instagram Reels** und **TikTok** (Wizard, Schritt 3). Jeder Auftrag speichert die Auswahl im Konfigurations-Snapshot; spätere Änderungen gelten nur für neue Aufträge.
+- Eine Freigabe plant **eine** Veröffentlichung (Termin, Slot, Freigabe) mit **einem Ziel je Plattform** (`PublicationTarget`). Jede Plattform hat eigenen Status, eigene Beitrags-ID und eine sofort gespeicherte Upload-ID (Instagram-Container, TikTok-`publish_id`).
+- Der Worker veröffentlicht Plattform für Plattform. Unklare Antworten und Abstürze führen zum **Abgleich**, nie zu einem zweiten Upload; offene Plattformen werden danach fortgesetzt. Schlägt eine Plattform fehl, bleiben die anderen veröffentlicht; „Erneut versuchen“ wiederholt **nur** die fehlgeschlagenen.
+- Ein Short zählt **einmal** im Kontingent, egal auf wie vielen Plattformen er erscheint (Annahme, siehe ANNAHMEN.md).
+- Beitragstext für Instagram/TikTok: eigenes Feld in der Freigabe (max. 2.200 Zeichen); leer = aus Titel und Tags abgeleitet. n8n kann optional `caption` liefern.
+- Demo: Verbindungen und Veröffentlichungen je Plattform werden simuliert; Szenario „Instagram lehnt den Upload ab“ beim manuellen Short.
+
+## Instagram (Reels)
+
+- **Instagram API mit Instagram-Login** (`graph.instagram.com`, Version über `INSTAGRAM_GRAPH_VERSION`). OAuth: `https://www.instagram.com/oauth/authorize` → Token-Tausch → Langzeit-Token (ca. 60 Tage, wird vor Ablauf verlängert). Scopes: `instagram_business_basic`, `instagram_business_content_publish`. Nur **Professional-Konten** (Business/Creator).
+- Ablauf: Container anlegen (`POST /{ig-user-id}/media`, `media_type=REELS`, `video_url`, `caption`) → Status abfragen (`GET /{container-id}?fields=status_code` bis `FINISHED`) → `POST /{ig-user-id}/media_publish` mit `creation_id`. Status `ERROR`/`EXPIRED` → fehlgeschlagen; noch in Arbeit → Abgleich übernimmt.
+- Instagram lädt das Video **selbst herunter**: dafür erzeugt die App einen **signierten, befristeten Link** (`/api/public-media/<token>`, 2 Stunden, HMAC). `APP_URL` muss öffentlich per HTTPS erreichbar sein.
+- Quelle: Meta-Dokumentation „Publish Content using the Instagram Platform“ (https://developers.facebook.com/docs/instagram-platform/content-publishing/) – aus dieser Umgebung nicht direkt abrufbar, Ablauf per Websuche bestätigt. Tageslimit für Veröffentlichungen und App-Review-Anforderungen **vor dem Livegang in der aktuellen Doku prüfen**.
+- **Status: ungetestet. Keine echten Beiträge.**
+
+## TikTok
+
+- **Content Posting API, Direct Post** mit `FILE_UPLOAD`: `creator_info/query` → `video/init` (Stückelung 5–64 MB, letztes Stück bis 128 MB, Dateien unter 5 MB am Stück) → `PUT` auf die `upload_url` → `status/fetch` bis `PUBLISH_COMPLETE`. OAuth über `https://www.tiktok.com/v2/auth/authorize/`, Scopes `user.info.basic`, `video.publish`; Token laufen nach 24 h ab und werden per Refresh-Token erneuert.
+- **Wichtig:** Solange TikTok die App nicht geprüft hat, sind Beiträge nur **privat** sichtbar (`SELF_ONLY`) – deshalb ist `TIKTOK_PRIVACY_LEVEL=SELF_ONLY` der Standard. TikTok verlangt für geprüfte Apps, dass Nutzer:innen die Sichtbarkeit selbst wählen und Hinweise zu kommerziellen Inhalten bestätigen; diese Auswahl muss vor dem Livegang in der Freigabe ergänzt werden.
+- Quellen: TikTok for Developers, „Direct Post“ (https://developers.tiktok.com/doc/content-posting-api-reference-direct-post) und „Media Transfer Guide“ (https://developers.tiktok.com/doc/content-posting-api-media-transfer-guide) – per Websuche geprüft.
+- **Status: ungetestet. Keine echten Beiträge.**
+
+## Shopify als Verkaufsweg
+
+- Kunden kaufen **Starter** oder **Studio** im Shop (empfohlen als Abo-Produkt, z. B. mit der App „Shopify Subscriptions“). Der Kauf schaltet den Plan in der App frei – **der Zugang entsteht nie über den Browser**, sondern nur über signaturgeprüfte Webhooks an `POST /api/webhooks/shopify`:
+  - `orders/paid` → Plan über SKU oder Varianten-ID (`SHOPIFY_PLAN_STARTER`, `SHOPIFY_PLAN_STUDIO`, kommagetrennt; Studio schlägt Starter), Zeitraum ab Zahlung + 1 Monat. Folgebestellungen eines Abos verlängern; verspätete ältere Bestellungen ändern nichts.
+  - `orders/cancelled` → beendet den Zugang, wenn der aktuelle Zeitraum aus dieser Bestellung stammt. Erstattungen (`refunds/create`) werden bewusst **nicht** automatisch verarbeitet – bitte manuell prüfen.
+- Echtheit: HMAC-SHA256 über den unveränderten Body (`X-Shopify-Hmac-Sha256`, Schlüssel `SHOPIFY_WEBHOOK_SECRET`) und erwartete Shop-Domain (`SHOPIFY_SHOP_DOMAIN`). Idempotenz über `X-Shopify-Webhook-Id` und je Bestellung.
+- Zuordnung über die E-Mail-Adresse der Bestellung – **nur zu Konten mit bestätigter E-Mail** (im lokalen Demo-Modus gelockert). Wer vor der Registrierung kauft, bekommt den Plan beim Registrieren bzw. beim Bestätigen der E-Mail. **Voraussetzung für den Livebetrieb: E-Mail-Versand und -Bestätigung einrichten.**
+- Über den Shop gekaufte Abos zeigt die App an; Planwechsel und Kündigung verweisen auf das Kundenkonto des Shops (keine doppelte Verwaltung).
+- Einrichtung im Shop: Webhooks unter *Einstellungen → Benachrichtigungen → Webhooks* für „Bestellungszahlung“ und „Bestellungsstornierung“ (Format JSON) auf `https://<app-domain>/api/webhooks/shopify`; der dort angezeigte Signaturschlüssel ist `SHOPIFY_WEBHOOK_SECRET`.
+- **Status:** lokal mit selbst signierten Test-Webhooks getestet (Signatur, Shop-Domain, Duplikate, Plan-Erkennung, Kauf vor Registrierung, Verlängerung, Stornierung). **Nicht** mit einem echten Shop.
+- **Nicht parallel mit Stripe:** Bei aktivem Stripe-Abo wird ein Shop-Kauf nicht automatisch übernommen, sondern als Hinweis gemeldet.
 
 ## Stripe
 

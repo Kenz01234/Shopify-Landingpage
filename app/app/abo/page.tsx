@@ -29,6 +29,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       />
       <BillingPanel
         provider={env().BILLING_PROVIDER}
+        shopAccountUrl={env().SHOPIFY_SHOP_DOMAIN ? `https://${env().SHOPIFY_SHOP_DOMAIN}/account` : null}
         demo={isDemoMode()}
         preselect={preselect}
         checkoutState={sp.checkout ?? null}

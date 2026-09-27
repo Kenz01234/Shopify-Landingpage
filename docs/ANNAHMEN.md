@@ -22,6 +22,7 @@ Rechnerisch: Starter 105 Longform-Minuten (≈ 0,57 € je Minute), Studio 300 L
 | Überarbeitungen | max. 2 pro Auftrag, ohne zusätzliches Kontingent | Anzahl, ggf. kostenpflichtige Zusatzrevisionen |
 | Kontingentverbrauch | Reservierung beim Anlegen, Verbrauch bei Fertigstellung der ersten finalen Version; Abbruch/Verwerfen **vor** Fertigstellung gibt frei, danach bleibt verbraucht | Ob verworfene fertige Videos zählen |
 | Technische Wiederholungen | zählen nie doppelt | – |
+| Mehrere Plattformen | Ein Short zählt einmal, egal ob er auf YouTube, Instagram und TikTok erscheint; Longform nur YouTube | Eigene Kontingente je Plattform? Longform auch auf anderen Plattformen? |
 | Übertrag ungenutzter Mengen | nein, Verfall zum Periodenende | Übertrag ja/nein, Obergrenze |
 | Abrechnungszeitraum | ab Abo-Beginn, monatlich (nicht Kalendermonat) | Jahresabo? |
 | Planwechsel | Upgrade sofort (Kontingent wird angehoben), Downgrade zum Periodenende | Anteilige Berechnung (Proration) |
@@ -42,8 +43,9 @@ Rechnerisch: Starter 105 Longform-Minuten (≈ 0,57 € je Minute), Studio 300 L
 
 ## Verkaufsweg
 
-- **Annahme:** Verkauf in der eigenen App (Stripe-Adapter vorbereitet). Die Shopify-Section verlinkt konfigurierbar auf die App oder auf echte Shopify-Abo-Produkte.
-- **Nicht beides parallel:** Wird Shopify als Abrechnungsplattform gewählt, braucht es eine Abo-App (Selling Plans) und eine serverseitige Synchronisierung der Berechtigungen – nicht umgesetzt.
+- **Entscheidung:** Verkauf über **Shopify** (Warenkorb und Shopify-Checkout). Starter und Studio werden Abo-Produkte (z. B. mit „Shopify Subscriptions“); ein bezahlter Kauf schaltet den Plan in der App frei (`orders/paid`, siehe INTEGRATIONEN.md).
+- Der Stripe-Adapter bleibt als Alternative im Code, wird aber **nicht parallel** genutzt.
+- Offen: Rückerstattungen (`refunds/create`) werden nicht automatisch verarbeitet; Planwechsel mitten im Zeitraum laufen über den Shop (neue Bestellung).
 
 ## Kosten, die vor dem Launch zu klären sind
 

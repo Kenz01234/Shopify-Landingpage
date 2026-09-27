@@ -27,12 +27,20 @@ function assertDemoBilling() {
   if (env().BILLING_PROVIDER !== "demo") throw new AppError("NOT_DEMO", "Diese Aktion ist nur im Demo-Billing verfügbar.", 400);
 }
 
+/** Über den Shop gekaufte Abos werden dort verwaltet – sonst liefen App und Shop auseinander. */
+function assertNotShopManaged(sub: { provider: string } | null | undefined) {
+  if (sub?.provider === "shopify") {
+    throw new AppError("MANAGED_IN_SHOP", "Dein Abo läuft über den Shop. Planwechsel und Kündigung bitte im Kundenkonto des Shops vornehmen.", 409);
+  }
+}
+
 /** Demo-Checkout: aktiviert oder wechselt den Plan ohne Zahlung. */
 export async function demoCheckout(ctx: Ctx, plan: PlanKey) {
   assertDemoBilling();
   const org = await orgWithSub(ctx.orgId);
   const now = orgNow(org);
   const sub = org.subscription;
+  assertNotShopManaged(sub);
   if (sub && sub.status === "active") return changePlan(ctx, plan);
   return prisma.$transaction(async (tx) => {
     const data = {
@@ -60,6 +68,7 @@ export async function changePlan(ctx: Ctx, plan: PlanKey) {
   assertDemoBilling();
   return prisma.$transaction(async (tx) => {
     const sub = await tx.subscription.findUnique({ where: { organizationId: ctx.orgId } });
+    assertNotShopManaged(sub);
     if (!sub || sub.status === "canceled") throw new AppError("NO_SUBSCRIPTION", "Kein aktives Abo.", 409);
     let saved: Subscription;
     if (plan === sub.plan) {
@@ -78,6 +87,7 @@ export async function changePlan(ctx: Ctx, plan: PlanKey) {
 export async function cancelAtPeriodEnd(ctx: Ctx) {
   assertDemoBilling();
   const sub = await prisma.subscription.findUnique({ where: { organizationId: ctx.orgId } });
+  assertNotShopManaged(sub);
   if (!sub || sub.status === "canceled") throw new AppError("NO_SUBSCRIPTION", "Kein aktives Abo.", 409);
   const saved = await prisma.subscription.update({ where: { id: sub.id }, data: { cancelAtPeriodEnd: true } });
   await audit(prisma, { orgId: ctx.orgId, actor: { type: "user", userId: ctx.userId }, action: "billing.cancel", targetType: "subscription", targetId: sub.id });
@@ -87,6 +97,7 @@ export async function cancelAtPeriodEnd(ctx: Ctx) {
 export async function resumeSubscription(ctx: Ctx) {
   assertDemoBilling();
   const sub = await prisma.subscription.findUnique({ where: { organizationId: ctx.orgId } });
+  assertNotShopManaged(sub);
   if (!sub || sub.status === "canceled") throw new AppError("NO_SUBSCRIPTION", "Ein beendetes Abo kann nur über einen neuen Plan gestartet werden.", 409);
   const saved = await prisma.subscription.update({ where: { id: sub.id }, data: { cancelAtPeriodEnd: false } });
   await audit(prisma, { orgId: ctx.orgId, actor: { type: "user", userId: ctx.userId }, action: "billing.resume", targetType: "subscription", targetId: sub.id });

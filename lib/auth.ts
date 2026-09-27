@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { claimShopifyOrdersForUser } from "@/lib/billing/shopify";
 import { prisma } from "@/lib/db";
 
 /**
@@ -40,6 +41,13 @@ export const auth = betterAuth({
           await prisma.auditEvent.create({
             data: { organizationId: org.id, actorType: "user", actorUserId: user.id, action: "account.register", targetType: "user", targetId: user.id },
           });
+          // Vorher im Shop gekaufte Pläne übernehmen (nur mit bestätigter E-Mail, siehe lib/billing/shopify.ts)
+          await claimShopifyOrdersForUser({ id: user.id, email: user.email, emailVerified: !!user.emailVerified });
+        },
+      },
+      update: {
+        after: async (user) => {
+          if (user.emailVerified) await claimShopifyOrdersForUser({ id: user.id, email: user.email, emailVerified: true });
         },
       },
     },

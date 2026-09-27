@@ -42,8 +42,11 @@ export function BillingPanel({
   hasSystems,
   subscription,
   quota,
+  shopAccountUrl,
 }: {
   provider: "demo" | "stripe";
+  /** Kundenkonto des Shops (Abos, die über Shopify gekauft wurden, werden dort verwaltet) */
+  shopAccountUrl: string | null;
   demo: boolean;
   preselect: PlanKey | null;
   checkoutState: string | null;
@@ -58,6 +61,7 @@ export function BillingPanel({
   const [plan, setPlan] = useState<PlanKey>(preselect ?? subscription?.plan ?? "studio");
   const [busy, setBusy] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<null | "cancel" | "change">(null);
+  const shopManaged = subscription?.provider === "shopify";
   const active = subscription && subscription.status !== "canceled";
 
   const post = async (path: string, body: unknown, onOk?: (r: Record<string, unknown>) => void) => {
@@ -102,7 +106,7 @@ export function BillingPanel({
                 {PLANS[subscription.plan].name} <span className="text-lg font-medium text-ink-3">{PLANS[subscription.plan].priceEurMonthly} € / Monat</span>
               </p>
               <p className="mt-1 text-sm text-ink-3">
-                Abrechnungszeitraum {d(quota.periodStart)} – {d(quota.periodEnd)} · Anbieter: {subscription.provider === "demo" ? "Demo-Billing (simuliert)" : "Stripe"}
+                Abrechnungszeitraum {d(quota.periodStart)} – {d(quota.periodEnd)} · Anbieter: {subscription.provider === "demo" ? "Demo-Billing (simuliert)" : shopManaged ? "Shop (Shopify)" : "Stripe"}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -135,6 +139,16 @@ export function BillingPanel({
             Reserviert = Auftrag angelegt/in Produktion. Verbraucht = fertig produziert. Technische Wiederholungen und bis zu {ASSUMPTIONS.maxRevisionsPerJob} Überarbeitungen pro Auftrag
             buchen nicht erneut. Nicht genutzte Mengen verfallen am Periodenende (vorläufige Annahme).
           </p>
+          {shopManaged ? (
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <p className="text-sm text-ink-2">Dieses Abo hast du im Shop gekauft. Planwechsel, Zahlungsdaten und Kündigung verwaltest du im Kundenkonto des Shops.</p>
+              {shopAccountUrl && (
+                <a href={shopAccountUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-4 text-sm font-semibold hover:bg-surface-2">
+                  <CreditCard className="size-4" aria-hidden /> Im Shop verwalten
+                </a>
+              )}
+            </div>
+          ) : (
           <div className="mt-5 flex flex-wrap gap-2">
             {subscription.cancelAtPeriodEnd ? (
               <Button onClick={() => post("/api/billing/resume", {}, () => toast({ tone: "ok", title: "Kündigung zurückgenommen" }))} disabled={!!busy}>
@@ -151,6 +165,7 @@ export function BillingPanel({
               </Button>
             )}
           </div>
+          )}
           {demo && subscription.provider === "demo" && (
             <div className="mt-6 rounded-2xl border border-dashed border-line-strong bg-surface-2 p-4">
               <p className="flex items-center gap-2 text-sm font-semibold">
@@ -176,6 +191,8 @@ export function BillingPanel({
         </section>
       )}
 
+      {!shopManaged && (
+      <>
       <section aria-labelledby="plans">
         <h2 id="plans" className="mb-4 font-display text-xl font-semibold tracking-[-0.02em]">
           {active ? "Plan wechseln" : "Pläne"}
@@ -256,6 +273,8 @@ export function BillingPanel({
           </>
         )}
       </div>
+      </>
+      )}
 
       <Dialog
         open={confirm === "cancel"}
