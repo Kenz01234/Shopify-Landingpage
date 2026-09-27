@@ -1,0 +1,383 @@
+{%- comment -%}
+  Quest Agent – Landingpage-Section (Integrationspaket, kein vollständiges Theme).
+  Gekapselt über die Klasse .qa-section und data-section-id. Keine eigene Navigation.
+  Alle Texte, Farben, Bilder und Links sind im Theme-Editor konfigurierbar.
+{%- endcomment -%}
+
+{{ 'quest-agent.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'quest-agent.js' | asset_url }}" defer></script>
+
+{%- liquid
+  assign scene = section.settings.scene | default: 'space'
+  assign scene_file = 'quest-agent-scene-' | append: scene | append: '.svg'
+  assign scene_url = scene_file | asset_url
+  case scene
+    when 'history'
+      assign niche_label = 'Geschichte'
+    when 'ocean'
+      assign niche_label = 'Tiefsee'
+    when 'nature'
+      assign niche_label = 'Natur'
+    when 'tech'
+      assign niche_label = 'Technik'
+    else
+      assign niche_label = 'Weltall'
+  endcase
+  assign primary_ready = false
+  if section.settings.primary_url != blank
+    assign primary_ready = true
+  endif
+-%}
+
+<section
+  id="qa-{{ section.id }}"
+  class="qa-section qa-no-js qa-scheme-{{ section.settings.color_scheme }}"
+  data-section-id="{{ section.id }}"
+  data-qa-root
+  style="--qa-bg: {{ section.settings.color_background }}; --qa-ink: {{ section.settings.color_text }}; --qa-coral: {{ section.settings.color_accent }}; --qa-button: {{ section.settings.color_button }};"
+>
+  <div class="qa-glow" aria-hidden="true"></div>
+
+  {%- comment -%} Hero {%- endcomment -%}
+  <div class="qa-container qa-hero">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="qa-eyebrow"><span class="qa-dot" aria-hidden="true"></span>{{ section.settings.eyebrow | escape }}</p>
+    {%- endif -%}
+    <h2 class="qa-title">
+      <span class="qa-title-line">{{ section.settings.headline_1 | escape }}</span>
+      <span class="qa-title-line qa-accent"><span>{{ section.settings.headline_2_strong | escape }}</span> <em class="qa-serif">{{ section.settings.headline_2_soft | escape }}</em></span>
+    </h2>
+    {%- if section.settings.subline != blank -%}
+      <p class="qa-sub">{{ section.settings.subline | escape }}</p>
+    {%- endif -%}
+    {%- if section.settings.supplement != blank -%}
+      <p class="qa-supp">{{ section.settings.supplement | escape }}</p>
+    {%- endif -%}
+    <div class="qa-ctas">
+      {%- if primary_ready -%}
+        <a class="qa-btn qa-btn-primary" href="{{ section.settings.primary_url }}">{{ section.settings.primary_label | escape }} <span aria-hidden="true">→</span></a>
+      {%- else -%}
+        <span class="qa-btn qa-btn-primary qa-btn-disabled" aria-disabled="true" title="Link im Theme-Editor noch nicht eingerichtet">
+          {{ section.settings.primary_label | escape }} <span class="qa-tag">nicht eingerichtet</span>
+        </span>
+      {%- endif -%}
+      <button type="button" class="qa-btn qa-btn-secondary" data-qa-discover>
+        <span class="qa-play" aria-hidden="true">▶</span> {{ section.settings.secondary_label | escape }}
+      </button>
+    </div>
+    {%- if section.settings.note != blank -%}
+      <p class="qa-note">{{ section.settings.note | escape }}</p>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Interaktive Loop-Demo {%- endcomment -%}
+  {%- if section.settings.show_loop -%}
+    <div class="qa-container">
+      <div class="qa-stage" data-qa-stage tabindex="-1" aria-label="Interaktive Produktdemo (Beispiel)">
+        <div class="qa-stage-bar">
+          <span class="qa-pill"><span class="qa-dot" aria-hidden="true"></span>Demo-Ablauf</span>
+          <span class="qa-status" data-qa-status aria-live="polite">Dein System wird eingerichtet</span>
+          <span class="qa-stage-controls">
+            <button type="button" class="qa-icon-btn" data-qa-toggle aria-label="Animation pausieren">❚❚</button>
+            <button type="button" class="qa-icon-btn" data-qa-restart aria-label="Von vorne abspielen">↺</button>
+          </span>
+        </div>
+        <div class="qa-grid">
+          <div class="qa-card qa-config">
+            <p class="qa-card-title">Dein System <span class="qa-muted-tag">Beispiel</span></p>
+            <p class="qa-label">Nische</p>
+            <p><span class="qa-chip qa-chip-on">{{ niche_label }}</span> <span class="qa-chip">Wissen</span></p>
+            <p class="qa-label">Referenzkanäle</p>
+            <div class="qa-ref"><span class="qa-avatar a1"></span><span class="qa-lines"><i></i><i></i></span></div>
+            <div class="qa-ref"><span class="qa-avatar a2"></span><span class="qa-lines"><i></i><i></i></span></div>
+            <p class="qa-label">Uploadplan</p>
+            <div class="qa-row"><span>Mo · Mi · Fr, 18:00</span><b class="qa-tag-dark">Video</b></div>
+            <div class="qa-row"><span>Täglich, 12:00</span><b class="qa-tag-soft">Short</b></div>
+          </div>
+          <div class="qa-card qa-prod">
+            <p class="qa-card-title">Quest arbeitet für dich <span class="qa-muted-tag">Demoproduktion</span></p>
+            <ol class="qa-steps">
+              <li data-qa-step="0"><span class="qa-check"></span><span><b>Recherche</b><small>Themen, Fakten, Rohmaterial</small></span></li>
+              <li data-qa-step="1"><span class="qa-check"></span><span><b>Skript</b><small>Eigener Text, dein Ton</small></span></li>
+              <li data-qa-step="2"><span class="qa-check"></span><span><b>KI-Stimme</b><small>Du sprichst nichts ein</small></span><span class="qa-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></li>
+              <li data-qa-step="3"><span class="qa-check"></span><span><b>Video</b><small>Schnitt, Musik, Untertitel</small></span></li>
+              <li data-qa-step="4"><span class="qa-check"></span><span><b>Shorts</b><small>Hochkant-Clips</small></span></li>
+              <li data-qa-step="5"><span class="qa-check"></span><span><b>Auto-Prüfung</b><small>ersetzt keine Freigabe</small></span></li>
+            </ol>
+            <div class="qa-progress"><span data-qa-progress></span></div>
+          </div>
+          <div class="qa-out">
+            <div class="qa-media">
+              <div class="qa-video" data-qa-video>
+                {%- if section.settings.landscape_image != blank -%}
+                  {{ section.settings.landscape_image | image_url: width: 960 | image_tag: loading: 'lazy', alt: section.settings.sample_title, class: 'qa-img' }}
+                {%- else -%}
+                  <img class="qa-img" src="{{ scene_url }}" alt="Beispielgrafik" loading="lazy" width="1600" height="900">
+                {%- endif -%}
+                <span class="qa-video-title">{{ section.settings.sample_title | escape }}</span>
+                <span class="qa-badge">Beispielgrafik</span>
+              </div>
+              <div class="qa-short" data-qa-short>
+                {%- if section.settings.portrait_image != blank -%}
+                  {{ section.settings.portrait_image | image_url: width: 400 | image_tag: loading: 'lazy', alt: '', class: 'qa-img' }}
+                {%- else -%}
+                  <img class="qa-img" src="{{ scene_url }}" alt="" loading="lazy" width="1600" height="900">
+                {%- endif -%}
+              </div>
+            </div>
+            <div class="qa-card qa-approval" data-qa-approval hidden>
+              <p class="qa-card-title">Du hast das letzte Wort.</p>
+              <p class="qa-muted">Automatische Prüfung bestanden – sie ersetzt deine Freigabe nicht.</p>
+              <div class="qa-actions">
+                <button type="button" class="qa-btn qa-btn-ghost" data-qa-changes>Überarbeiten</button>
+                <button type="button" class="qa-btn qa-btn-approve" data-qa-approve>✓ Freigeben</button>
+              </div>
+            </div>
+            <div class="qa-card qa-calendar" data-qa-calendar hidden>
+              <p class="qa-card-title">Uploadplan · diese Woche <span class="qa-ok-tag">Freigegeben</span></p>
+              <div class="qa-week">
+                {%- assign days = 'Mo,Di,Mi,Do,Fr,Sa,So' | split: ',' -%}
+                {%- for d in days -%}
+                  <div class="qa-day{% if forloop.index == 3 %} qa-day-hit{% endif %}"><small>{{ d }}</small><span></span></div>
+                {%- endfor -%}
+              </div>
+              <p class="qa-muted">Eingeplant: Mi, 18:00 · Demo – es wird nichts veröffentlicht.</p>
+            </div>
+            <p class="qa-waiting" data-qa-waiting>Ergebnisse landen zur Prüfung bei dir – nichts geht ohne deine Freigabe online.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Vorteile {%- endcomment -%}
+  {%- assign benefit_blocks = section.blocks | where: 'type', 'benefit' -%}
+  {%- if benefit_blocks.size > 0 -%}
+    <div class="qa-container">
+      <ul class="qa-benefits">
+        {%- for block in benefit_blocks -%}
+          <li class="qa-reveal" {{ block.shopify_attributes }}>
+            <span class="qa-benefit-icon" aria-hidden="true">{{ block.settings.icon | escape }}</span>
+            <span><b>{{ block.settings.title | escape }}</b><small>{{ block.settings.text | escape }}</small></span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Ablauf {%- endcomment -%}
+  {%- assign step_blocks = section.blocks | where: 'type', 'step' -%}
+  {%- if step_blocks.size > 0 -%}
+    <div class="qa-container qa-block-space" id="qa-loop-{{ section.id }}">
+      <p class="qa-kicker">{{ section.settings.loop_kicker | escape }}</p>
+      <h3 class="qa-h3">{{ section.settings.loop_title | escape }}</h3>
+      <ol class="qa-loop">
+        {%- for block in step_blocks -%}
+          <li class="qa-reveal qa-loop-item qa-who-{{ block.settings.who }}" {{ block.shopify_attributes }}>
+            <span class="qa-num">{{ forloop.index }}</span>
+            <span>
+              <small>{% if block.settings.who == 'du' %}Du{% else %}Quest{% endif %}</small>
+              <b>{{ block.settings.title | escape }}</b>
+              <em>{{ block.settings.text | escape }}</em>
+            </span>
+          </li>
+        {%- endfor -%}
+      </ol>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Preise {%- endcomment -%}
+  {%- if section.settings.show_pricing -%}
+    <div class="qa-container qa-block-space">
+      <p class="qa-kicker">Preise</p>
+      <h3 class="qa-h3">{{ section.settings.pricing_title | escape }}</h3>
+      <div class="qa-plans">
+        {%- for i in (1..2) -%}
+          {%- liquid
+            if i == 1
+              assign p_name = section.settings.plan1_name
+              assign p_price = section.settings.plan1_price
+              assign p_lf = section.settings.plan1_longform
+              assign p_min = section.settings.plan1_minutes
+              assign p_sh = section.settings.plan1_shorts
+              assign p_url = section.settings.plan1_url
+            else
+              assign p_name = section.settings.plan2_name
+              assign p_price = section.settings.plan2_price
+              assign p_lf = section.settings.plan2_longform
+              assign p_min = section.settings.plan2_minutes
+              assign p_sh = section.settings.plan2_shorts
+              assign p_url = section.settings.plan2_url
+            endif
+          -%}
+          <article class="qa-plan{% if i == 2 %} qa-plan-featured{% endif %} qa-reveal">
+            <h4>{{ p_name | escape }}</h4>
+            <p class="qa-price">{{ p_price | escape }} €<small> / Monat</small></p>
+            <ul>
+              <li>{{ p_lf }} Videos à {{ p_min }} Min.</li>
+              <li>{{ p_sh }} Shorts</li>
+              <li>KI-Stimme, Freigabe-Inbox, Kalender</li>
+            </ul>
+            {%- if p_url != blank -%}
+              <a class="qa-btn {% if i == 2 %}qa-btn-primary{% else %}qa-btn-secondary{% endif %}" href="{{ p_url }}">{{ p_name | escape }} wählen</a>
+            {%- else -%}
+              <span class="qa-btn qa-btn-secondary qa-btn-disabled" aria-disabled="true">Kauf noch nicht eingerichtet</span>
+            {%- endif -%}
+          </article>
+        {%- endfor -%}
+      </div>
+      {%- if section.settings.pricing_note != blank -%}
+        <p class="qa-note">{{ section.settings.pricing_note | escape }}</p>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} FAQ {%- endcomment -%}
+  {%- assign faq_blocks = section.blocks | where: 'type', 'faq' -%}
+  {%- if faq_blocks.size > 0 -%}
+    <div class="qa-container qa-block-space">
+      <p class="qa-kicker">FAQ</p>
+      <h3 class="qa-h3">{{ section.settings.faq_title | escape }}</h3>
+      <div class="qa-faq">
+        {%- for block in faq_blocks -%}
+          <details class="qa-faq-item" {{ block.shopify_attributes }}>
+            <summary>{{ block.settings.question | escape }}<span aria-hidden="true">+</span></summary>
+            <div class="qa-faq-answer">{{ block.settings.answer }}</div>
+          </details>
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Abschluss {%- endcomment -%}
+  <div class="qa-container qa-final">
+    <h3 class="qa-h3">{{ section.settings.final_title | escape }}</h3>
+    {%- if primary_ready -%}
+      <a class="qa-btn qa-btn-primary qa-btn-lg" href="{{ section.settings.primary_url }}">{{ section.settings.primary_label | escape }} <span aria-hidden="true">→</span></a>
+    {%- else -%}
+      <span class="qa-btn qa-btn-primary qa-btn-lg qa-btn-disabled" aria-disabled="true">{{ section.settings.primary_label | escape }} <span class="qa-tag">nicht eingerichtet</span></span>
+    {%- endif -%}
+    {%- if section.settings.disclaimer != blank -%}
+      <p class="qa-note">{{ section.settings.disclaimer | escape }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Quest Agent Landing",
+  "tag": "div",
+  "class": "qa-section-wrapper",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "YouTube-Automation. Ohne Kamera. Ohne Einsprechen." },
+    { "type": "text", "id": "headline_1", "label": "Überschrift Zeile 1", "default": "Dein Faceless-Kanal." },
+    { "type": "text", "id": "headline_2_strong", "label": "Überschrift Zeile 2 (fett)", "default": "Läuft" },
+    { "type": "text", "id": "headline_2_soft", "label": "Überschrift Zeile 2 (kursiv)", "default": "für dich." },
+    { "type": "text", "id": "subline", "label": "Unterzeile", "default": "Nische und Vorbilder wählen. Uploadplan festlegen. Prüfen, freigeben, fertig." },
+    { "type": "textarea", "id": "supplement", "label": "Ergänzung", "default": "Quest Agent übernimmt Recherche, Skript, KI-Stimme und Produktion – du behältst das letzte Wort." },
+    { "type": "text", "id": "primary_label", "label": "Primärer Button – Text", "default": "Eigenes System erstellen" },
+    { "type": "url", "id": "primary_url", "label": "Primärer Button – Link", "info": "Zur Quest-Agent-App (z. B. /registrieren) oder zu einem echten Abo-Produkt. Leer = als „nicht eingerichtet“ gekennzeichnet." },
+    { "type": "text", "id": "secondary_label", "label": "Sekundärer Button – Text", "default": "Den Loop entdecken" },
+    { "type": "text", "id": "note", "label": "Hinweis unter den Buttons", "default": "Keine Erfolgsgarantie – aber weniger Routine." },
+
+    { "type": "header", "content": "Loop-Demo" },
+    { "type": "checkbox", "id": "show_loop", "label": "Animierte Loop-Demo anzeigen", "default": true },
+    { "type": "select", "id": "scene", "label": "Beispielmotiv", "default": "space", "options": [
+      { "value": "space", "label": "Weltall" },
+      { "value": "history", "label": "Geschichte" },
+      { "value": "ocean", "label": "Tiefsee" },
+      { "value": "nature", "label": "Natur" },
+      { "value": "tech", "label": "Technik" }
+    ] },
+    { "type": "image_picker", "id": "landscape_image", "label": "Eigenes Querformat-Bild (optional)" },
+    { "type": "image_picker", "id": "portrait_image", "label": "Eigenes Hochformat-Bild (optional)" },
+    { "type": "text", "id": "sample_title", "label": "Beispieltitel im Video", "default": "Was, wenn es noch andere Welten gibt?" },
+
+    { "type": "header", "content": "Ablauf" },
+    { "type": "text", "id": "loop_kicker", "label": "Kicker", "default": "So läuft’s" },
+    { "type": "text", "id": "loop_title", "label": "Titel", "default": "Ein Loop, elf Schritte. Zwei davon sind deine." },
+
+    { "type": "header", "content": "Preise" },
+    { "type": "checkbox", "id": "show_pricing", "label": "Preise anzeigen", "default": true },
+    { "type": "text", "id": "pricing_title", "label": "Titel", "default": "Zwei Pläne. Klare Mengen." },
+    { "type": "text", "id": "plan1_name", "label": "Plan 1 – Name", "default": "Starter" },
+    { "type": "text", "id": "plan1_price", "label": "Plan 1 – Preis (€ / Monat)", "default": "60" },
+    { "type": "number", "id": "plan1_longform", "label": "Plan 1 – Videos", "default": 15 },
+    { "type": "number", "id": "plan1_minutes", "label": "Plan 1 – Minuten pro Video", "default": 7 },
+    { "type": "number", "id": "plan1_shorts", "label": "Plan 1 – Shorts", "default": 30 },
+    { "type": "url", "id": "plan1_url", "label": "Plan 1 – Link (App oder echtes Abo-Produkt)" },
+    { "type": "text", "id": "plan2_name", "label": "Plan 2 – Name", "default": "Studio" },
+    { "type": "text", "id": "plan2_price", "label": "Plan 2 – Preis (€ / Monat)", "default": "100" },
+    { "type": "number", "id": "plan2_longform", "label": "Plan 2 – Videos", "default": 30 },
+    { "type": "number", "id": "plan2_minutes", "label": "Plan 2 – Minuten pro Video", "default": 10 },
+    { "type": "number", "id": "plan2_shorts", "label": "Plan 2 – Shorts", "default": 30 },
+    { "type": "url", "id": "plan2_url", "label": "Plan 2 – Link (App oder echtes Abo-Produkt)" },
+    { "type": "textarea", "id": "pricing_note", "label": "Hinweis zu Preisen", "default": "Vorläufige Preise. Steuerdarstellung und Konditionen sind noch nicht final. Keine Garantie für Reichweite oder Einnahmen." },
+
+    { "type": "header", "content": "FAQ & Abschluss" },
+    { "type": "text", "id": "faq_title", "label": "FAQ-Titel", "default": "Ehrliche Antworten." },
+    { "type": "text", "id": "final_title", "label": "Abschluss-Titel", "default": "Hier beginnt dein Loop." },
+    { "type": "textarea", "id": "disclaimer", "label": "Rechtlicher Hinweis", "default": "Quest Agent ist ein unabhängiges Produkt und steht in keiner Verbindung zu YouTube oder Google." },
+
+    { "type": "header", "content": "Farben" },
+    { "type": "select", "id": "color_scheme", "label": "Farbschema", "default": "light", "options": [
+      { "value": "light", "label": "Hell" },
+      { "value": "dark", "label": "Dunkel" },
+      { "value": "auto", "label": "Automatisch (Systemeinstellung)" }
+    ] },
+    { "type": "color", "id": "color_background", "label": "Hintergrund (hell)", "default": "#FFFEFA" },
+    { "type": "color", "id": "color_text", "label": "Text (hell)", "default": "#242321" },
+    { "type": "color", "id": "color_accent", "label": "Akzent", "default": "#E83936" },
+    { "type": "color", "id": "color_button", "label": "Button", "default": "#D5302D" }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Vorteil",
+      "limit": 6,
+      "settings": [
+        { "type": "text", "id": "icon", "label": "Symbol (Emoji oder Zeichen)", "default": "✓" },
+        { "type": "text", "id": "title", "label": "Titel", "default": "Ohne Gesicht" },
+        { "type": "text", "id": "text", "label": "Text", "default": "Keine Kamera, kein Auftritt." }
+      ]
+    },
+    {
+      "type": "step",
+      "name": "Ablaufschritt",
+      "limit": 14,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Titel", "default": "Schritt" },
+        { "type": "textarea", "id": "text", "label": "Text" },
+        { "type": "select", "id": "who", "label": "Wer?", "default": "quest", "options": [
+          { "value": "du", "label": "Du" },
+          { "value": "quest", "label": "Quest" }
+        ] }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "FAQ",
+      "limit": 12,
+      "settings": [
+        { "type": "text", "id": "question", "label": "Frage", "default": "Muss ich vor die Kamera?" },
+        { "type": "richtext", "id": "answer", "label": "Antwort", "default": "<p>Nein. Die Videos kommen ohne Gesicht aus, gesprochen wird von einer KI-Stimme.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Quest Agent Landing",
+      "blocks": [
+        { "type": "benefit", "settings": { "icon": "◎", "title": "Ohne Gesicht", "text": "Keine Kamera, kein Auftritt." } },
+        { "type": "benefit", "settings": { "icon": "♪", "title": "Ohne Einsprechen", "text": "Eine KI-Stimme spricht deine Skripte." } },
+        { "type": "benefit", "settings": { "icon": "✦", "title": "Dein eigenes System", "text": "Aus Nische und Vorbildern." } },
+        { "type": "step", "settings": { "title": "Nische & Vorbilder", "text": "Du legst Thema, Zielgruppe und Referenzkanäle fest.", "who": "du" } },
+        { "type": "step", "settings": { "title": "Produktion", "text": "Recherche, Skript, KI-Stimme, Video und Shorts.", "who": "quest" } },
+        { "type": "step", "settings": { "title": "Deine Freigabe", "text": "Ohne dich geht nichts online.", "who": "du" } },
+        { "type": "faq" }
+      ]
+    }
+  ]
+}
+{% endschema %}

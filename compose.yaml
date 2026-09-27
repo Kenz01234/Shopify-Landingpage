@@ -1,0 +1,61 @@
+# Lokaler Start: docker compose up --build   →   http://localhost:3000
+# Enthält Demo-Modus mit lokalen Demo-Konten. NICHT für den Produktivbetrieb verwenden.
+x-app-env: &app-env
+  DATABASE_URL: postgresql://quest:quest@db:5432/quest_agent
+  APP_URL: http://localhost:3000
+  BETTER_AUTH_URL: http://localhost:3000
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-lokal-compose-geheimnis-bitte-aendern-0123456789abcdef}
+  CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY:-MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
+  DEMO_MODE: "true"
+  ALLOW_DEMO_IN_PRODUCTION: "true"
+  DEMO_PASSWORD: ${DEMO_PASSWORD:-QuestDemo-2026!}
+  NEXT_TELEMETRY_DISABLED: "1"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: quest
+      POSTGRES_PASSWORD: quest
+      POSTGRES_DB: quest_agent
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quest -d quest_agent"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: .
+    command: sh -c "npx prisma migrate deploy && npx tsx prisma/seed.ts"
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    command: npm run start
+    ports:
+      - "3000:3000"
+    environment: *app-env
+    volumes:
+      - uploads:/app/storage/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build: .
+    command: npm run worker
+    environment: *app-env
+    volumes:
+      - uploads:/app/storage/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  uploads:
