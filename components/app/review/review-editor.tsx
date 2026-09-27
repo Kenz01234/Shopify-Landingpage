@@ -192,7 +192,7 @@ function MediaPanel({ assets, format, versionId, title, demo }: { assets: Asset[
             <p className="mb-2 flex items-center gap-2 text-sm font-semibold">
               <FileAudio className="size-4 text-coral" aria-hidden /> Voiceover
             </p>
-            <audio controls preload="none" className="w-full" src={`/api/media/${audio.id}`}>
+            <audio controls preload="metadata" className="w-full" src={`/api/media/${audio.id}`}>
               Dein Browser kann dieses Audio nicht abspielen.
             </audio>
             {audio.sourceLabel && <p className="mt-1.5 text-xs text-ink-3">{audio.sourceLabel}</p>}

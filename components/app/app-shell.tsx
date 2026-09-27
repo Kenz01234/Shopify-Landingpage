@@ -162,12 +162,14 @@ export function AppShell({ children, user, orgName, plan, demo, initialReview }:
         <a href="#app-inhalt" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-bg">
           Zum Inhalt springen
         </a>
-        <aside className="sticky top-0 hidden h-dvh flex-col overflow-y-auto border-r border-line bg-surface-2 px-4 py-5 lg:flex">
-          <Link href="/app" className="mb-6 px-2" aria-label="Quest Agent – Übersicht">
-            <Logo markClassName="size-8" />
-          </Link>
-          {nav}
-        </aside>
+        <div className="hidden border-r border-line bg-surface-2 lg:block">
+          <aside className="sticky top-0 flex h-dvh flex-col overflow-y-auto px-4 py-5">
+            <Link href="/app" className="mb-6 px-2" aria-label="Quest Agent – Übersicht">
+              <Logo markClassName="size-8" />
+            </Link>
+            {nav}
+          </aside>
+        </div>
 
         <div className="min-w-0">
           <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg/85 px-4 backdrop-blur-xl lg:hidden">
