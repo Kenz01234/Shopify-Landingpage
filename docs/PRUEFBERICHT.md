@@ -38,7 +38,7 @@ Die Einteilung ist streng:
 | Nativer Neustart von App und Worker | ✅ Login eines vor dem Neustart angelegten Funnel-Kontos: HTTP 200. System „Tiefsee Test“ ist aktiv, mit 2 Referenzkanälen und 5 Slots. |
 | Secret-Suche in `.next/static` | ✅ 0 Treffer für die Werte von `BETTER_AUTH_SECRET`, `DEMO_PASSWORD`, `CREDENTIALS_ENCRYPTION_KEY` und `DATABASE_URL` |
 | Secret-Suche in den App- und Worker-Logs | ✅ 0 Treffer für `BETTER_AUTH_SECRET` und `DEMO_PASSWORD` |
-| `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 262 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
+| `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 264 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
 | `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 95 KB |
 | Shopify Theme Check (`@shopify/theme-check-node` 3.29.1) auf `shopify/` | ✅ 0 Befunde. Die Section hat 40 Einstellungen und liegt damit unter dem Shopify-Limit. |
 | Vorschau der Section mit LiquidJS, hell und dunkel, 1440 px und 390 px | ✅ rendert. Das ist nur eine Näherung, **kein** echter Shopify-Shop (siehe „Ungetestet“). |
