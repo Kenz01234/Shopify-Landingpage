@@ -20,6 +20,7 @@ Die Einteilung ist streng:
 | Prisma | 7.10 (Treiber-Adapter `@prisma/adapter-pg`) |
 | Better Auth | 1.7.6 |
 | Vitest | 5.0.2 |
+| Shopify Theme Check | `@shopify/theme-check-node` 3.29 |
 | Playwright | 1.56.1, nur Chromium |
 | TypeScript | 5.9 |
 
@@ -39,9 +40,9 @@ Die Einteilung ist streng:
 | Secret-Suche in `.next/static` | ✅ 0 Treffer für die Werte von `BETTER_AUTH_SECRET`, `DEMO_PASSWORD`, `CREDENTIALS_ENCRYPTION_KEY` und `DATABASE_URL` |
 | Secret-Suche in den App- und Worker-Logs | ✅ 0 Treffer für `BETTER_AUTH_SECRET` und `DEMO_PASSWORD` |
 | `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 264 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
-| `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 95 KB |
-| Shopify Theme Check (`@shopify/theme-check-node` 3.29.1) auf `shopify/` | ✅ 0 Befunde. Die Section hat 40 Einstellungen und liegt damit unter dem Shopify-Limit. |
-| Vorschau der Section mit LiquidJS, hell und dunkel, 1440 px und 390 px | ✅ rendert. Das ist nur eine Näherung, **kein** echter Shopify-Shop (siehe „Ungetestet“). |
+| `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 98 KB |
+| `npm run shopify:theme` | ✅ `dist/horizon-quest-agent-theme.zip`, 1,4 MB. Enthält Shopify Horizon 4.2.0 von GitHub und die Section als Startseite. Hochladbar über „Theme hochladen“. Nur für den eigenen Shop bestimmt (Horizon-Lizenz), daher nicht im Repository. |
+| `npm run shopify:check` | ✅ **20 von 20** bestanden. Einzelheiten stehen in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft). |
 
 ## Abnahmeszenarien (Abschnitt 11 des Auftrags)
 
@@ -76,6 +77,13 @@ Die Einteilung ist streng:
 - **Hero-Animation.** Ein Klick auf „Den Loop entdecken“ während Phase 0 hielt den Timer an. Behoben.
 - **Horizontaler Überlauf bei 360 px.** Header-Button, Übersichts-Grid und Buttons ohne Umbruch verursachten Überlauf. Behoben.
 - **Seitenleiste im Kundenbereich.** Der Hintergrund endete bei langen Seiten nach einer Bildschirmhöhe. Behoben.
+- **Shopify: Theme-Stile drangen in die Section ein.**
+  - Symptom: Horizon setzt Schrift, Größe, Farbe und Abstände direkt auf `body`, `h1`–`h4`, `p`, `a`, `ul` und `summary`. Der Style-Vergleich fand 510 bis 549 Abweichungen. Im Dunkel-Schema wären `h3` und `h4` in Horizons Textfarbe erschienen und damit kaum lesbar gewesen.
+  - Fix: Alle Regeln sind unter `.qa-section` verankert, dazu kommt eine eigene Typografie-Basis. Danach gibt es 0 Abweichungen.
+- **Shopify-Editor: doppelte Instanzen.**
+  - Symptom: Bei jedem Neuladen der Section im Theme-Editor lief das Skript erneut. Nach dreimaligem Neuladen gab es 4 parallele Animationen und Listener.
+  - Fix: Die Listener werden jetzt nur einmal registriert, und pro Section läuft genau eine Instanz.
+- **Shopify-Schriften.** Die Schriftdateien werden jetzt über `asset_url` eingebunden, statt über relative Pfade im CSS.
 
 ## Ungetestet (bewusst, fehlende Zugänge oder Auftrag)
 
@@ -83,7 +91,7 @@ Die Einteilung ist streng:
 - **ElevenLabs:** kein API-Schlüssel. Der Adapter ist geschrieben, wurde aber nie gegen die API ausgeführt.
 - **YouTube Data API und Google OAuth:** keine Client-ID. Kein echter Upload.
 - **Stripe:** kein Testmodus-Schlüssel. Checkout, Portal und Webhook-Signaturprüfung sind gegen die Stripe-Bibliothek implementiert. Die Webhook-Verarbeitung ist per Unit-Test mit Testereignissen geprüft, die über `stripe.webhooks.generateTestHeaderString` signiert wurden, **nicht** gegen Stripe selbst.
-- **Echter Shopify-Shop:** Die Section ist per Theme Check und LiquidJS-Vorschau geprüft, aber nicht in einem echten Theme-Editor.
+- **Echter Shopify-Shop:** Aus dieser Umgebung sind Shopify-Domains gesperrt. Shopifys eigene Validierung beim Hochladen, der echte Theme-Editor und die Kombination mit Horizons Header und Footer sind deshalb nicht verifiziert. Nachgebildet wurden: Theme Check auf Horizon plus Section, die Upload-Regeln für das JSON-Template, Horizons CSS samt Scroll-Container und die Editor-Events (`npm run shopify:check`).
 - **Andere Browser:** Firefox und Safari/WebKit wurden nicht getestet, nur Chromium.
 - **Screenreader:** Tests mit NVDA oder VoiceOver wurden nicht durchgeführt.
 - **Lighthouse und Performance-Messung:** nicht durchgeführt. Geprüft wurde im Code nur, dass die Animationen `transform`, `opacity` und beim roten Faden die SVG-Strichlänge (`stroke-dashoffset`) nutzen, also keine Layout-Eigenschaften, und dass sie reduzierte Bewegung respektieren.
@@ -114,6 +122,7 @@ Die Screenshots erzeugt `tests/e2e/screenshots.spec.ts` automatisch gegen die la
 | Freigabe | `desktop-freigabe.png` | `mobil-freigabe.png` |
 | Kalender | `desktop-kalender.png` | `mobil-kalender.png` |
 | Übersicht, Produktion, Abo | `desktop-uebersicht.png`, `desktop-produktion.png`, `desktop-abo.png` | `mobil-uebersicht.png`, `mobil-produktion.png`, `mobil-abo.png` |
+| Shopify-Section mit Horizons CSS (ohne Horizons Header) | `shopify-horizon-desktop-hell.png` | `shopify-horizon-mobil-dunkel.png` |
 
 ## Erneut prüfen
 

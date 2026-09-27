@@ -7,7 +7,7 @@
 - Echtes Backend: PostgreSQL (Prisma), Better Auth (gehashte Passwörter, HttpOnly-Session-Cookies), serverseitige Mandantentrennung, transaktionale Kontingente, persistenter Worker mit Leases, Scheduler und Publisher.
 - **Demo-Modus**: Recherche, KI-Stimme, Schnitt, YouTube-Upload und Zahlung werden sichtbar simuliert – Daten und Abläufe sind aber echt und bleiben nach Reload und Neustart erhalten.
 - Vorbereitete Live-Adapter: n8n, ElevenLabs, YouTube Data API, Stripe (siehe [docs/INTEGRATIONEN.md](docs/INTEGRATIONEN.md)).
-- Zusätzlich: **Shopify-Section-Paket** unter [`shopify/`](shopify/INSTALLATION.md) bzw. `quest-agent-shopify-sections.zip` (kein vollständiges Theme).
+- Zusätzlich für Shopify: das **Section-Paket** unter [`shopify/`](shopify/INSTALLATION.md) bzw. `quest-agent-shopify-sections.zip` zum Einbau in ein bestehendes Theme. Außerdem ein **komplettes, hochladbares Theme** (Horizon + Section) über `npm run shopify:theme`. Geprüft wird beides mit `npm run shopify:check`.
 
 ## Schnellstart A – Docker Compose (empfohlen)
 
@@ -59,6 +59,7 @@ Passwort: Wert von `DEMO_PASSWORD` (Standard in `.env.example`: `QuestDemo-2026!
 ```bash
 npm test               # Vitest: 59 Backend-Tests auf je Lauf neu angelegter Test-DB (quest_agent_test_run_*)
 npm run typecheck
+npm run shopify:check  # Shopify: Theme Check, Upload-Regeln, Style-Isolation gegen Horizon, Editor-Simulation
 npx playwright test    # 21 E2E-Tests gegen laufende App (+ Worker; startet ggf. selbst) – setzt nur Demo-Konten zurück
 ```
 
@@ -85,7 +86,7 @@ scripts/             Demo-Medien, Szenen-Export, ZIP-Erstellung
 - [docs/INTEGRATIONEN.md](docs/INTEGRATIONEN.md) – was lokal funktioniert, was simuliert ist, was für Live-n8n, ElevenLabs, YouTube, Zahlungen fehlt; Hosting und Kosten.
 - [docs/ANNAHMEN.md](docs/ANNAHMEN.md) – offene Produktentscheidungen und Kostenpunkte.
 - [docs/PRUEFBERICHT.md](docs/PRUEFBERICHT.md) – ausgeführte Befehle und Ergebnisse.
-- [shopify/INSTALLATION.md](shopify/INSTALLATION.md) – Einbau der Section in eine Theme-Kopie.
+- [shopify/INSTALLATION.md](shopify/INSTALLATION.md) – Theme hochladen (Weg A) oder Section in ein bestehendes Theme einbauen (Weg B).
 
 ## Hinweise
 

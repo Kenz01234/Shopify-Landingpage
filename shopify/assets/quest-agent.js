@@ -8,6 +8,13 @@
 (function () {
   "use strict";
 
+  // Der Theme-Editor führt das Skript einer neu geladenen Section erneut aus. Listener nur einmal registrieren,
+  // bei jeder weiteren Ausführung nur neu initialisieren (je Section genau eine Instanz).
+  if (window.QuestAgentLanding) {
+    window.QuestAgentLanding.init();
+    return;
+  }
+
   var instances = new Map();
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -210,6 +217,8 @@
     var inst = byEvent(e);
     if (inst) inst.showBlock(e.target);
   });
+
+  window.QuestAgentLanding = { init: init };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { init(); });
   else init();

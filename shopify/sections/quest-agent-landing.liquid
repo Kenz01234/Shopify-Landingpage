@@ -4,6 +4,23 @@
   Alle Texte, Farben, Bilder und Links sind im Theme-Editor konfigurierbar.
 {%- endcomment -%}
 
+{%- comment -%} Schriften (SIL Open Font License) lokal aus dem Theme, Pfade über asset_url {%- endcomment -%}
+<style>
+  @font-face {
+    font-family: "QA Inter Tight";
+    src: url("{{ 'quest-agent-inter-tight.woff2' | asset_url }}") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "QA Instrument Serif";
+    src: url("{{ 'quest-agent-instrument-serif-italic.woff2' | asset_url }}") format("woff2");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+  }
+</style>
 {{ 'quest-agent.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'quest-agent.js' | asset_url }}" defer></script>
 

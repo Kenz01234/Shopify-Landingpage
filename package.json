@@ -21,6 +21,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "shopify:zip": "node scripts/build-shopify-zip.mjs",
+    "shopify:check": "node scripts/check-shopify.mjs",
+    "shopify:theme": "node scripts/build-shopify-horizon-theme.mjs",
     "project:zip": "node scripts/build-project-zip.mjs"
   },
   "dependencies": {
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
+    "@shopify/theme-check-node": "^3.29.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/luxon": "^3.7.5",
     "@types/node": "^22.20.4",
@@ -50,6 +53,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "dotenv": "^18.0.4",
+    "liquidjs": "^10.29.0",
     "postcss": "^8.5.28",
     "prisma": "^7.10.0",
     "tailwindcss": "^4.3.3",
