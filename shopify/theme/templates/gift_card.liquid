@@ -1,0 +1,22 @@
+{% layout none %}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{ 'gift_card.title' | t }} – {{ shop.name }}</title>
+    {{ 'qa-theme.css' | asset_url | stylesheet_tag }}
+    {{ content_for_header }}
+  </head>
+  <body class="qa-body">
+    <main class="qa-container qa-container--narrow qa-page-hero" style="text-align: center">
+      <h1 class="qa-h2">{{ 'gift_card.title' | t }}</h1>
+      <p class="qa-price__now" style="margin-top: 20px">{{ gift_card.balance | money }}</p>
+      {%- if gift_card.expired or gift_card.enabled == false -%}
+        <p class="qa-pill">{{ 'gift_card.inactive' | t }}</p>
+      {%- endif -%}
+      <p class="qa-card" style="margin-top: 24px; padding: 18px; font-size: 22px; font-weight: 800; letter-spacing: 0.08em">{{ gift_card.code | format_code }}</p>
+      <p style="margin-top: 24px"><a class="qa-btn qa-btn--primary" href="{{ shop.url }}">{{ 'gift_card.shop' | t }}</a></p>
+    </main>
+  </body>
+</html>

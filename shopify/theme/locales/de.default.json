@@ -1,0 +1,186 @@
+{
+  "accessibility": {
+    "skip_to_content": "Zum Inhalt springen"
+  },
+  "general": {
+    "home": "Startseite",
+    "main_nav": "Hauptnavigation",
+    "menu": "Menü",
+    "menu_open": "Menü öffnen",
+    "menu_close": "Menü schließen",
+    "search": "Suche",
+    "shop_account": "Kundenkonto im Shop",
+    "breadcrumbs": "Brotkrumen-Navigation",
+    "pagination": "Seiten",
+    "previous": "Vorherige Seite",
+    "next": "Nächste Seite",
+    "page": "Seite {{ page }}",
+    "payment_methods": "Zahlungsarten",
+    "example": "Beispiel",
+    "preview": "Vorschau"
+  },
+  "theme": {
+    "toggle": "Farbmodus wechseln",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "Automatisch"
+  },
+  "hero": {
+    "stage_label": "Beispiel: Ein Video entsteht und erscheint auf YouTube, Instagram und TikTok",
+    "status_default": "Recherche läuft …",
+    "steps": "Recherche läuft …|Skript wird geschrieben …|KI-Stimme spricht …|Video wird geschnitten …|Shorts entstehen …|Wartet auf deine Freigabe|Eingeplant auf 3 Plattformen",
+    "example": "Beispiel",
+    "float_video": "Video · Mi, 18:00",
+    "float_short": "Short · heute, 12:00",
+    "float_ok": "Von dir freigegeben",
+    "float_ok_sub": "Version 2 · geprüft"
+  },
+  "pipeline": {
+    "system": "Dein System",
+    "recognized": "erkannt",
+    "daily": "Täglich",
+    "research": "Recherche & Rohmaterial",
+    "rights_ok": "Rechte geklärt",
+    "licensed": "lizenziert",
+    "topic": "Thema",
+    "script": "Skript",
+    "voice": "KI-Stimme",
+    "voice_name": "Ruhig & erzählend",
+    "no_mic": "kein Mikro nötig",
+    "pronunciation": "Aussprache geprüft",
+    "edit": "Schnitt",
+    "shorts": "Shorts im Hochformat",
+    "subtitles": "Untertitel",
+    "hook": "Hook in 2 Sek.",
+    "check": "Automatische Prüfung",
+    "check_items": "Länge=7:12 min|Lautstärke=ausgeglichen|Untertitel=synchron|Titel & Beschreibung=vollständig|Rechte an Material=geklärt|Thumbnail=lesbar",
+    "approve": "Deine Freigabe",
+    "auto_ok": "Prüfung bestanden",
+    "revise": "Überarbeiten",
+    "approve_btn": "Freigeben",
+    "scheduled": "Eingeplant: Mi, 18:00 · YouTube, Instagram, TikTok",
+    "publish": "Upload zum Termin",
+    "online": "online",
+    "publish_note": "Beispielansicht. Veröffentlicht wird erst nach deiner Freigabe und nur auf verbundenen Plattformen.",
+    "scroll_hint": "Weiter scrollen"
+  },
+  "platforms": {
+    "uploading": "Upload läuft …",
+    "online": "online (Beispiel)"
+  },
+  "dashboard": {
+    "tabs": "Bereiche der Vorschau",
+    "tab_overview": "Übersicht",
+    "tab_review": "Freigabe",
+    "tab_calendar": "Kalender"
+  },
+  "pricing": {
+    "details": "Details ansehen",
+    "not_available": "Kauf noch nicht eingerichtet",
+    "editor_hint": "Hinweis für dich: Wähle im Theme-Editor bei diesem Plan ein Produkt aus, dann kann hier gekauft werden."
+  },
+  "products": {
+    "subscription": "Abo",
+    "sale": "Angebot",
+    "sold_out": "Ausverkauft",
+    "from": "ab",
+    "per_month_hint": "im Abo",
+    "show_media": "Bild {{ n }} zeigen",
+    "approval_included": "Freigabe inklusive",
+    "taxes_included": "Inkl. MwSt.",
+    "purchase_options": "Kaufoption",
+    "one_time": "Einmalkauf",
+    "quantity": "Menge",
+    "decrease": "Menge verringern",
+    "increase": "Menge erhöhen",
+    "add_to_cart": "In den Warenkorb",
+    "buy_now": "Direkt zur Kasse",
+    "description": "Beschreibung"
+  },
+  "cart": {
+    "title": "Warenkorb",
+    "close": "Warenkorb schließen",
+    "empty": "Dein Warenkorb ist leer.",
+    "empty_hint": "Wähle einen Plan – dein Loop startet direkt nach dem Kauf.",
+    "to_plans": "Zu den Plänen",
+    "subtotal": "Zwischensumme",
+    "total": "Gesamt",
+    "taxes_included": "Inkl. MwSt.",
+    "taxes_excluded": "Zzgl. Steuern.",
+    "shipping_at_checkout": "Rabattcodes kannst du an der Kasse eingeben.",
+    "checkout": "Zur Kasse",
+    "view": "Warenkorb ansehen",
+    "continue": "Weiter einkaufen",
+    "update": "Aktualisieren",
+    "note": "Anmerkung zur Bestellung",
+    "remove": "Entfernen",
+    "quantity": "Menge für {{ title }}",
+    "decrease": "Menge von {{ title }} verringern",
+    "increase": "Menge von {{ title }} erhöhen",
+    "added": "Im Warenkorb",
+    "error": "Das hat nicht geklappt. Bitte erneut versuchen."
+  },
+  "collections": {
+    "all": "Alle Produkte",
+    "count": {
+      "one": "{{ count }} Produkt",
+      "other": "{{ count }} Produkte"
+    },
+    "sort": "Sortieren",
+    "empty": "In dieser Kollektion gibt es noch keine Produkte."
+  },
+  "search": {
+    "title": "Suche",
+    "label": "Suchbegriff",
+    "placeholder": "Wonach suchst du?",
+    "submit": "Suchen",
+    "results": {
+      "one": "{{ count }} Ergebnis für „{{ terms }}“",
+      "other": "{{ count }} Ergebnisse für „{{ terms }}“"
+    },
+    "none": "Nichts gefunden. Versuch es mit einem anderen Begriff."
+  },
+  "contact": {
+    "name": "Name",
+    "email": "E-Mail-Adresse",
+    "message": "Nachricht",
+    "send": "Nachricht senden",
+    "success": "Danke! Wir melden uns so bald wie möglich."
+  },
+  "errors": {
+    "404_title": "Hier ist der Faden gerissen.",
+    "404_text": "Diese Seite gibt es nicht (mehr). Zurück zum Anfang oder einfach suchen.",
+    "back_home": "Zur Startseite"
+  },
+  "password": {
+    "email_placeholder": "Deine E-Mail-Adresse",
+    "notify": "Benachrichtigen",
+    "subscribed": "Danke! Wir sagen dir Bescheid.",
+    "owner": "Du bist Inhaber:in?",
+    "password": "Passwort",
+    "enter": "Eintreten"
+  },
+  "account": {
+    "title": "Kundenkonto",
+    "login": "Anmelden",
+    "register": "Konto anlegen",
+    "order": "Bestellung {{ name }}",
+    "addresses": "Adressen",
+    "reset": "Passwort zurücksetzen",
+    "activate": "Konto aktivieren",
+    "first_name": "Vorname",
+    "last_name": "Nachname",
+    "password_confirm": "Passwort bestätigen",
+    "hello": "Hallo {{ name }}!",
+    "app_hint": "Hier siehst du deine Bestellungen im Shop. Dein Quest-Agent-Dashboard öffnest du über „Anmelden“.",
+    "orders": "Bestellungen",
+    "no_orders": "Noch keine Bestellungen.",
+    "no_addresses": "Noch keine Adressen gespeichert.",
+    "logout": "Abmelden"
+  },
+  "gift_card": {
+    "title": "Geschenkkarte",
+    "inactive": "Diese Geschenkkarte ist nicht mehr gültig.",
+    "shop": "Zum Shop"
+  }
+}

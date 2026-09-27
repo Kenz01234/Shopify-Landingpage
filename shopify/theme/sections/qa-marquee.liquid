@@ -1,0 +1,73 @@
+{%- capture group -%}
+  {%- for block in section.blocks -%}
+    <span class="qa-marquee__item{% if block.settings.style == 'serif' %} qa-marquee__item--serif{% endif %}" {{ block.shopify_attributes }}>
+      {%- if block.settings.platform != 'none' -%}{% render 'platform-icon', platform: block.settings.platform, size: 'lg' %}{%- endif -%}
+      {{- block.settings.text | escape -}}
+    </span>
+    <span class="qa-marquee__sep" aria-hidden="true"></span>
+  {%- endfor -%}
+{%- endcapture -%}
+<section class="qa-marquee" data-qa-marquee aria-label="{{ section.settings.label | escape }}" style="--speed: {{ section.settings.speed }}s">
+  <div class="qa-marquee__track">
+    <div class="qa-marquee__group">{{ group }}</div>
+    <div class="qa-marquee__group" aria-hidden="true">{{ group }}</div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Laufband",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "label", "label": "Beschreibung für Screenreader", "default": "Nischen und Plattformen" },
+    { "type": "range", "id": "speed", "label": "Dauer eines Durchlaufs", "min": 15, "max": 90, "step": 5, "unit": "s", "default": 40 }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Eintrag",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "Weltall & Wissen" },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Stil",
+          "options": [
+            { "value": "bold", "label": "Fett" },
+            { "value": "serif", "label": "Kursiv (Akzent)" }
+          ],
+          "default": "bold"
+        },
+        {
+          "type": "select",
+          "id": "platform",
+          "label": "Plattform-Symbol",
+          "options": [
+            { "value": "none", "label": "Keins" },
+            { "value": "youtube", "label": "YouTube" },
+            { "value": "instagram", "label": "Instagram" },
+            { "value": "tiktok", "label": "TikTok" }
+          ],
+          "default": "none"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [
+    {
+      "name": "Laufband",
+      "blocks": [
+        { "type": "item", "settings": { "text": "Weltall & Wissen" } },
+        { "type": "item", "settings": { "text": "YouTube", "platform": "youtube" } },
+        { "type": "item", "settings": { "text": "Vergessene Geschichte", "style": "serif" } },
+        { "type": "item", "settings": { "text": "Instagram Reels", "platform": "instagram" } },
+        { "type": "item", "settings": { "text": "Tiefsee" } },
+        { "type": "item", "settings": { "text": "TikTok", "platform": "tiktok" } },
+        { "type": "item", "settings": { "text": "Natur & Tiere", "style": "serif" } },
+        { "type": "item", "settings": { "text": "Technik erklärt" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

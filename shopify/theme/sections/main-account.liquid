@@ -1,0 +1,83 @@
+{%- comment -%}
+  Klassische Shopify-Kundenkonten (nur wenn im Shop aktiviert). Neue Kundenkonten stellt Shopify selbst bereit.
+  Das Quest-Agent-Dashboard ist davon getrennt (Header → „Anmelden“).
+{%- endcomment -%}
+<div class="qa-container qa-container--narrow qa-page-hero">
+  <h1 class="qa-h1" data-split>
+    {%- case request.page_type -%}
+      {%- when 'customers/login' -%}{{ 'account.login' | t }}
+      {%- when 'customers/register' -%}{{ 'account.register' | t }}
+      {%- when 'customers/order' -%}{{ 'account.order' | t: name: order.name }}
+      {%- when 'customers/addresses' -%}{{ 'account.addresses' | t }}
+      {%- when 'customers/reset_password' -%}{{ 'account.reset' | t }}
+      {%- when 'customers/activate_account' -%}{{ 'account.activate' | t }}
+      {%- else -%}{{ 'account.title' | t }}
+    {%- endcase -%}
+  </h1>
+</div>
+<div class="qa-container qa-container--narrow" style="padding-bottom: clamp(64px, 10vw, 120px)">
+  <div class="qa-card" style="padding: clamp(20px, 4vw, 36px); display: grid; gap: 16px">
+    {%- case request.page_type -%}
+      {%- when 'customers/login' -%}
+        {%- form 'customer_login', style: 'display: grid; gap: 14px' -%}
+          {%- if form.errors -%}<div class="qa-note" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+          <label class="qa-field"><span class="qa-label">{{ 'contact.email' | t }}</span><input class="qa-input" type="email" name="customer[email]" autocomplete="email" required></label>
+          <label class="qa-field"><span class="qa-label">{{ 'password.password' | t }}</span><input class="qa-input" type="password" name="customer[password]" autocomplete="current-password" required></label>
+          <button class="qa-btn qa-btn--primary qa-btn--lg" type="submit">{{ 'account.login' | t }}</button>
+          <a class="qa-note" href="{{ routes.account_register_url }}">{{ 'account.register' | t }}</a>
+        {%- endform -%}
+      {%- when 'customers/register' -%}
+        {%- form 'create_customer', style: 'display: grid; gap: 14px' -%}
+          {%- if form.errors -%}<div class="qa-note" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+          <label class="qa-field"><span class="qa-label">{{ 'account.first_name' | t }}</span><input class="qa-input" type="text" name="customer[first_name]" autocomplete="given-name"></label>
+          <label class="qa-field"><span class="qa-label">{{ 'account.last_name' | t }}</span><input class="qa-input" type="text" name="customer[last_name]" autocomplete="family-name"></label>
+          <label class="qa-field"><span class="qa-label">{{ 'contact.email' | t }}</span><input class="qa-input" type="email" name="customer[email]" autocomplete="email" required></label>
+          <label class="qa-field"><span class="qa-label">{{ 'password.password' | t }}</span><input class="qa-input" type="password" name="customer[password]" autocomplete="new-password" required></label>
+          <button class="qa-btn qa-btn--primary qa-btn--lg" type="submit">{{ 'account.register' | t }}</button>
+        {%- endform -%}
+      {%- when 'customers/reset_password' -%}
+        {%- form 'reset_customer_password', style: 'display: grid; gap: 14px' -%}
+          {%- if form.errors -%}<div class="qa-note" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+          <label class="qa-field"><span class="qa-label">{{ 'password.password' | t }}</span><input class="qa-input" type="password" name="customer[password]" autocomplete="new-password" required></label>
+          <label class="qa-field"><span class="qa-label">{{ 'account.password_confirm' | t }}</span><input class="qa-input" type="password" name="customer[password_confirmation]" autocomplete="new-password" required></label>
+          <button class="qa-btn qa-btn--primary qa-btn--lg" type="submit">{{ 'account.reset' | t }}</button>
+        {%- endform -%}
+      {%- when 'customers/activate_account' -%}
+        {%- form 'activate_customer_password', style: 'display: grid; gap: 14px' -%}
+          {%- if form.errors -%}<div class="qa-note" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+          <label class="qa-field"><span class="qa-label">{{ 'password.password' | t }}</span><input class="qa-input" type="password" name="customer[password]" autocomplete="new-password" required></label>
+          <label class="qa-field"><span class="qa-label">{{ 'account.password_confirm' | t }}</span><input class="qa-input" type="password" name="customer[password_confirmation]" autocomplete="new-password" required></label>
+          <button class="qa-btn qa-btn--primary qa-btn--lg" type="submit">{{ 'account.activate' | t }}</button>
+        {%- endform -%}
+      {%- when 'customers/order' -%}
+        <p class="qa-muted">{{ order.created_at | time_tag: format: 'date' }} · {{ order.financial_status_label }}</p>
+        {%- for item in order.line_items -%}
+          <div class="qa-subtotal" style="font-size: 16px"><span>{{ item.title | escape }} × {{ item.quantity }}</span><span>{{ item.final_line_price | money }}</span></div>
+        {%- endfor -%}
+        <div class="qa-subtotal"><span>{{ 'cart.total' | t }}</span><span>{{ order.total_price | money_with_currency }}</span></div>
+        <a class="qa-btn qa-btn--sm" href="{{ routes.account_url }}">← {{ 'account.title' | t }}</a>
+      {%- when 'customers/addresses' -%}
+        {%- for address in customer.addresses -%}
+          <div>{{ address | format_address }}</div>
+        {%- else -%}
+          <p class="qa-muted">{{ 'account.no_addresses' | t }}</p>
+        {%- endfor -%}
+        <a class="qa-btn qa-btn--sm" href="{{ routes.account_url }}">← {{ 'account.title' | t }}</a>
+      {%- else -%}
+        <p>{{ 'account.hello' | t: name: customer.first_name }}</p>
+        <p class="qa-muted">{{ 'account.app_hint' | t }}</p>
+        <a class="qa-btn qa-btn--primary" href="{{ settings.login_url | default: '/pages/dashboard' }}">{{ settings.login_label | default: 'Anmelden' | escape }}</a>
+        <h2 class="qa-h3" style="margin-top: 12px">{{ 'account.orders' | t }}</h2>
+        {%- for o in customer.orders -%}
+          <a class="qa-result" href="{{ o.customer_url }}"><span><b>{{ o.name }}</b> · {{ o.created_at | time_tag: format: 'date' }}</span><span style="margin-left: auto">{{ o.total_price | money }}</span></a>
+        {%- else -%}
+          <p class="qa-muted">{{ 'account.no_orders' | t }}</p>
+        {%- endfor -%}
+        <p><a href="{{ routes.account_logout_url }}">{{ 'account.logout' | t }}</a></p>
+    {%- endcase -%}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "Kundenkonto", "settings": [] }
+{% endschema %}

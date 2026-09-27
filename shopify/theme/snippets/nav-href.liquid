@@ -1,0 +1,13 @@
+{%- comment -%}
+  Linkziel für Navigation/Buttons: „#preise“ führt von jeder Seite zur Sprungmarke der Startseite
+  (auch mit Sprachpräfix wie /en), alles andere bleibt unverändert.
+{%- endcomment -%}
+{%- liquid
+  assign l = link | default: '#'
+  assign first_char = l | slice: 0
+  if first_char == '#'
+    echo routes.root_url | remove_last: '/' | append: '/' | append: l
+  else
+    echo l
+  endif
+-%}

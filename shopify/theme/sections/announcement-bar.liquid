@@ -1,0 +1,24 @@
+{%- if section.settings.text != blank -%}
+  <div class="qa-announce">
+    <div class="qa-announce__inner">
+      <span class="qa-dot qa-dot--pulse" aria-hidden="true" style="color: var(--coral)"></span>
+      <span>{{ section.settings.text | escape }}</span>
+      {%- if section.settings.link != blank and section.settings.link_label != blank -%}
+        <a href="{% render 'nav-href', link: section.settings.link %}">{{ section.settings.link_label | escape }} →</a>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Ankündigungsleiste",
+  "enabled_on": { "groups": ["header"] },
+  "settings": [
+    { "type": "text", "id": "text", "label": "Text", "default": "Neu: Shorts gleichzeitig auf YouTube, Instagram und TikTok" },
+    { "type": "text", "id": "link_label", "label": "Link-Text", "default": "So funktioniert’s" },
+    { "type": "text", "id": "link", "label": "Link", "info": "z. B. #loop (Sprungmarke der Startseite) oder /pages/…" }
+  ],
+  "presets": [{ "name": "Ankündigungsleiste" }]
+}
+{% endschema %}

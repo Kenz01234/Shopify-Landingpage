@@ -1,0 +1,49 @@
+<section class="qa-section qa-final" data-qa-final>
+  <div class="qa-container">
+    <div class="qa-final__box" data-reveal="scale">
+      <svg class="qa-knot" viewBox="0 0 120 90" aria-hidden="true" data-thread-anchor="knot">
+        <path d="M4 62 C 26 62, 34 20, 60 20 C 88 20, 92 70, 64 70 C 40 70, 44 34, 72 34 C 94 34, 100 60, 116 60" fill="none" stroke="var(--coral)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+      {%- if section.settings.sub != blank -%}<p class="qa-lead">{{ section.settings.sub | escape }}</p>{%- endif -%}
+      <div class="qa-final__ctas">
+        {%- if section.settings.cta1_label != blank -%}
+          <a class="qa-btn qa-btn--primary qa-btn--lg" href="{% render 'nav-href', link: section.settings.cta1_link %}" data-magnetic>
+            {{- section.settings.cta1_label | escape }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta2_label != blank -%}
+          <a class="qa-btn qa-btn--lg" href="{% render 'nav-href', link: section.settings.cta2_link %}">{{ section.settings.cta2_label | escape }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{%- if section.settings.sticky -%}
+  <div class="qa-sticky-cta" data-sticky-cta aria-hidden="true">
+    <p>{{ section.settings.sticky_text | escape }}<small>{{ section.settings.sticky_sub | escape }}</small></p>
+    <a class="qa-btn qa-btn--primary qa-btn--sm" href="{% render 'nav-href', link: section.settings.cta1_link %}" tabindex="-1">{{ section.settings.sticky_button | escape }}</a>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Abschluss",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "Dein Kanal wartet nicht. Du auch nicht mehr." },
+    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Richte dein System in wenigen Minuten ein. Den Rest erledigt der Loop – du gibst nur noch frei." },
+    { "type": "text", "id": "cta1_label", "label": "Haupt-Button", "default": "Plan wählen" },
+    { "type": "text", "id": "cta1_link", "label": "Haupt-Button – Ziel", "default": "#preise" },
+    { "type": "text", "id": "cta2_label", "label": "Zweiter Button", "default": "Dashboard ansehen" },
+    { "type": "text", "id": "cta2_link", "label": "Zweiter Button – Ziel", "default": "#dashboard" },
+    { "type": "header", "content": "Mitlaufende Kaufleiste" },
+    { "type": "checkbox", "id": "sticky", "label": "Leiste nach dem Hero einblenden", "default": true },
+    { "type": "text", "id": "sticky_text", "label": "Text", "default": "Faceless-Kanal auf Autopilot" },
+    { "type": "text", "id": "sticky_sub", "label": "Unterzeile", "default": "ab 60 € im Monat · du gibst frei" },
+    { "type": "text", "id": "sticky_button", "label": "Button", "default": "Plan wählen" }
+  ],
+  "presets": [{ "name": "Abschluss" }]
+}
+{% endschema %}

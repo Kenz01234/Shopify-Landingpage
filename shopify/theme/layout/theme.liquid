@@ -1,0 +1,117 @@
+<!doctype html>
+<html
+  lang="{{ request.locale.iso_code }}"
+  class="no-js{% if settings.animations_enabled == false %} qa-no-motion{% endif %}{% if request.design_mode %} qa-design-mode{% endif %}"
+  data-theme-default="{{ settings.color_mode_default | default: 'system' }}"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <link rel="canonical" href="{{ canonical_url }}">
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 64, height: 64 }}">
+    {%- endif -%}
+
+    {%- comment -%}
+      Hell/Dunkel vor dem ersten Rendern setzen (kein Aufblitzen): gespeicherte Wahl > Theme-Standard > System.
+    {%- endcomment -%}
+    <script>
+      (function () {
+        var d = document.documentElement;
+        d.classList.remove('no-js');
+        d.classList.add('js');
+        var pref = d.getAttribute('data-theme-default') || 'system';
+        try {
+          pref = localStorage.getItem('qa-theme') || pref;
+        } catch (e) {}
+        var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        d.setAttribute('data-theme', dark ? 'dark' : 'light');
+        d.setAttribute('data-theme-pref', pref);
+      })();
+    </script>
+
+    <title>
+      {{ page_title }}
+      {%- if current_tags %} &ndash; {{ current_tags | join: ', ' }}{% endif -%}
+      {%- if current_page != 1 %} &ndash; {{ 'general.page' | t: page: current_page }}{% endif -%}
+      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+    </title>
+    {%- if page_description -%}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+    {% render 'meta-tags' %}
+
+    {{ 'qa-inter-tight.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
+    <style>
+      @font-face {
+        font-family: "QA Inter Tight";
+        src: url("{{ 'qa-inter-tight.woff2' | asset_url }}") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "QA Instrument Serif";
+        src: url("{{ 'qa-instrument-serif-italic.woff2' | asset_url }}") format("woff2");
+        font-weight: 400;
+        font-style: italic;
+        font-display: swap;
+      }
+      :root {
+        --qa-accent-light: {{ settings.accent_light | default: '#e83936' }};
+        --qa-accent-dark: {{ settings.accent_dark | default: '#ff5a4e' }};
+        --qa-button-light: {{ settings.button_light | default: '#d5302d' }};
+      }
+    </style>
+    {%- render 'license-fonts' -%}
+    {{ 'qa-theme.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'qa-theme.js' | asset_url }}" defer></script>
+
+    {{ content_for_header }}
+  </head>
+
+  <body
+    class="qa-body template-{{ template.name | handle }}{% if template.suffix %} template-{{ template.name | handle }}--{{ template.suffix | handle }}{% endif %}"
+    data-cart-type="{{ settings.cart_type | default: 'drawer' }}"
+  >
+    <a class="qa-skip" href="#MainContent">{{ 'accessibility.skip_to_content' | t }}</a>
+    {%- if settings.progress_enabled -%}
+      <div class="qa-progress" aria-hidden="true"><span></span></div>
+    {%- endif -%}
+
+    {% sections 'header-group' %}
+
+    <main id="MainContent" class="qa-main" role="main" tabindex="-1">
+      {%- if template.name == 'index' and settings.thread_enabled -%}
+        <svg class="qa-thread" data-qa-thread aria-hidden="true" focusable="false"><path class="qa-thread__ghost" /><path /></svg>
+      {%- endif -%}
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+
+    {%- if settings.cart_type != 'page' -%}
+      {% section 'cart-drawer' %}
+    {%- endif -%}
+
+    <div class="qa-toast" role="status" aria-live="polite" data-qa-toast></div>
+
+    <script>
+      window.QA_ROUTES = {
+        cart: {{ routes.cart_url | json }},
+        cartAdd: {{ routes.cart_add_url | json }},
+        cartChange: {{ routes.cart_change_url | json }},
+        root: {{ routes.root_url | json }}
+      };
+      window.QA_STRINGS = {
+        added: {{ 'cart.added' | t | json }},
+        error: {{ 'cart.error' | t | json }},
+        themeLight: {{ 'theme.light' | t | json }},
+        themeDark: {{ 'theme.dark' | t | json }},
+        themeSystem: {{ 'theme.system' | t | json }}
+      };
+    </script>
+  </body>
+</html>

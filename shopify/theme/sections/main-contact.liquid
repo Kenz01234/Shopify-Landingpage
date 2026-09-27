@@ -1,0 +1,27 @@
+<div class="qa-container qa-container--narrow" style="padding-bottom: clamp(64px, 10vw, 120px)">
+  {%- form 'contact', class: 'qa-card', style: 'padding: clamp(20px, 4vw, 36px); display: grid; gap: 16px' -%}
+    {%- if form.posted_successfully? -%}
+      <p class="qa-pill qa-pill--ok" role="status">{{ 'contact.success' | t }}</p>
+    {%- endif -%}
+    {%- if form.errors -%}
+      <div class="qa-note" role="alert" style="color: var(--coral-ink)">{{ form.errors | default_errors }}</div>
+    {%- endif -%}
+    <div class="qa-field">
+      <label class="qa-label" for="qa-c-name">{{ 'contact.name' | t }}</label>
+      <input class="qa-input" id="qa-c-name" type="text" name="contact[name]" autocomplete="name" value="{{ form.name }}">
+    </div>
+    <div class="qa-field">
+      <label class="qa-label" for="qa-c-email">{{ 'contact.email' | t }}</label>
+      <input class="qa-input" id="qa-c-email" type="email" name="contact[email]" autocomplete="email" required value="{{ form.email }}">
+    </div>
+    <div class="qa-field">
+      <label class="qa-label" for="qa-c-msg">{{ 'contact.message' | t }}</label>
+      <textarea class="qa-textarea" id="qa-c-msg" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
+    </div>
+    <button class="qa-btn qa-btn--primary qa-btn--lg" type="submit">{{ 'contact.send' | t }}</button>
+  {%- endform -%}
+</div>
+
+{% schema %}
+{ "name": "Kontaktformular", "settings": [], "presets": [{ "name": "Kontaktformular" }] }
+{% endschema %}

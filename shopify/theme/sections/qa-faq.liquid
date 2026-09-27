@@ -1,0 +1,65 @@
+<section class="qa-section qa-section--tint" id="{{ section.settings.anchor | default: 'faq' }}" data-qa-faq>
+  <div class="qa-container">
+    <div class="qa-head qa-head--center">
+      {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
+      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+    </div>
+    <div class="qa-faq qa-accordion" data-reveal>
+      {%- for block in section.blocks -%}
+        <details {{ block.shopify_attributes }} data-accordion>
+          <summary>{{ block.settings.question | escape }}<span class="qa-plus" aria-hidden="true"></span></summary>
+          <div class="qa-accordion__body qa-rte">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{%- comment -%} Strukturierte Daten für Suchmaschinen {%- endcomment -%}
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {%- for block in section.blocks -%}
+        { "@type": "Question", "name": {{ block.settings.question | json }}, "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.answer | strip_html | json }} } }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "Sprungmarke", "default": "faq" },
+    { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "Fragen & Antworten" },
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "Ehrlich beantwortet." }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Frage",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Frage", "default": "Muss ich selbst sprechen oder vor die Kamera?" },
+        { "type": "richtext", "id": "answer", "label": "Antwort", "default": "<p>Nein. Eine KI-Stimme spricht deine Skripte, Bilder und Material stellt Quest zusammen.</p>" }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        { "type": "question", "settings": { "question": "Muss ich selbst sprechen oder vor die Kamera?", "answer": "<p>Nein. Eine KI-Stimme spricht deine Skripte, Bilder und Material stellt Quest zusammen. Du prüfst und gibst frei.</p>" } },
+        { "type": "question", "settings": { "question": "Wird irgendetwas ohne mich veröffentlicht?", "answer": "<p>Nein. Jede Veröffentlichung braucht deine Freigabe – und zwar für genau die Version, die du gesehen hast. Änderst du danach etwas, musst du erneut freigeben.</p>" } },
+        { "type": "question", "settings": { "question": "Auf welchen Plattformen wird veröffentlicht?", "answer": "<p>Videos im Querformat auf YouTube. Shorts im Hochformat wahlweise auf YouTube Shorts, Instagram Reels und TikTok – du wählst pro System, wo.</p>" } },
+        { "type": "question", "settings": { "question": "Wie kaufe ich und wie komme ich ins Dashboard?", "answer": "<p>Du kaufst Starter oder Studio hier im Shop. Danach legst du in der Quest-Agent-App ein Konto mit derselben E-Mail-Adresse an – dein Plan wird automatisch freigeschaltet.</p>" } },
+        { "type": "question", "settings": { "question": "Garantiert ihr Reichweite oder Einnahmen?", "answer": "<p>Nein. Quest nimmt dir Routine ab, aber Erfolg auf Plattformen hängt von vielen Faktoren ab. Monetarisierung ist ein mögliches Ziel, kein Versprechen.</p>" } },
+        { "type": "question", "settings": { "question": "Was passiert mit ungenutzten Videos im Monat?", "answer": "<p>Nach aktueller Regel verfallen ungenutzte Mengen zum Ende des Abrechnungszeitraums. Die genauen Konditionen findest du beim jeweiligen Plan.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,76 @@
+<footer class="qa-footer">
+  <div class="qa-container">
+    <div class="qa-footer__grid">
+      <div class="qa-footer__brand">
+        <a class="qa-logo" href="{{ routes.root_url }}">
+          {% render 'logo-mark' %}
+          {%- assign words = settings.wordmark | default: shop.name | split: ' ' -%}
+          <span class="qa-logo__word">{{ words.first | escape }}{% if words.size > 1 %}<span> {{ words | slice: 1, 10 | join: ' ' | escape }}</span>{% endif %}</span>
+        </a>
+        {%- if section.settings.tagline != blank -%}
+          <p>{{ section.settings.tagline | escape }}</p>
+        {%- endif -%}
+        <div class="qa-footer__social">
+          {%- if settings.social_youtube != blank -%}
+            <a class="qa-icon-btn" href="{{ settings.social_youtube }}" target="_blank" rel="noopener" aria-label="YouTube">{% render 'platform-icon', platform: 'youtube' %}</a>
+          {%- endif -%}
+          {%- if settings.social_instagram != blank -%}
+            <a class="qa-icon-btn" href="{{ settings.social_instagram }}" target="_blank" rel="noopener" aria-label="Instagram">{% render 'platform-icon', platform: 'instagram' %}</a>
+          {%- endif -%}
+          {%- if settings.social_tiktok != blank -%}
+            <a class="qa-icon-btn" href="{{ settings.social_tiktok }}" target="_blank" rel="noopener" aria-label="TikTok">{% render 'platform-icon', platform: 'tiktok' %}</a>
+          {%- endif -%}
+        </div>
+      </div>
+      {%- for block in section.blocks -%}
+        {%- if block.settings.menu != blank -%}
+          <nav {{ block.shopify_attributes }} aria-label="{{ block.settings.title | default: block.settings.menu.title | escape }}">
+            <h2>{{ block.settings.title | default: block.settings.menu.title | escape }}</h2>
+            <ul>
+              {%- for link in block.settings.menu.links -%}
+                <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+              {%- endfor -%}
+            </ul>
+          </nav>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+    <div class="qa-footer__bottom">
+      <span>© {{ 'now' | date: '%Y' }} {{ shop.name | escape }}. {{ section.settings.legal_note | escape }}</span>
+      {%- if section.settings.show_payment and shop.enabled_payment_types.size > 0 -%}
+        <ul class="qa-payment" aria-label="{{ 'general.payment_methods' | t }}">
+          {%- for type in shop.enabled_payment_types -%}
+            <li>{{ type | payment_type_svg_tag }}</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+    {%- if section.settings.big_word != blank -%}
+      <div class="qa-footer__big" aria-hidden="true">{{ section.settings.big_word | escape }}</div>
+    {%- endif -%}
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "enabled_on": { "groups": ["footer"] },
+  "settings": [
+    { "type": "text", "id": "tagline", "label": "Kurzbeschreibung", "default": "Dein Faceless-Kanal. Läuft für dich – du behältst das letzte Wort." },
+    { "type": "text", "id": "legal_note", "label": "Hinweis unten", "default": "Unabhängiges Produkt – keine Verbindung zu YouTube, Instagram oder TikTok." },
+    { "type": "checkbox", "id": "show_payment", "label": "Zahlungsarten zeigen", "default": true },
+    { "type": "text", "id": "big_word", "label": "Großer Schriftzug", "default": "Quest Agent" }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menü",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Überschrift" },
+        { "type": "link_list", "id": "menu", "label": "Menü", "default": "footer" }
+      ]
+    }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

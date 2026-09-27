@@ -7,7 +7,14 @@
 - Echtes Backend: PostgreSQL (Prisma), Better Auth (gehashte Passwörter, HttpOnly-Session-Cookies), serverseitige Mandantentrennung, transaktionale Kontingente, persistenter Worker mit Leases, Scheduler und Publisher.
 - **Demo-Modus**: Recherche, KI-Stimme, Schnitt, YouTube-Upload und Zahlung werden sichtbar simuliert – Daten und Abläufe sind aber echt und bleiben nach Reload und Neustart erhalten.
 - Vorbereitete Live-Adapter: n8n, ElevenLabs, YouTube Data API, Stripe (siehe [docs/INTEGRATIONEN.md](docs/INTEGRATIONEN.md)).
-- Zusätzlich für Shopify: das **Section-Paket** unter [`shopify/`](shopify/INSTALLATION.md) bzw. `quest-agent-shopify-sections.zip` zum Einbau in ein bestehendes Theme. Außerdem ein **komplettes, hochladbares Theme** (Horizon + Section) über `npm run shopify:theme`. Geprüft wird beides mit `npm run shopify:check`.
+- Für Shopify ([Anleitung](shopify/INSTALLATION.md)):
+  - **Eigenes Theme „Quest Agent“:** `quest-agent-shopify-theme.zip`, gebaut mit `npm run shopify:theme`. Es enthält Startseite, Produkt- und Abo-Seiten, Warenkorb, Kollektionen, Suche, Blog, Konto und 404, jeweils hell und dunkel.
+    - Lokale Vorschau: `npm run shopify:preview`
+    - Prüfung: `npm run shopify:theme:check`
+  - **Alternativen:**
+    - Horizon mit eingebauter Landingpage: `npm run shopify:horizon`
+    - Section-Paket für ein bestehendes Theme: `quest-agent-shopify-sections.zip`
+    - Prüfung beider Alternativen: `npm run shopify:check`
 
 ## Schnellstart A – Docker Compose (empfohlen)
 

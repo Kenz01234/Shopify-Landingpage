@@ -1,0 +1,24 @@
+<div class="qa-container qa-page-hero">
+  <h1 class="qa-h1" data-split>{{ 'collections.all' | t }}</h1>
+</div>
+<div class="qa-container" style="padding-bottom: clamp(64px, 10vw, 120px)">
+  <div class="qa-grid qa-grid--3">
+    {%- for c in collections -%}
+      <a class="qa-pcard" href="{{ c.url }}" data-reveal style="--rd: {{ forloop.index0 | modulo: 3 | times: 80 }}">
+        <div class="qa-pcard__media">
+          {%- if c.featured_image -%}
+            {{ c.featured_image | image_url: width: 800 | image_tag: loading: 'lazy', widths: '360, 540, 800', alt: c.title }}
+          {%- else -%}
+            {{ 'collection-1' | placeholder_svg_tag: 'qa-placeholder' }}
+          {%- endif -%}
+        </div>
+        <span class="qa-pcard__title">{{ c.title | escape }}</span>
+        <span class="qa-pcard__price">{{ 'collections.count' | t: count: c.products_count }}</span>
+      </a>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "Kollektionsübersicht", "settings": [] }
+{% endschema %}

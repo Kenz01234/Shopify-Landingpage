@@ -1,0 +1,56 @@
+{%- comment -%}
+  Warenkorb-Positionen (Seitenpanel und Warenkorbseite). Ohne JavaScript funktionieren Menge und Entfernen
+  über das umgebende Formular (updates[]) bzw. den Entfernen-Link.
+{%- endcomment -%}
+{%- for item in cart.items -%}
+  <div class="qa-line" data-line="{{ forloop.index }}" data-key="{{ item.key }}">
+    <a class="qa-line__img" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+      {%- if item.image -%}
+        {{ item.image | image_url: width: 180 | image_tag: loading: 'lazy', alt: '' }}
+      {%- else -%}
+        {% render 'logo-mark' %}
+      {%- endif -%}
+    </a>
+    <div>
+      <a class="qa-line__title" href="{{ item.url }}">{{ item.product.title | escape }}</a>
+      <div class="qa-line__meta">
+        {%- unless item.product.has_only_default_variant -%}
+          <div>{{ item.variant.title | escape }}</div>
+        {%- endunless -%}
+        {%- if item.selling_plan_allocation -%}
+          <div>{{ item.selling_plan_allocation.selling_plan.name | escape }}</div>
+        {%- endif -%}
+        {%- for p in item.properties -%}
+          {%- unless p.last == blank or p.first contains '_' -%}
+            <div>{{ p.first | escape }}: {{ p.last | escape }}</div>
+          {%- endunless -%}
+        {%- endfor -%}
+        {%- for d in item.line_level_discount_allocations -%}
+          <div class="qa-accent">{{ d.discount_application.title | escape }} (−{{ d.amount | money }})</div>
+        {%- endfor -%}
+      </div>
+      <div class="qa-line__controls">
+        <div class="qa-qty">
+          <button type="button" data-qty-step="-1" aria-label="{{ 'cart.decrease' | t: title: item.product.title }}">−</button>
+          <input
+            type="number"
+            name="updates[]"
+            value="{{ item.quantity }}"
+            min="0"
+            inputmode="numeric"
+            data-qty-input
+            aria-label="{{ 'cart.quantity' | t: title: item.product.title }}"
+          >
+          <button type="button" data-qty-step="1" aria-label="{{ 'cart.increase' | t: title: item.product.title }}">+</button>
+        </div>
+        <a class="qa-line__remove" href="{{ item.url_to_remove }}" data-remove>{{ 'cart.remove' | t }}</a>
+      </div>
+    </div>
+    <div class="qa-line__price">
+      {%- if item.original_line_price > item.final_line_price -%}
+        <s>{{ item.original_line_price | money }}</s>
+      {%- endif -%}
+      {{ item.final_line_price | money }}
+    </div>
+  </div>
+{%- endfor -%}

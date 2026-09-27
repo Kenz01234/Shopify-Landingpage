@@ -1,0 +1,167 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Quest Agent",
+    "theme_version": "1.0.0",
+    "theme_author": "Quest Agent",
+    "theme_documentation_url": "https://github.com/Kenz01234/Shopify-Landingpage/blob/main/shopify/INSTALLATION.md",
+    "theme_support_url": "https://github.com/Kenz01234/Shopify-Landingpage"
+  },
+  {
+    "name": "Farben & Modus",
+    "settings": [
+      {
+        "type": "select",
+        "id": "color_mode_default",
+        "label": "Standard-Farbmodus",
+        "info": "Besucher:innen können über den Umschalter im Header wechseln; ihre Wahl wird gespeichert.",
+        "options": [
+          { "value": "system", "label": "Automatisch (Systemeinstellung)" },
+          { "value": "light", "label": "Hell" },
+          { "value": "dark", "label": "Dunkel" }
+        ],
+        "default": "system"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_theme_toggle",
+        "label": "Hell/Dunkel-Umschalter im Header zeigen",
+        "default": true
+      },
+      {
+        "type": "color",
+        "id": "accent_light",
+        "label": "Akzentfarbe (hell)",
+        "default": "#e83936"
+      },
+      {
+        "type": "color",
+        "id": "accent_dark",
+        "label": "Akzentfarbe (dunkel)",
+        "default": "#ff5a4e"
+      },
+      {
+        "type": "color",
+        "id": "button_light",
+        "label": "Button-Farbe (hell)",
+        "info": "Etwas dunkler als die Akzentfarbe, damit weißer Text gut lesbar bleibt.",
+        "default": "#d5302d"
+      }
+    ]
+  },
+  {
+    "name": "Logo & Marke",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo (optional)",
+        "info": "Ohne Bild wird die Quest-Agent-Bildmarke mit Schriftzug gezeigt."
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "label": "Logo-Breite",
+        "min": 80,
+        "max": 260,
+        "step": 10,
+        "unit": "px",
+        "default": 150
+      },
+      {
+        "type": "text",
+        "id": "wordmark",
+        "label": "Schriftzug",
+        "default": "Quest Agent"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Quadratisch, mindestens 64 × 64 px."
+      }
+    ]
+  },
+  {
+    "name": "Anmelden & Konto",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Die Quest-Agent-App (Dashboard, Freigaben, Kalender) läuft getrennt vom Shop. Solange sie noch nicht online ist, führt „Anmelden“ zur Dashboard-Vorschau."
+      },
+      {
+        "type": "text",
+        "id": "login_label",
+        "label": "Beschriftung",
+        "default": "Anmelden"
+      },
+      {
+        "type": "url",
+        "id": "login_url",
+        "label": "Link zur App-Anmeldung",
+        "info": "z. B. https://app.deine-domain.de/login – leer = Dashboard-Vorschau (/pages/dashboard)"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_customer_account",
+        "label": "Zusätzlich Shopify-Kundenkonto im Header zeigen",
+        "info": "Nur für Bestellungen und Abo-Verwaltung im Shop. Die Shopify-Anmeldung (u. a. „Mit Shop anmelden“) steuert Shopify unter Einstellungen → Kundenkonten.",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "Warenkorb",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Warenkorb-Art",
+        "options": [
+          { "value": "drawer", "label": "Seitenpanel" },
+          { "value": "page", "label": "Eigene Seite" }
+        ],
+        "default": "drawer"
+      },
+      {
+        "type": "richtext",
+        "id": "after_purchase_note",
+        "label": "Hinweis nach dem Kauf",
+        "info": "Erscheint auf Produktseite und im Warenkorb.",
+        "default": "<p>Nach dem Kauf legst du dein Konto in der Quest-Agent-App mit <strong>derselben E-Mail-Adresse</strong> an – dein Plan wird automatisch freigeschaltet.</p>"
+      }
+    ]
+  },
+  {
+    "name": "Animationen",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "animations_enabled",
+        "label": "Animationen aktivieren",
+        "info": "Wer in den Systemeinstellungen reduzierte Bewegung gewählt hat, sieht immer eine ruhige Fassung.",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "thread_enabled",
+        "label": "„Roter Faden“ auf der Startseite",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "progress_enabled",
+        "label": "Scroll-Fortschrittsbalken",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Social Media",
+    "settings": [
+      { "type": "url", "id": "social_youtube", "label": "YouTube" },
+      { "type": "url", "id": "social_instagram", "label": "Instagram" },
+      { "type": "url", "id": "social_tiktok", "label": "TikTok" }
+    ]
+  }
+]

@@ -1,0 +1,10 @@
+<div class="qa-container qa-container--narrow qa-page-hero">
+  <h1 class="qa-h1" data-split>{{ page.title | escape }}</h1>
+</div>
+<div class="qa-container qa-container--narrow" style="padding-bottom: clamp(64px, 10vw, 120px)">
+  <div class="qa-rte" data-reveal>{{ page.content }}</div>
+</div>
+
+{% schema %}
+{ "name": "Seite", "settings": [] }
+{% endschema %}

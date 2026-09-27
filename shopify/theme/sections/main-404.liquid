@@ -1,0 +1,19 @@
+<section class="qa-section qa-hero" style="text-align: center">
+  <div class="qa-hero__glow" aria-hidden="true"></div>
+  <div class="qa-container qa-container--narrow">
+    <svg class="qa-knot" viewBox="0 0 120 90" aria-hidden="true" style="width: 180px; height: 130px">
+      <path d="M4 62 C 26 62, 34 20, 60 20 C 88 20, 92 70, 64 70 C 40 70, 44 34, 72 34" fill="none" stroke="var(--coral)" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 9"/>
+    </svg>
+    <p class="qa-eyebrow" style="justify-content: center">404</p>
+    <h1 class="qa-h1" data-split>{{ 'errors.404_title' | t }}</h1>
+    <p class="qa-lead" style="margin-top: 20px">{{ 'errors.404_text' | t }}</p>
+    <div class="qa-hero__ctas">
+      <a class="qa-btn qa-btn--primary qa-btn--lg" href="{{ routes.root_url }}">{{ 'errors.back_home' | t }}</a>
+      <a class="qa-btn qa-btn--lg" href="{{ routes.search_url }}">{{ 'general.search' | t }}</a>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{ "name": "404", "settings": [] }
+{% endschema %}

@@ -1,0 +1,43 @@
+<div class="qa-container qa-page-hero">
+  <nav class="qa-breadcrumbs" aria-label="{{ 'general.breadcrumbs' | t }}"><a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a><span aria-hidden="true">/</span><a href="{{ routes.collections_url }}">{{ 'collections.all' | t }}</a></nav>
+  <h1 class="qa-h1" data-split>{{ collection.title | escape }}</h1>
+  {%- if collection.description != blank -%}<div class="qa-lead qa-rte" style="margin-top: 18px; max-width: 720px">{{ collection.description }}</div>{%- endif -%}
+</div>
+<div class="qa-container" style="padding-bottom: clamp(64px, 10vw, 120px)">
+  {%- paginate collection.products by section.settings.per_page -%}
+    <div class="qa-toolbar">
+      <p class="qa-muted">{{ 'collections.count' | t: count: collection.products_count }}</p>
+      {%- if collection.sort_options.size > 0 -%}
+        <label class="qa-field" style="grid-auto-flow: column; align-items: center">
+          <span class="qa-label">{{ 'collections.sort' | t }}</span>
+          <select class="qa-select" data-sort-select>
+            {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+            {%- for option in collection.sort_options -%}
+              <option value="{{ option.value | escape }}"{% if option.value == sort_by %} selected{% endif %}>{{ option.name | escape }}</option>
+            {%- endfor -%}
+          </select>
+        </label>
+      {%- endif -%}
+    </div>
+    {%- if collection.products.size == 0 -%}
+      <p class="qa-lead">{{ 'collections.empty' | t }}</p>
+    {%- else -%}
+      <div class="qa-grid qa-grid--{{ section.settings.columns }}">
+        {%- for product in collection.products -%}
+          {% render 'product-card', product: product, index: forloop.index0 %}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+    {%- render 'pagination', paginate: paginate -%}
+  {%- endpaginate -%}
+</div>
+
+{% schema %}
+{
+  "name": "Kollektion",
+  "settings": [
+    { "type": "range", "id": "per_page", "label": "Produkte pro Seite", "min": 4, "max": 48, "step": 4, "default": 12 },
+    { "type": "select", "id": "columns", "label": "Spalten (Desktop)", "options": [{ "value": "3", "label": "3" }, { "value": "4", "label": "4" }], "default": "3" }
+  ]
+}
+{% endschema %}

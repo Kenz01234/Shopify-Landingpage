@@ -1,0 +1,20 @@
+{%- comment -%}
+  Neutrales Plattform-Symbol (keine nachgebildeten Markenlogos); der Name steht immer daneben oder im Label.
+  Aufruf: {% render 'platform-icon', platform: 'instagram', size: 'lg' %}
+{%- endcomment -%}
+{%- liquid
+  case platform
+    when 'instagram'
+      assign glyph = 'camera'
+      assign label = 'Instagram'
+    when 'tiktok'
+      assign glyph = 'music'
+      assign label = 'TikTok'
+    else
+      assign glyph = 'play'
+      assign label = 'YouTube'
+  endcase
+-%}
+<span class="qa-plat qa-plat--{{ platform | default: 'youtube' }}{% if size == 'lg' %} qa-plat--lg{% endif %}" role="img" aria-label="{{ label }}">
+  {%- render 'icon', name: glyph -%}
+</span>

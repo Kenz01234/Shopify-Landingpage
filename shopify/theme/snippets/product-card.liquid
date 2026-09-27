@@ -1,0 +1,37 @@
+{%- comment -%}
+  Produktkarte. Aufruf: {% render 'product-card', product: product, index: forloop.index0 %}
+{%- endcomment -%}
+<a class="qa-pcard" href="{{ product.url }}" data-reveal style="--rd: {{ index | default: 0 | modulo: 4 | times: 70 }}">
+  <div class="qa-pcard__media">
+    {%- if product.featured_media -%}
+      {{ product.featured_media | image_url: width: 800 | image_tag: loading: 'lazy', widths: '360, 540, 800', sizes: '(min-width: 990px) 25vw, 50vw', alt: product.featured_media.alt | default: product.title }}
+      {%- if product.media[1] -%}
+        {{ product.media[1] | image_url: width: 800 | image_tag: loading: 'lazy', widths: '360, 540, 800', sizes: '(min-width: 990px) 25vw, 50vw', alt: '' }}
+      {%- endif -%}
+    {%- elsif product.selling_plan_groups.size > 0 -%}
+      <div class="qa-pcard__art" aria-hidden="true">
+        {% render 'logo-mark' %}
+        <span class="qa-pcard__plats">
+          <span class="qa-chip">{% render 'platform-icon', platform: 'youtube' %}</span>
+          <span class="qa-chip">{% render 'platform-icon', platform: 'instagram' %}</span>
+          <span class="qa-chip">{% render 'platform-icon', platform: 'tiktok' %}</span>
+        </span>
+      </div>
+    {%- else -%}
+      {{ 'product-1' | placeholder_svg_tag: 'qa-placeholder' }}
+    {%- endif -%}
+    {%- if product.selling_plan_groups.size > 0 -%}
+      <span class="qa-pill qa-pill--coral qa-pcard__badge">{{ 'products.subscription' | t }}</span>
+    {%- elsif product.compare_at_price > product.price -%}
+      <span class="qa-pill qa-pill--coral qa-pcard__badge">{{ 'products.sale' | t }}</span>
+    {%- elsif product.available == false -%}
+      <span class="qa-pill qa-pcard__badge">{{ 'products.sold_out' | t }}</span>
+    {%- endif -%}
+  </div>
+  <span class="qa-pcard__title">{{ product.title | escape }}</span>
+  <span class="qa-pcard__price">
+    {%- if product.price_varies -%}{{ 'products.from' | t }} {% endif -%}
+    {{ product.price | money }}
+    {%- if product.selling_plan_groups.size > 0 %} <span class="qa-muted">{{ 'products.per_month_hint' | t }}</span>{% endif -%}
+  </span>
+</a>

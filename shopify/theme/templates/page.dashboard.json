@@ -1,0 +1,32 @@
+{
+  "sections": {
+    "intro": {
+      "type": "qa-rich-text",
+      "settings": {
+        "eyebrow": "Anmelden",
+        "heading": "Dein Dashboard ist gleich startklar.",
+        "text": "<p>Die Quest-Agent-App mit Freigaben, Kalender und Kontingent wird gerade für den Start vorbereitet. Hier siehst du schon, wie sie aussieht. Sobald sie online ist, meldest du dich hier an – mit der E-Mail-Adresse aus deinem Kauf.</p>",
+        "button_label": "Plan wählen",
+        "button_link": "#preise",
+        "align": "center",
+        "tint": false
+      }
+    },
+    "preview": {
+      "type": "qa-dashboard",
+      "settings": {
+        "anchor": "dashboard",
+        "eyebrow": "Vorschau",
+        "heading": "So sieht dein Kundenbereich aus.",
+        "sub": "Freigaben, Kalender und Kontingent auf einen Blick – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt.",
+        "greeting": "Hallo! Dein Loop auf einen Blick",
+        "url_label": "Quest Agent – Kundenbereich",
+        "caption": "Vorschau mit Beispieldaten. Tabs anklicken zum Ausprobieren."
+      }
+    }
+  },
+  "order": [
+    "intro",
+    "preview"
+  ]
+}

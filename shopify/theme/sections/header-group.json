@@ -1,0 +1,32 @@
+{
+  "type": "header",
+  "name": "Header-Gruppe",
+  "sections": {
+    "announcement": {
+      "type": "announcement-bar",
+      "settings": {
+        "text": "Neu: Shorts gleichzeitig auf YouTube, Instagram und TikTok",
+        "link_label": "So funktioniert’s",
+        "link": "#loop"
+      }
+    },
+    "header": {
+      "type": "header",
+      "blocks": {
+        "nav_loop": { "type": "anchor", "settings": { "label": "So läuft’s", "link": "#loop" } },
+        "nav_platforms": { "type": "anchor", "settings": { "label": "Plattformen", "link": "#plattformen" } },
+        "nav_dashboard": { "type": "anchor", "settings": { "label": "Dashboard", "link": "#dashboard" } },
+        "nav_pricing": { "type": "anchor", "settings": { "label": "Preise", "link": "#preise" } },
+        "nav_faq": { "type": "anchor", "settings": { "label": "FAQ", "link": "#faq" } }
+      },
+      "block_order": ["nav_loop", "nav_platforms", "nav_dashboard", "nav_pricing", "nav_faq"],
+      "settings": {
+        "nav_source": "anchors",
+        "menu": "main-menu",
+        "cta_label": "Jetzt starten",
+        "cta_link": "#preise"
+      }
+    }
+  },
+  "order": ["announcement", "header"]
+}

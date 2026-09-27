@@ -22,7 +22,10 @@
     "test:e2e": "playwright test",
     "shopify:zip": "node scripts/build-shopify-zip.mjs",
     "shopify:check": "node scripts/check-shopify.mjs",
-    "shopify:theme": "node scripts/build-shopify-horizon-theme.mjs",
+    "shopify:theme": "node scripts/build-shopify-theme.mjs",
+    "shopify:theme:check": "node scripts/check-shopify-theme.mjs",
+    "shopify:preview": "node scripts/shopify-theme-preview.mjs",
+    "shopify:horizon": "node scripts/build-shopify-horizon-theme.mjs",
     "project:zip": "node scripts/build-project-zip.mjs"
   },
   "dependencies": {

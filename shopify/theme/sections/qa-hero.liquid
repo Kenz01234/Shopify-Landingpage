@@ -1,0 +1,116 @@
+{%- liquid
+  assign scene_file = 'qa-scene-' | append: section.settings.scene | append: '.svg'
+-%}
+<section class="qa-hero qa-intro" id="start" data-qa-hero data-section-id="{{ section.id }}">
+  <div class="qa-hero__glow" aria-hidden="true"></div>
+  <div class="qa-hero__grid" aria-hidden="true"></div>
+  <div class="qa-container">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="qa-hero__eyebrow" data-intro style="--d: 0">
+        <span class="qa-pill qa-pill--coral"><span class="qa-dot qa-dot--pulse" aria-hidden="true"></span>{{ section.settings.eyebrow | escape }}</span>
+      </p>
+    {%- endif -%}
+    <h1 class="qa-h1 qa-hero__title" data-thread-anchor="hero">
+      <span class="qa-hero__line" data-words>{{ section.settings.line1 | escape }}</span>
+      <span class="qa-hero__line">
+        <span class="qa-accent" data-words>{{ section.settings.line2 | escape }}</span>
+        <span class="qa-serif qa-accent" data-words>{{ section.settings.accent | escape }}</span>
+      </span>
+    </h1>
+    {%- if section.settings.sub != blank -%}
+      <p class="qa-lead qa-hero__sub" data-intro style="--d: 520">{{ section.settings.sub | escape }}</p>
+    {%- endif -%}
+    <div class="qa-hero__ctas" data-intro style="--d: 680">
+      {%- if section.settings.cta1_label != blank -%}
+        <a class="qa-btn qa-btn--primary qa-btn--lg" href="{% render 'nav-href', link: section.settings.cta1_link %}" data-magnetic>
+          {{- section.settings.cta1_label | escape }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+        </a>
+      {%- endif -%}
+      {%- if section.settings.cta2_label != blank -%}
+        <a class="qa-btn qa-btn--lg" href="{% render 'nav-href', link: section.settings.cta2_link %}">
+          <span class="qa-plat" style="background: var(--ink); color: var(--bg)">{% render 'icon', name: 'play' %}</span>
+          {{- section.settings.cta2_label | escape -}}
+        </a>
+      {%- endif -%}
+    </div>
+    {%- if section.settings.note != blank -%}
+      <p class="qa-hero__note" data-intro style="--d: 820">{{ section.settings.note | escape }}</p>
+    {%- endif -%}
+
+    <div class="qa-hero__stage" data-intro style="--d: 760" data-hero-stage aria-label="{{ 'hero.stage_label' | t }}" role="img">
+      <div class="qa-pill qa-hero__status">
+        <span class="qa-dot qa-dot--pulse" aria-hidden="true" style="color: var(--coral)"></span>
+        <span data-qa-status data-steps="{{ 'hero.steps' | t | escape }}">{{ 'hero.status_default' | t }}</span>
+      </div>
+      <div class="qa-hero__video">
+        {%- if section.settings.image != blank -%}
+          {{ section.settings.image | image_url: width: 1400 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '700, 1000, 1400', sizes: '(min-width: 750px) 640px, 88vw', alt: '' }}
+        {%- else -%}
+          <img src="{{ scene_file | asset_url }}" alt="" width="1600" height="900" fetchpriority="high">
+        {%- endif -%}
+        {%- if section.settings.video_title != blank -%}
+          <div class="qa-preview__title">{{ section.settings.video_title | escape }}</div>
+        {%- endif -%}
+        <div class="qa-hero__video-ui">
+          {%- render 'icon', name: 'play' -%}
+          <div class="qa-hero__video-bar"><span></span></div>
+          <span>{{ 'hero.example' | t }}</span>
+        </div>
+      </div>
+      <div class="qa-float qa-float--yt qa-float-anim" style="--d: 0" data-parallax="-0.08">
+        {% render 'platform-icon', platform: 'youtube', size: 'lg' %}
+        <span>YouTube<small>{{ 'hero.float_video' | t }}</small></span>
+      </div>
+      <div class="qa-float qa-float--ig qa-float-anim" style="--d: 150" data-parallax="-0.14">
+        {% render 'platform-icon', platform: 'instagram', size: 'lg' %}
+        <span>Instagram Reels<small>{{ 'hero.float_short' | t }}</small></span>
+      </div>
+      <div class="qa-float qa-float--tt qa-float-anim" style="--d: 300" data-parallax="-0.05">
+        {% render 'platform-icon', platform: 'tiktok', size: 'lg' %}
+        <span>TikTok<small>{{ 'hero.float_short' | t }}</small></span>
+      </div>
+      <div class="qa-float qa-float--ok qa-float-anim" style="--d: 450" data-parallax="-0.11">
+        <span class="qa-plat qa-plat--lg" style="background: var(--ok)">{% render 'icon', name: 'check' %}</span>
+        <span>{{ 'hero.float_ok' | t }}<small>{{ 'hero.float_ok_sub' | t }}</small></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero (Intro)",
+  "tag": "div",
+  "class": "qa-hero-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "YouTube-Automation. Ohne Kamera. Ohne Einsprechen." },
+    { "type": "text", "id": "line1", "label": "Überschrift, Zeile 1", "default": "Dein Faceless-Kanal." },
+    { "type": "text", "id": "line2", "label": "Überschrift, Zeile 2 (fett)", "default": "Läuft" },
+    { "type": "text", "id": "accent", "label": "Überschrift, Zeile 2 (kursiv)", "default": "für dich." },
+    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Nische und Vorbilder wählen. Uploadplan festlegen. Prüfen, freigeben, fertig – auf YouTube, Instagram und TikTok." },
+    { "type": "header", "content": "Buttons" },
+    { "type": "text", "id": "cta1_label", "label": "Haupt-Button", "default": "Eigenes System erstellen" },
+    { "type": "text", "id": "cta1_link", "label": "Haupt-Button – Ziel", "default": "#preise", "info": "Sprungmarke (#preise) oder Adresse (/products/…)" },
+    { "type": "text", "id": "cta2_label", "label": "Zweiter Button", "default": "Den Loop entdecken" },
+    { "type": "text", "id": "cta2_link", "label": "Zweiter Button – Ziel", "default": "#loop" },
+    { "type": "text", "id": "note", "label": "Hinweis unter den Buttons", "default": "Keine Erfolgsgarantie – aber deutlich weniger Routine." },
+    { "type": "header", "content": "Beispielvideo" },
+    {
+      "type": "select",
+      "id": "scene",
+      "label": "Motiv",
+      "options": [
+        { "value": "space", "label": "Weltall" },
+        { "value": "history", "label": "Geschichte" },
+        { "value": "ocean", "label": "Tiefsee" },
+        { "value": "nature", "label": "Natur" },
+        { "value": "tech", "label": "Technik" }
+      ],
+      "default": "space"
+    },
+    { "type": "image_picker", "id": "image", "label": "Eigenes Bild (ersetzt das Motiv)" },
+    { "type": "text", "id": "video_title", "label": "Titel im Video", "default": "Was, wenn es noch andere Welten gibt?" }
+  ],
+  "presets": [{ "name": "Hero (Intro)" }]
+}
+{% endschema %}

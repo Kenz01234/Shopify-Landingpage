@@ -1,0 +1,216 @@
+{%- liquid
+  assign scene_file = 'qa-scene-' | append: section.settings.scene | append: '.svg'
+  assign scene_url = scene_file | asset_url
+  assign steps = section.blocks.size
+-%}
+<section class="qa-pipe" id="{{ section.settings.anchor | default: 'loop' }}" data-qa-pipe data-section-id="{{ section.id }}" style="--steps: {{ steps }}; --step-h: {{ section.settings.step_height }}vh">
+  <div class="qa-container qa-section" style="padding-bottom: 0">
+    <div class="qa-head">
+      {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
+      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+      {%- if section.settings.sub != blank -%}<p class="qa-lead" data-reveal style="--rd: 120">{{ section.settings.sub | escape }}</p>{%- endif -%}
+    </div>
+  </div>
+  <div class="qa-pipe__track">
+    <div class="qa-pipe__sticky">
+      <div class="qa-container qa-pipe__grid">
+        <ol class="qa-pipe__steps" data-pipe-steps>
+          {%- for block in section.blocks -%}
+            <li class="qa-pipe__step{% if forloop.first %} is-active{% endif %}" data-step="{{ forloop.index0 }}" {{ block.shopify_attributes }}>
+              <h3>{{ block.settings.title | escape }}</h3>
+              <p><span>{{ block.settings.text | escape }}</span></p>
+            </li>
+          {%- endfor -%}
+        </ol>
+
+        <div class="qa-pipe__stage" data-pipe-stage aria-hidden="true">
+          <div class="qa-device" data-thread-anchor="pipeline">
+            <div class="qa-device__bar">
+              <span class="qa-device__dots"><i></i><i></i><i></i></span>
+              <span class="qa-device__label">{{ section.settings.device_label | escape }}</span>
+              <span class="qa-pill qa-pill--demo">{{ 'general.example' | t }}</span>
+            </div>
+            <div class="qa-scenes">
+              {%- for block in section.blocks -%}
+                <div class="qa-scene{% if forloop.first %} is-active{% endif %}" data-scene="{{ forloop.index0 }}">
+                  {%- case block.settings.scene -%}
+                    {%- when 'niche' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'target' %} {{ 'pipeline.system' | t }}</p>
+                      <div class="qa-chips qa-r" style="--i: 0; --n: 5">
+                        <span class="qa-chip qa-chip--on">● {{ section.settings.niche | escape }}</span>
+                        <span class="qa-chip">Geschichte</span><span class="qa-chip">Tiefsee</span><span class="qa-chip">Technik</span>
+                      </div>
+                      <div class="qa-row qa-r" style="--i: 1; --n: 5"><span class="qa-avatar"></span><b>@vorbild-kosmos</b><span class="qa-pill qa-pill--ok">✓ {{ 'pipeline.recognized' | t }}</span></div>
+                      <div class="qa-row qa-r" style="--i: 2; --n: 5"><span class="qa-avatar qa-avatar--b"></span><b>@wissen-kompakt</b><span class="qa-pill qa-pill--ok">✓ {{ 'pipeline.recognized' | t }}</span></div>
+                      <div class="qa-row qa-r" style="--i: 3; --n: 5">{% render 'icon', name: 'calendar' %} <b>Mo · Mi · Fr, 18:00</b><span class="qa-pill">Video</span></div>
+                      <div class="qa-row qa-r" style="--i: 4; --n: 5">{% render 'icon', name: 'calendar' %} <b>{{ 'pipeline.daily' | t }}, 12:00</b>
+                        <span class="qa-pill">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</span>
+                      </div>
+                    {%- when 'research' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'search' %} {{ 'pipeline.research' | t }}</p>
+                      <div class="qa-row qa-r" style="--i: 0">{% render 'icon', name: 'globe' %} <b>Exoplaneten – Stand der Forschung</b><span class="qa-pill">Fakt</span></div>
+                      <div class="qa-row qa-r" style="--i: 1">{% render 'icon', name: 'film' %} <b>Teleskopbilder (Archiv)</b><span class="qa-pill qa-pill--ok">{{ 'pipeline.rights_ok' | t }}</span></div>
+                      <div class="qa-row qa-r" style="--i: 2">{% render 'icon', name: 'music' %} <b>Hintergrundmusik</b><span class="qa-pill qa-pill--ok">{{ 'pipeline.licensed' | t }}</span></div>
+                      <div class="qa-row qa-r" style="--i: 3">{% render 'icon', name: 'sparkles' %} <b>„{{ section.settings.video_title | escape }}“</b><span class="qa-pill qa-pill--coral">{{ 'pipeline.topic' | t }}</span></div>
+                    {%- when 'script' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'wand' %} {{ 'pipeline.script' | t }}</p>
+                      <div class="qa-doc">
+                        <span class="qa-doc__line qa-doc__line--h" style="--i: 0">{{ section.settings.video_title | escape }}</span>
+                        <span class="qa-doc__line" style="--i: 1">Irgendwo da draußen kreist vielleicht ein Planet, auf dem es regnet – aus Wasser, genau wie hier.</span>
+                        <span class="qa-doc__line" style="--i: 2">Seit den 1990er-Jahren haben Forschende tausende Planeten außerhalb unseres Sonnensystems entdeckt.</span>
+                        <span class="qa-doc__line" style="--i: 3">Die meisten sehen wir nie direkt – sie verraten sich durch winzige Schatten vor ihrem Stern.</span>
+                        <span class="qa-doc__line qa-muted" style="--i: 4">Hook · Spannungsbogen · Quellen verknüpft · 7:12 min</span>
+                      </div>
+                    {%- when 'voice' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'mic' %} {{ 'pipeline.voice' | t }}</p>
+                      <div class="qa-row qa-r" style="--i: 0; --n: 2"><span class="qa-avatar"></span><b>{{ 'pipeline.voice_name' | t }}</b><span class="qa-pill qa-pill--coral">{{ 'pipeline.no_mic' | t }}</span></div>
+                      <div class="qa-wave">
+                        {%- for i in (0..33) -%}
+                          {%- assign h = i | times: 37 | modulo: 71 | plus: 22 -%}
+                          <i style="--i: {{ i }}; --h: {{ h }}"></i>
+                        {%- endfor -%}
+                      </div>
+                      <div class="qa-row qa-r" style="--i: 1; --n: 2">{% render 'icon', name: 'clock' %} <b>7:12 min</b><span class="qa-pill">{{ 'pipeline.pronunciation' | t }}</span></div>
+                    {%- when 'edit' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'film' %} {{ 'pipeline.edit' | t }}</p>
+                      <div class="qa-preview">
+                        <img src="{{ scene_url }}" alt="" loading="lazy" width="1600" height="900">
+                        <span class="qa-preview__title">{{ section.settings.video_title | escape }}</span>
+                      </div>
+                      <div class="qa-timeline">
+                        <div class="qa-track"><span class="qa-clip" style="--w: 3; --i: 0"></span><span class="qa-clip" style="--w: 2; --i: 1"></span><span class="qa-clip" style="--w: 4; --i: 2"></span></div>
+                        <div class="qa-track"><span class="qa-clip" style="--w: 9; --i: 1; --c: var(--violet)"></span></div>
+                        <div class="qa-track"><span class="qa-clip" style="--w: 2; --i: 2; --c: var(--ok)"></span><span class="qa-clip" style="--w: 3; --i: 3; --c: var(--ok)"></span><span class="qa-clip" style="--w: 3; --i: 4; --c: var(--ok)"></span></div>
+                        <span class="qa-playhead"></span>
+                      </div>
+                    {%- when 'shorts' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'scissors' %} {{ 'pipeline.shorts' | t }}</p>
+                      <div class="qa-shorts">
+                        {%- for i in (0..2) -%}
+                          <div class="qa-short" style="--i: {{ i }}"><img src="{{ scene_url }}" alt="" loading="lazy" width="1600" height="900"></div>
+                        {%- endfor -%}
+                      </div>
+                      <div class="qa-chips qa-r" style="--i: 2; --n: 3"><span class="qa-chip">9:16</span><span class="qa-chip">{{ 'pipeline.subtitles' | t }}</span><span class="qa-chip">{{ 'pipeline.hook' | t }}</span></div>
+                    {%- when 'check' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'shield' %} {{ 'pipeline.check' | t }}</p>
+                      <ul class="qa-checks">
+                        {%- assign checks = 'pipeline.check_items' | t | split: '|' -%}
+                        {%- for c in checks -%}
+                          {%- assign parts = c | split: '=' -%}
+                          <li><span class="qa-tick" style="--i: {{ forloop.index0 }}">{% render 'icon', name: 'check' %}</span><span>{{ parts[0] }}</span><span>{{ parts[1] }}</span></li>
+                        {%- endfor -%}
+                      </ul>
+                    {%- when 'approve' -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'inbox' %} {{ 'pipeline.approve' | t }}</p>
+                      <div class="qa-approve" style="position: relative">
+                        <div class="qa-item" style="border: 0; padding: 0">
+                          <span class="qa-thumb"><img src="{{ scene_url }}" alt="" loading="lazy" width="1600" height="900"></span>
+                          <span class="qa-item__t"><b>{{ section.settings.video_title | escape }}</b><span>Version 2 · {{ 'pipeline.auto_ok' | t }}</span></span>
+                        </div>
+                        <div class="qa-chips">
+                          <span class="qa-chip">{% render 'platform-icon', platform: 'youtube' %}</span>
+                          <span class="qa-chip">{% render 'platform-icon', platform: 'instagram' %}</span>
+                          <span class="qa-chip">{% render 'platform-icon', platform: 'tiktok' %}</span>
+                        </div>
+                        <div class="qa-approve__btns">
+                          <span class="qa-btn qa-btn--sm">{{ 'pipeline.revise' | t }}</span>
+                          <span class="qa-approve__ok">{% render 'icon', name: 'check' %} {{ 'pipeline.approve_btn' | t }}</span>
+                        </div>
+                        <div class="qa-approve__done">{% render 'icon', name: 'calendar' %} {{ 'pipeline.scheduled' | t }}</div>
+                        <span class="qa-cursor" data-pipe-cursor>{% render 'icon', name: 'cursor' %}</span>
+                      </div>
+                    {%- else -%}
+                      <p class="qa-scene__title">{% render 'icon', name: 'upload' %} {{ 'pipeline.publish' | t }}</p>
+                      <div class="qa-targets">
+                        <div class="qa-target">{% render 'platform-icon', platform: 'youtube', size: 'lg' %} YouTube <span class="qa-target__state" style="--i: 0">{{ 'pipeline.online' | t }}</span><span class="qa-ring" style="--i: 0"></span></div>
+                        <div class="qa-target">{% render 'platform-icon', platform: 'instagram', size: 'lg' %} Instagram Reels <span class="qa-target__state" style="--i: 1">{{ 'pipeline.online' | t }}</span><span class="qa-ring" style="--i: 1"></span></div>
+                        <div class="qa-target">{% render 'platform-icon', platform: 'tiktok', size: 'lg' %} TikTok <span class="qa-target__state" style="--i: 2">{{ 'pipeline.online' | t }}</span><span class="qa-ring" style="--i: 2"></span></div>
+                      </div>
+                      <p class="qa-note">{{ 'pipeline.publish_note' | t }}</p>
+                  {%- endcase -%}
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="qa-pipe__bar" aria-hidden="true"><span></span></div>
+      <p class="qa-pipe__hint" aria-hidden="true" data-pipe-hint>{{ 'pipeline.scroll_hint' | t }}</p>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Loop (scroll-gesteuert)",
+  "tag": "div",
+  "class": "qa-pipe-section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "Sprungmarke", "default": "loop", "info": "Ohne #, z. B. loop → erreichbar über #loop" },
+    { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "Der Quest-Loop" },
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "Von der Idee bis zum Upload. Du scrollst, Quest arbeitet." },
+    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Einmal eingerichtet, läuft jeder Schritt automatisch – nur die Freigabe bleibt bei dir." },
+    { "type": "range", "id": "step_height", "label": "Scrollweg pro Schritt", "min": 40, "max": 100, "step": 5, "unit": "vh", "default": 65 },
+    { "type": "text", "id": "device_label", "label": "Beschriftung im Geräterahmen", "default": "Quest Agent · Kosmos kompakt" },
+    { "type": "text", "id": "niche", "label": "Beispiel-Nische", "default": "Weltall" },
+    { "type": "text", "id": "video_title", "label": "Beispiel-Titel", "default": "Was, wenn es noch andere Welten gibt?" },
+    {
+      "type": "select",
+      "id": "scene",
+      "label": "Motiv",
+      "options": [
+        { "value": "space", "label": "Weltall" },
+        { "value": "history", "label": "Geschichte" },
+        { "value": "ocean", "label": "Tiefsee" },
+        { "value": "nature", "label": "Natur" },
+        { "value": "tech", "label": "Technik" }
+      ],
+      "default": "space"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Schritt",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Titel", "default": "Recherche & Rohmaterial" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Quest sammelt Fakten und Material – mit Quelle und Rechtestatus." },
+        {
+          "type": "select",
+          "id": "scene",
+          "label": "Animation",
+          "options": [
+            { "value": "niche", "label": "Nische & Vorbilder" },
+            { "value": "research", "label": "Recherche" },
+            { "value": "script", "label": "Skript" },
+            { "value": "voice", "label": "KI-Stimme" },
+            { "value": "edit", "label": "Schnitt" },
+            { "value": "shorts", "label": "Shorts" },
+            { "value": "check", "label": "Prüfung" },
+            { "value": "approve", "label": "Freigabe" },
+            { "value": "publish", "label": "Upload auf Plattformen" }
+          ],
+          "default": "research"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Loop (scroll-gesteuert)",
+      "blocks": [
+        { "type": "step", "settings": { "title": "Nische & Vorbilder", "text": "Du wählst Thema, Vorbild-Kanäle und deinen Uploadplan – einmal.", "scene": "niche" } },
+        { "type": "step", "settings": { "title": "Recherche & Rohmaterial", "text": "Quest sammelt Fakten und Material – mit Quelle und Rechtestatus.", "scene": "research" } },
+        { "type": "step", "settings": { "title": "Skript", "text": "Ein eigener Text mit Hook und Spannungsbogen, in deinem Ton.", "scene": "script" } },
+        { "type": "step", "settings": { "title": "KI-Stimme", "text": "Eine KI-Stimme spricht das Skript. Du sprichst nichts ein.", "scene": "voice" } },
+        { "type": "step", "settings": { "title": "Schnitt", "text": "Bilder, Musik und Untertitel werden zum fertigen Video geschnitten.", "scene": "edit" } },
+        { "type": "step", "settings": { "title": "Shorts", "text": "Aus jedem Video entstehen Hochkant-Clips für Shorts, Reels und TikTok.", "scene": "shorts" } },
+        { "type": "step", "settings": { "title": "Automatische Prüfung", "text": "Länge, Ton, Untertitel und Rechte werden geprüft – bevor du etwas siehst.", "scene": "check" } },
+        { "type": "step", "settings": { "title": "Deine Freigabe", "text": "Du siehst alles, änderst bei Bedarf und gibst frei. Ohne dich geht nichts online.", "scene": "approve" } },
+        { "type": "step", "settings": { "title": "Upload auf YouTube, Instagram & TikTok", "text": "Zum geplanten Termin lädt Quest auf allen gewählten Plattformen hoch.", "scene": "publish" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

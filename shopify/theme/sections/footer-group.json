@@ -1,0 +1,21 @@
+{
+  "type": "footer",
+  "name": "Footer-Gruppe",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "menu_main": { "type": "menu", "settings": { "title": "Shop", "menu": "main-menu" } },
+        "menu_footer": { "type": "menu", "settings": { "title": "Rechtliches", "menu": "footer" } }
+      },
+      "block_order": ["menu_main", "menu_footer"],
+      "settings": {
+        "tagline": "Dein Faceless-Kanal. Läuft für dich – du behältst das letzte Wort.",
+        "legal_note": "Unabhängiges Produkt – keine Verbindung zu YouTube, Instagram oder TikTok.",
+        "show_payment": true,
+        "big_word": "Quest Agent"
+      }
+    }
+  },
+  "order": ["footer"]
+}

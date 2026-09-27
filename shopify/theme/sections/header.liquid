@@ -1,0 +1,170 @@
+{%- liquid
+  assign login_url = settings.login_url | default: '/pages/dashboard'
+  assign login_label = settings.login_label | default: 'Anmelden'
+  assign logo_style = '--logo-w: ' | append: settings.logo_width | append: 'px'
+  if section.settings.nav_source == 'menu' and section.settings.menu != blank
+    assign use_menu = true
+  else
+    assign use_menu = false
+  endif
+-%}
+
+<header class="qa-header" data-qa-header>
+  <div class="qa-container qa-header__inner">
+    <a class="qa-logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }} – {{ 'general.home' | t }}">
+      {%- if settings.logo != blank -%}
+        {{ settings.logo | image_url: width: 520 | image_tag: alt: shop.name, style: logo_style, widths: '260, 520' }}
+      {%- else -%}
+        {% render 'logo-mark' %}
+        {%- assign words = settings.wordmark | default: shop.name | split: ' ' -%}
+        <span class="qa-logo__word">{{ words.first | escape }}{% if words.size > 1 %}<span> {{ words | slice: 1, 10 | join: ' ' | escape }}</span>{% endif %}</span>
+      {%- endif -%}
+    </a>
+
+    <nav class="qa-nav" aria-label="{{ 'general.main_nav' | t }}">
+      <ul class="qa-nav__list">
+        {%- if use_menu -%}
+          {%- for link in section.settings.menu.links -%}
+            <li class="qa-nav__item">
+              <a class="qa-nav__link" href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>
+                {{- link.title | escape -}}
+                {%- if link.links.size > 0 %}{% render 'icon', name: 'chevron-down', class: 'qa-nav__chev' %}{% endif -%}
+              </a>
+              {%- if link.links.size > 0 -%}
+                <ul class="qa-nav__sub">
+                  {%- for child in link.links -%}
+                    <li><a href="{{ child.url }}">{{ child.title | escape }}</a></li>
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        {%- else -%}
+          {%- for block in section.blocks -%}
+            <li class="qa-nav__item" {{ block.shopify_attributes }}>
+              <a class="qa-nav__link" href="{% render 'nav-href', link: block.settings.link %}">{{ block.settings.label | escape }}</a>
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
+      </ul>
+    </nav>
+
+    <div class="qa-header__actions">
+      {%- if settings.show_theme_toggle -%}
+        <button class="qa-icon-btn qa-theme-toggle" type="button" data-theme-toggle aria-label="{{ 'theme.toggle' | t }}">
+          {% render 'icon', name: 'sun', class: 'qa-i-sun' %}
+          {% render 'icon', name: 'moon', class: 'qa-i-moon' %}
+        </button>
+      {%- endif -%}
+      <a class="qa-icon-btn" href="{{ routes.search_url }}" data-search-open aria-label="{{ 'general.search' | t }}">
+        {%- render 'icon', name: 'search' -%}
+      </a>
+      {%- if settings.show_customer_account and shop.customer_accounts_enabled -%}
+        <a class="qa-icon-btn" href="{{ routes.account_url }}" aria-label="{{ 'general.shop_account' | t }}">
+          {%- render 'icon', name: 'user' -%}
+        </a>
+      {%- endif -%}
+      <a class="qa-btn qa-btn--ghost qa-btn--sm qa-header__login" href="{{ login_url }}">{{ login_label | escape }}</a>
+      <a class="qa-icon-btn qa-cart-btn" href="{{ routes.cart_url }}" data-cart-open aria-label="{{ 'cart.title' | t }} ({{ cart.item_count }})">
+        {%- render 'icon', name: 'bag' -%}
+        <span class="qa-cart-count" data-cart-count data-count="{{ cart.item_count }}">{{ cart.item_count }}</span>
+      </a>
+      {%- if section.settings.cta_label != blank -%}
+        <a class="qa-btn qa-btn--primary qa-btn--sm qa-header__cta" href="{% render 'nav-href', link: section.settings.cta_link %}">
+          {{- section.settings.cta_label | escape -}}
+        </a>
+      {%- endif -%}
+      <button class="qa-icon-btn qa-menu-btn" type="button" data-menu-open aria-expanded="false" aria-controls="qa-mnav" aria-label="{{ 'general.menu_open' | t }}">
+        {%- render 'icon', name: 'menu' -%}
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="qa-mnav" id="qa-mnav" data-mnav role="dialog" aria-modal="true" aria-label="{{ 'general.menu' | t }}" aria-hidden="true">
+  <button class="qa-icon-btn qa-mnav__close" type="button" data-menu-close aria-label="{{ 'general.menu_close' | t }}">
+    {%- render 'icon', name: 'x' -%}
+  </button>
+  <ul class="qa-mnav__links">
+    {%- if use_menu -%}
+      {%- for link in section.settings.menu.links -%}
+        <li style="--i: {{ forloop.index0 }}">
+          <a href="{{ link.url }}">{{ link.title | escape }}</a>
+          {%- if link.links.size > 0 -%}
+            <ul class="qa-mnav__sub">
+              {%- for child in link.links -%}
+                <li><a href="{{ child.url }}">{{ child.title | escape }}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    {%- else -%}
+      {%- for block in section.blocks -%}
+        <li style="--i: {{ forloop.index0 }}">
+          <a href="{% render 'nav-href', link: block.settings.link %}" data-menu-close-link>{{ block.settings.label | escape }}</a>
+        </li>
+      {%- endfor -%}
+    {%- endif -%}
+  </ul>
+  <div class="qa-mnav__foot">
+    {%- if section.settings.cta_label != blank -%}
+      <a class="qa-btn qa-btn--primary qa-btn--lg qa-btn--block" href="{% render 'nav-href', link: section.settings.cta_link %}" data-menu-close-link>
+        {{- section.settings.cta_label | escape }}
+        {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+      </a>
+    {%- endif -%}
+    <a class="qa-btn qa-btn--lg qa-btn--block" href="{{ login_url }}">{{ login_label | escape }}</a>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Header",
+  "tag": "div",
+  "class": "qa-header-section",
+  "enabled_on": { "groups": ["header"] },
+  "settings": [
+    {
+      "type": "select",
+      "id": "nav_source",
+      "label": "Navigation",
+      "options": [
+        { "value": "anchors", "label": "Sprungmarken der Startseite (Blöcke unten)" },
+        { "value": "menu", "label": "Shop-Menü" }
+      ],
+      "default": "anchors"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Shop-Menü",
+      "default": "main-menu"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button-Text",
+      "default": "Jetzt starten"
+    },
+    {
+      "type": "text",
+      "id": "cta_link",
+      "label": "Button-Link",
+      "info": "z. B. #preise (Sprungmarke der Startseite) oder /products/…",
+      "default": "#preise"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "anchor",
+      "name": "Navigationspunkt",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Beschriftung", "default": "Preise" },
+        { "type": "text", "id": "link", "label": "Ziel", "info": "Sprungmarke wie #preise (führt von jeder Seite zur Startseite) oder eine Adresse wie /pages/kontakt", "default": "#preise" }
+      ]
+    }
+  ],
+  "max_blocks": 8
+}
+{% endschema %}

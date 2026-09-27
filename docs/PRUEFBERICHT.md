@@ -41,8 +41,10 @@ Die Einteilung ist streng:
 | Secret-Suche in den App- und Worker-Logs | ✅ 0 Treffer für `BETTER_AUTH_SECRET` und `DEMO_PASSWORD` |
 | `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 268 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
 | `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 98 KB |
-| `npm run shopify:theme` | ✅ `dist/horizon-quest-agent-theme.zip`, 1,4 MB. Enthält Shopify Horizon 4.2.0 von GitHub und die Section als Startseite. Hochladbar über „Theme hochladen“. Nur für den eigenen Shop bestimmt (Horizon-Lizenz), daher nicht im Repository. |
-| `npm run shopify:check` | ✅ **20 von 20** bestanden. Einzelheiten stehen in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft). |
+| `npm run shopify:theme` | ✅ `quest-agent-shopify-theme.zip`: das eigene Theme „Quest Agent“ mit 73 Dateien, 166 KB, hochladbar über „Theme hochladen“ |
+| `npm run shopify:theme:check` | ✅ **11 von 11** bestanden: Theme Check, Upload-Regeln, Rendern von 23 Seiten, Warenkorb/Abo/Kasse im Browser, Hell/Dunkel, Handy, ohne JS, Editor-Simulation, Bildrate. Einzelheiten in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft-weg-a). |
+| `npm run shopify:horizon` | ✅ `dist/horizon-quest-agent-theme.zip`, 1,4 MB. Enthält Shopify Horizon 4.2.0 von GitHub und die Section als Startseite. Nur für den eigenen Shop bestimmt (Horizon-Lizenz), daher nicht im Repository. |
+| `npm run shopify:check` | ✅ **20 von 20** bestanden (Section-Paket und Horizon). Einzelheiten in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft-weg-b-und-c). |
 
 ## Abnahmeszenarien (Abschnitt 11 des Auftrags)
 
@@ -84,6 +86,21 @@ Die Einteilung ist streng:
   - Symptom: Bei jedem Neuladen der Section im Theme-Editor lief das Skript erneut. Nach dreimaligem Neuladen gab es 4 parallele Animationen und Listener.
   - Fix: Die Listener werden jetzt nur einmal registriert, und pro Section läuft genau eine Instanz.
 - **Shopify-Schriften.** Die Schriftdateien werden jetzt über `asset_url` eingebunden, statt über relative Pfade im CSS.
+- **Eigenes Shopify-Theme.** Diese Fehler fanden Screenshots, Browser-Prüfungen in der lokalen Vorschau und die Durchsicht des Codes. Alle sind behoben. Die sichtbaren Fehler prüft `npm run shopify:theme:check` seitdem automatisch:
+  - **Header:** Er scrollte mit weg. Ursache war `position: sticky` am inneren Element statt am Shopify-Section-Wrapper.
+  - **Roter Faden:** Er lief quer durch Texte und Karten. Jetzt verläuft er nur im freien Rand und wird ausgeblendet, wenn dort kein Platz ist.
+  - **Footer:** Die Spalten standen untereinander, weil die Regel `1.4fr repeat(auto-fit, …)` ungültig ist.
+  - **Sprungmarken in URL-Feldern:** Werte wie `#preise` in Feldern vom Typ `url` hätte Shopify beim Upload abgelehnt. Diese Felder sind jetzt Textfelder.
+  - **Handy – seitliches Scrollen:** Die Startseite war 20 px breiter als der Bildschirm, die Warenkorbseite 31 px. Dadurch wurde das Warenkorb-Panel abgeschnitten. Ursache waren Raster-Spalten ohne `minmax(0, …)`.
+  - **Handy – Randabstand:** Seitentitel klebten am Rand, weil `padding` den Container-Innenabstand überschrieb.
+  - **Mobiles Menü:** Die Ankündigungsleiste lag darüber und verdeckte den Schließen-Knopf.
+  - **Hell/Dunkel:** Der erste Klick wechselte von „System“ zu „Hell“, sichtbar passierte nichts. Jetzt wechselt jeder Klick sichtbar.
+  - **Plattform-Handys:**
+    - Der Upload-Ring sprang, statt sich zu füllen. Farbverläufe lassen sich nicht animieren, deshalb laufen Ring und Prozentzahl jetzt über `@property`.
+    - „online“ erschien schon während des Uploads.
+  - **Produktseite:**
+    - Eine ausverkaufte Startvariante blockierte die Beschriftung „In den Warenkorb“ für alle Varianten.
+    - Der Streichpreis ließ sich nach einem Variantenwechsel nicht einblenden.
 
 ## Ungetestet (bewusst, fehlende Zugänge oder Auftrag)
 
@@ -91,7 +108,15 @@ Die Einteilung ist streng:
 - **ElevenLabs:** kein API-Schlüssel. Der Adapter ist geschrieben, wurde aber nie gegen die API ausgeführt.
 - **YouTube Data API und Google OAuth:** keine Client-ID. Kein echter Upload.
 - **Stripe:** kein Testmodus-Schlüssel. Checkout, Portal und Webhook-Signaturprüfung sind gegen die Stripe-Bibliothek implementiert. Die Webhook-Verarbeitung ist per Unit-Test mit Testereignissen geprüft, die über `stripe.webhooks.generateTestHeaderString` signiert wurden, **nicht** gegen Stripe selbst.
-- **Echter Shopify-Shop:** Aus dieser Umgebung sind Shopify-Domains gesperrt. Shopifys eigene Validierung beim Hochladen, der echte Theme-Editor und die Kombination mit Horizons Header und Footer sind deshalb nicht verifiziert. Nachgebildet wurden: Theme Check auf Horizon plus Section, die Upload-Regeln für das JSON-Template, Horizons CSS samt Scroll-Container und die Editor-Events (`npm run shopify:check`).
+- **Echter Shopify-Shop:** Aus dieser Umgebung gibt es keinen Shopify-Zugang. Deshalb sind nicht verifiziert:
+  - Shopifys eigene Validierung beim Hochladen
+  - der echte Theme-Editor
+  - echte Selling Plans und der Checkout
+  - beim Horizon-Weg die Kombination mit Horizons Header und Footer
+
+  Nachgebildet wurde:
+  - **Eigenes Theme:** eine lokale Vorschau mit LiquidJS, Beispieldaten und einer nachgebauten Warenkorb-API samt Section Rendering (`npm run shopify:preview`, `npm run shopify:theme:check`).
+  - **Section-Paket:** Theme Check auf Horizon plus Section, Upload-Regeln, Horizons CSS samt Scroll-Container und die Editor-Events (`npm run shopify:check`).
 - **Andere Browser:** Firefox und Safari/WebKit wurden nicht getestet, nur Chromium.
 - **Screenreader:** Tests mit NVDA oder VoiceOver wurden nicht durchgeführt.
 - **Lighthouse und Performance-Messung:** nicht durchgeführt. Geprüft wurde im Code nur, dass die Animationen `transform`, `opacity` und beim roten Faden die SVG-Strichlänge (`stroke-dashoffset`) nutzen, also keine Layout-Eigenschaften, und dass sie reduzierte Bewegung respektieren.
@@ -123,6 +148,8 @@ Die Screenshots erzeugt `tests/e2e/screenshots.spec.ts` automatisch gegen die la
 | Kalender | `desktop-kalender.png` | `mobil-kalender.png` |
 | Übersicht, Produktion, Abo | `desktop-uebersicht.png`, `desktop-produktion.png`, `desktop-abo.png` | `mobil-uebersicht.png`, `mobil-produktion.png`, `mobil-abo.png` |
 | Shopify-Section mit Horizons CSS (ohne Horizons Header) | `shopify-horizon-desktop-hell.png` | `shopify-horizon-mobil-dunkel.png` |
+| Eigenes Shopify-Theme, Startseite (Hero, Loop, Plattformen, Dashboard, Preise) | `shopify-theme-desktop-hell-start-01-hero.png` … `-05-preise.png`, `shopify-theme-desktop-dunkel-start-01-hero.png` | `shopify-theme-mobil-dunkel-start-01-hero.png` |
+| Eigenes Shopify-Theme, Produkt (Abo) und Warenkorb-Panel | `shopify-theme-desktop-hell-produkt-abo.png`, `shopify-theme-desktop-dunkel-warenkorb-panel.png` | `shopify-theme-mobil-hell-warenkorb-panel.png` |
 
 ## Erneut prüfen
 

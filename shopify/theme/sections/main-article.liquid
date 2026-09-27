@@ -1,0 +1,19 @@
+<article>
+  <div class="qa-container qa-container--narrow qa-page-hero">
+    <nav class="qa-breadcrumbs" aria-label="{{ 'general.breadcrumbs' | t }}"><a href="{{ blog.url }}">← {{ blog.title | escape }}</a></nav>
+    <p class="qa-muted">{{ article.published_at | time_tag: format: 'date' }}{% if article.author != blank %} · {{ article.author | escape }}{% endif %}</p>
+    <h1 class="qa-h1" data-split style="margin-top: 12px">{{ article.title | escape }}</h1>
+  </div>
+  {%- if article.image -%}
+    <div class="qa-container" style="margin-bottom: 40px">
+      <div class="qa-acard__img" style="aspect-ratio: 21 / 9">{{ article.image | image_url: width: 1800 | image_tag: loading: 'eager', widths: '900, 1400, 1800', alt: article.image.alt | default: article.title }}</div>
+    </div>
+  {%- endif -%}
+  <div class="qa-container qa-container--narrow" style="padding-bottom: clamp(64px, 10vw, 120px)">
+    <div class="qa-rte">{{ article.content }}</div>
+  </div>
+</article>
+
+{% schema %}
+{ "name": "Artikel", "settings": [] }
+{% endschema %}

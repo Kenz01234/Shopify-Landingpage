@@ -1,0 +1,93 @@
+{%- liquid
+  assign scene_file = 'qa-scene-' | append: section.settings.scene | append: '.svg'
+  assign scene_url = scene_file | asset_url
+-%}
+<section class="qa-section qa-platforms" id="{{ section.settings.anchor | default: 'plattformen' }}" data-qa-platforms data-section-id="{{ section.id }}">
+  <div class="qa-container">
+    <div class="qa-head qa-head--center">
+      {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
+      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+      {%- if section.settings.sub != blank -%}<p class="qa-lead" data-reveal style="--rd: 120">{{ section.settings.sub | escape }}</p>{%- endif -%}
+    </div>
+
+    <div class="qa-platforms__phones" data-thread-anchor="platforms">
+      {%- assign plats = 'youtube,instagram,tiktok' | split: ',' -%}
+      {%- for p in plats -%}
+        {%- case p -%}
+          {%- when 'youtube' -%}
+            {%- assign label = 'YouTube Shorts' -%}{%- assign rot = '-8deg' -%}
+          {%- when 'instagram' -%}
+            {%- assign label = 'Instagram Reels' -%}{%- assign rot = '0deg' -%}
+          {%- else -%}
+            {%- assign label = 'TikTok' -%}{%- assign rot = '8deg' -%}
+        {%- endcase -%}
+        <figure class="qa-phone" data-phone style="--i: {{ forloop.index0 }}; --rot: {{ rot }}; margin: 0">
+          <div class="qa-phone__frame">
+            <div class="qa-phone__screen">
+              <img src="{{ scene_url }}" alt="" loading="lazy" width="1600" height="900" style="object-position: {{ forloop.index0 | times: 35 | plus: 15 }}% 50%">
+              <div class="qa-phone__shade"></div>
+              <div class="qa-phone__top">{% render 'platform-icon', platform: p %} {{ label }}</div>
+              <div class="qa-phone__side" aria-hidden="true">
+                {% render 'icon', name: 'heart' %}<span>{{ forloop.index | times: 2.3 | round: 1 }}k</span>
+                {% render 'icon', name: 'comment' %}<span>{{ forloop.index | times: 41 }}</span>
+                {% render 'icon', name: 'share' %}
+              </div>
+              <div class="qa-phone__cap">
+                <b>@{{ section.settings.handle | escape }}</b>
+                <span>{{ section.settings.caption | escape }}</span>
+              </div>
+              <div class="qa-upload" aria-hidden="true">
+                <span class="qa-upload__ring"><span class="qa-upload__pct"></span></span>
+                <span>{{ 'platforms.uploading' | t }}</span>
+              </div>
+            </div>
+          </div>
+          <figcaption class="qa-phone__label">
+            {% render 'platform-icon', platform: p, size: 'lg' %}
+            <span>
+              {{- label -}}
+              <span class="qa-phone__status" style="display: block">
+                <span data-wait>{{ section.settings.schedule | escape }}</span>
+                <span data-live class="qa-pill qa-pill--ok">✓ {{ 'platforms.online' | t }}</span>
+              </span>
+            </span>
+          </figcaption>
+        </figure>
+      {%- endfor -%}
+    </div>
+    {%- if section.settings.note != blank -%}
+      <p class="qa-platforms__note" data-reveal>{{ section.settings.note | escape }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Plattformen",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "Sprungmarke", "default": "plattformen" },
+    { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "Ein Short, drei Plattformen" },
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "YouTube, Instagram und TikTok – gleichzeitig." },
+    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Jeder Short erscheint zum geplanten Termin auf allen Plattformen, die du auswählst – mit passendem Beitragstext. Das Video zählt dabei nur einmal im Kontingent." },
+    { "type": "text", "id": "handle", "label": "Beispiel-Kanalname", "default": "kosmos.kompakt" },
+    { "type": "text", "id": "caption", "label": "Beispiel-Beitragstext", "default": "Was, wenn es noch andere Welten gibt? #Weltall #Exoplaneten" },
+    { "type": "text", "id": "schedule", "label": "Beispiel-Termin", "default": "Geplant: heute, 12:00" },
+    {
+      "type": "select",
+      "id": "scene",
+      "label": "Motiv",
+      "options": [
+        { "value": "space", "label": "Weltall" },
+        { "value": "history", "label": "Geschichte" },
+        { "value": "ocean", "label": "Tiefsee" },
+        { "value": "nature", "label": "Natur" },
+        { "value": "tech", "label": "Technik" }
+      ],
+      "default": "space"
+    },
+    { "type": "text", "id": "note", "label": "Hinweis", "default": "Beispielansicht. Quest Agent ist ein unabhängiges Produkt und steht in keiner Verbindung zu YouTube, Instagram oder TikTok." }
+  ],
+  "presets": [{ "name": "Plattformen" }]
+}
+{% endschema %}

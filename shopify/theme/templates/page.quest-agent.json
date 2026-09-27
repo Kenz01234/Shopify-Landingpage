@@ -1,0 +1,408 @@
+{
+  "sections": {
+    "marquee": {
+      "type": "qa-marquee",
+      "settings": {
+        "label": "Nischen und Plattformen",
+        "speed": 40
+      },
+      "blocks": {
+        "marquee_1": {
+          "type": "item",
+          "settings": {
+            "text": "Weltall & Wissen",
+            "style": "bold",
+            "platform": "none"
+          }
+        },
+        "marquee_2": {
+          "type": "item",
+          "settings": {
+            "text": "YouTube",
+            "style": "bold",
+            "platform": "youtube"
+          }
+        },
+        "marquee_3": {
+          "type": "item",
+          "settings": {
+            "text": "Vergessene Geschichte",
+            "style": "serif",
+            "platform": "none"
+          }
+        },
+        "marquee_4": {
+          "type": "item",
+          "settings": {
+            "text": "Instagram Reels",
+            "style": "bold",
+            "platform": "instagram"
+          }
+        },
+        "marquee_5": {
+          "type": "item",
+          "settings": {
+            "text": "Tiefsee",
+            "style": "bold",
+            "platform": "none"
+          }
+        },
+        "marquee_6": {
+          "type": "item",
+          "settings": {
+            "text": "TikTok",
+            "style": "bold",
+            "platform": "tiktok"
+          }
+        },
+        "marquee_7": {
+          "type": "item",
+          "settings": {
+            "text": "Natur & Tiere",
+            "style": "serif",
+            "platform": "none"
+          }
+        },
+        "marquee_8": {
+          "type": "item",
+          "settings": {
+            "text": "Technik erklärt",
+            "style": "bold",
+            "platform": "none"
+          }
+        }
+      },
+      "block_order": [
+        "marquee_1",
+        "marquee_2",
+        "marquee_3",
+        "marquee_4",
+        "marquee_5",
+        "marquee_6",
+        "marquee_7",
+        "marquee_8"
+      ]
+    },
+    "pipeline": {
+      "type": "qa-pipeline",
+      "settings": {
+        "anchor": "loop",
+        "eyebrow": "Der Quest-Loop",
+        "heading": "Von der Idee bis zum Upload. Du scrollst, Quest arbeitet.",
+        "sub": "Einmal eingerichtet, läuft jeder Schritt automatisch – nur die Freigabe bleibt bei dir.",
+        "step_height": 65,
+        "device_label": "Quest Agent · Kosmos kompakt",
+        "niche": "Weltall",
+        "video_title": "Was, wenn es noch andere Welten gibt?",
+        "scene": "space"
+      },
+      "blocks": {
+        "pipeline_1": {
+          "type": "step",
+          "settings": {
+            "title": "Nische & Vorbilder",
+            "text": "Du wählst Thema, Vorbild-Kanäle und deinen Uploadplan – einmal.",
+            "scene": "niche"
+          }
+        },
+        "pipeline_2": {
+          "type": "step",
+          "settings": {
+            "title": "Recherche & Rohmaterial",
+            "text": "Quest sammelt Fakten und Material – mit Quelle und Rechtestatus.",
+            "scene": "research"
+          }
+        },
+        "pipeline_3": {
+          "type": "step",
+          "settings": {
+            "title": "Skript",
+            "text": "Ein eigener Text mit Hook und Spannungsbogen, in deinem Ton.",
+            "scene": "script"
+          }
+        },
+        "pipeline_4": {
+          "type": "step",
+          "settings": {
+            "title": "KI-Stimme",
+            "text": "Eine KI-Stimme spricht das Skript. Du sprichst nichts ein.",
+            "scene": "voice"
+          }
+        },
+        "pipeline_5": {
+          "type": "step",
+          "settings": {
+            "title": "Schnitt",
+            "text": "Bilder, Musik und Untertitel werden zum fertigen Video geschnitten.",
+            "scene": "edit"
+          }
+        },
+        "pipeline_6": {
+          "type": "step",
+          "settings": {
+            "title": "Shorts",
+            "text": "Aus jedem Video entstehen Hochkant-Clips für Shorts, Reels und TikTok.",
+            "scene": "shorts"
+          }
+        },
+        "pipeline_7": {
+          "type": "step",
+          "settings": {
+            "title": "Automatische Prüfung",
+            "text": "Länge, Ton, Untertitel und Rechte werden geprüft – bevor du etwas siehst.",
+            "scene": "check"
+          }
+        },
+        "pipeline_8": {
+          "type": "step",
+          "settings": {
+            "title": "Deine Freigabe",
+            "text": "Du siehst alles, änderst bei Bedarf und gibst frei. Ohne dich geht nichts online.",
+            "scene": "approve"
+          }
+        },
+        "pipeline_9": {
+          "type": "step",
+          "settings": {
+            "title": "Upload auf YouTube, Instagram & TikTok",
+            "text": "Zum geplanten Termin lädt Quest auf allen gewählten Plattformen hoch.",
+            "scene": "publish"
+          }
+        }
+      },
+      "block_order": [
+        "pipeline_1",
+        "pipeline_2",
+        "pipeline_3",
+        "pipeline_4",
+        "pipeline_5",
+        "pipeline_6",
+        "pipeline_7",
+        "pipeline_8",
+        "pipeline_9"
+      ]
+    },
+    "platforms": {
+      "type": "qa-platforms",
+      "settings": {
+        "anchor": "plattformen",
+        "eyebrow": "Ein Short, drei Plattformen",
+        "heading": "YouTube, Instagram und TikTok – gleichzeitig.",
+        "sub": "Jeder Short erscheint zum geplanten Termin auf allen Plattformen, die du auswählst – mit passendem Beitragstext. Das Video zählt dabei nur einmal im Kontingent.",
+        "handle": "kosmos.kompakt",
+        "caption": "Was, wenn es noch andere Welten gibt? #Weltall #Exoplaneten",
+        "schedule": "Geplant: heute, 12:00",
+        "scene": "space",
+        "note": "Beispielansicht. Quest Agent ist ein unabhängiges Produkt und steht in keiner Verbindung zu YouTube, Instagram oder TikTok."
+      }
+    },
+    "dashboard": {
+      "type": "qa-dashboard",
+      "settings": {
+        "anchor": "dashboard",
+        "eyebrow": "Dein Dashboard",
+        "heading": "Alles an einem Ort. Nichts ohne dein Okay.",
+        "sub": "Freigaben, Kalender und Kontingent auf einen Blick – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt.",
+        "greeting": "Hallo! Dein Loop auf einen Blick",
+        "url_label": "Quest Agent – Kundenbereich",
+        "caption": "Vorschau mit Beispieldaten. Tabs anklicken zum Ausprobieren."
+      }
+    },
+    "benefits": {
+      "type": "qa-benefits",
+      "settings": {
+        "anchor": "vorteile",
+        "eyebrow": "Arbeitsteilung",
+        "heading": "Du entscheidest. Quest erledigt den Rest.",
+        "you_title": "Das machst du",
+        "you_items": "Nische und Vorbild-Kanäle wählen\nUploadplan festlegen\nErgebnisse prüfen – ändern oder freigeben",
+        "quest_title": "Das macht Quest",
+        "quest_items": "Themen, Recherche und Skript\nKI-Stimme, Schnitt, Musik, Untertitel\nShorts im Hochformat aus jedem Video\nAutomatische Prüfung vor deiner Freigabe\nUpload auf YouTube, Instagram und TikTok zum Termin"
+      },
+      "blocks": {
+        "benefits_1": {
+          "type": "benefit",
+          "settings": {
+            "icon": "eye",
+            "title": "Ohne Gesicht",
+            "text": "Keine Kamera, kein Auftritt – der Kanal lebt von Themen, nicht von dir vor der Linse."
+          }
+        },
+        "benefits_2": {
+          "type": "benefit",
+          "settings": {
+            "icon": "mic",
+            "title": "Ohne Einsprechen",
+            "text": "Eine KI-Stimme spricht deine Skripte. Du hörst nur noch Probe."
+          }
+        },
+        "benefits_3": {
+          "type": "benefit",
+          "settings": {
+            "icon": "calendar",
+            "title": "Fester Takt",
+            "text": "Videos und Shorts erscheinen verlässlich zu deinen Terminen."
+          }
+        },
+        "benefits_4": {
+          "type": "benefit",
+          "settings": {
+            "icon": "shield",
+            "title": "Volle Kontrolle",
+            "text": "Nichts geht online, bevor du freigibst. Änderungen erzeugen eine neue Version."
+          }
+        }
+      },
+      "block_order": [
+        "benefits_1",
+        "benefits_2",
+        "benefits_3",
+        "benefits_4"
+      ]
+    },
+    "pricing": {
+      "type": "qa-pricing",
+      "settings": {
+        "anchor": "preise",
+        "eyebrow": "Preise",
+        "heading": "Zwei Pläne. Klare Mengen.",
+        "sub": "Jeder Plan enthält Videos und Shorts pro Monat. Shorts erscheinen auf allen Plattformen, die du wählst, und zählen dabei nur einmal.",
+        "note": "Vorläufige Preise. Keine Garantie für Reichweite, Einnahmen oder die Zulassung zum YouTube-Partnerprogramm."
+      },
+      "blocks": {
+        "pricing_1": {
+          "type": "plan",
+          "settings": {
+            "name": "Starter",
+            "tagline": "Für den Einstieg in einen festen Takt.",
+            "fallback_price": "60 €",
+            "period": "Monat",
+            "features": "15 Videos à 7 Minuten\n30 Shorts\nYouTube, Instagram & TikTok\nFreigabe-Inbox, Kalender, Medien",
+            "button": "Starter wählen",
+            "featured": false
+          }
+        },
+        "pricing_2": {
+          "type": "plan",
+          "settings": {
+            "name": "Studio",
+            "tagline": "Für mehr Takt und längere Videos.",
+            "fallback_price": "100 €",
+            "period": "Monat",
+            "features": "30 Videos à 10 Minuten\n30 Shorts\nYouTube, Instagram & TikTok\nFreigabe-Inbox, Kalender, Medien",
+            "button": "Studio wählen",
+            "featured": true,
+            "badge": "Mehr Takt"
+          }
+        }
+      },
+      "block_order": [
+        "pricing_1",
+        "pricing_2"
+      ]
+    },
+    "faq": {
+      "type": "qa-faq",
+      "settings": {
+        "anchor": "faq",
+        "eyebrow": "Fragen & Antworten",
+        "heading": "Ehrlich beantwortet."
+      },
+      "blocks": {
+        "faq_1": {
+          "type": "question",
+          "settings": {
+            "question": "Muss ich selbst sprechen oder vor die Kamera?",
+            "answer": "<p>Nein. Eine KI-Stimme spricht deine Skripte, Bilder und Material stellt Quest zusammen. Du prüfst und gibst frei.</p>"
+          }
+        },
+        "faq_2": {
+          "type": "question",
+          "settings": {
+            "question": "Wird irgendetwas ohne mich veröffentlicht?",
+            "answer": "<p>Nein. Jede Veröffentlichung braucht deine Freigabe – und zwar für genau die Version, die du gesehen hast. Änderst du danach etwas, musst du erneut freigeben.</p>"
+          }
+        },
+        "faq_3": {
+          "type": "question",
+          "settings": {
+            "question": "Auf welchen Plattformen wird veröffentlicht?",
+            "answer": "<p>Videos im Querformat auf YouTube. Shorts im Hochformat wahlweise auf YouTube Shorts, Instagram Reels und TikTok – du wählst pro System, wo.</p>"
+          }
+        },
+        "faq_4": {
+          "type": "question",
+          "settings": {
+            "question": "Wie kaufe ich und wie komme ich ins Dashboard?",
+            "answer": "<p>Du kaufst Starter oder Studio hier im Shop. Danach legst du in der Quest-Agent-App ein Konto mit derselben E-Mail-Adresse an – dein Plan wird automatisch freigeschaltet.</p>"
+          }
+        },
+        "faq_5": {
+          "type": "question",
+          "settings": {
+            "question": "Garantiert ihr Reichweite oder Einnahmen?",
+            "answer": "<p>Nein. Quest nimmt dir Routine ab, aber Erfolg auf Plattformen hängt von vielen Faktoren ab. Monetarisierung ist ein mögliches Ziel, kein Versprechen.</p>"
+          }
+        },
+        "faq_6": {
+          "type": "question",
+          "settings": {
+            "question": "Was passiert mit ungenutzten Videos im Monat?",
+            "answer": "<p>Nach aktueller Regel verfallen ungenutzte Mengen zum Ende des Abrechnungszeitraums. Die genauen Konditionen findest du beim jeweiligen Plan.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3",
+        "faq_4",
+        "faq_5",
+        "faq_6"
+      ]
+    },
+    "final": {
+      "type": "qa-final",
+      "settings": {
+        "heading": "Dein Kanal wartet nicht. Du auch nicht mehr.",
+        "sub": "Richte dein System in wenigen Minuten ein. Den Rest erledigt der Loop – du gibst nur noch frei.",
+        "cta1_label": "Plan wählen",
+        "cta1_link": "#preise",
+        "cta2_label": "Dashboard ansehen",
+        "cta2_link": "#dashboard",
+        "sticky": true,
+        "sticky_text": "Faceless-Kanal auf Autopilot",
+        "sticky_sub": "ab 60 € im Monat · du gibst frei",
+        "sticky_button": "Plan wählen"
+      }
+    },
+    "hero": {
+      "type": "qa-hero",
+      "settings": {
+        "eyebrow": "YouTube-Automation. Ohne Kamera. Ohne Einsprechen.",
+        "line1": "Dein Faceless-Kanal.",
+        "line2": "Läuft",
+        "accent": "für dich.",
+        "sub": "Nische und Vorbilder wählen. Uploadplan festlegen. Prüfen, freigeben, fertig – auf YouTube, Instagram und TikTok.",
+        "cta1_label": "Eigenes System erstellen",
+        "cta1_link": "#preise",
+        "cta2_label": "Den Loop entdecken",
+        "cta2_link": "#loop",
+        "note": "Keine Erfolgsgarantie – aber deutlich weniger Routine.",
+        "scene": "space",
+        "video_title": "Was, wenn es noch andere Welten gibt?"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "marquee",
+    "pipeline",
+    "platforms",
+    "dashboard",
+    "benefits",
+    "pricing",
+    "faq",
+    "final"
+  ]
+}

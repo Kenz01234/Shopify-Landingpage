@@ -1,0 +1,118 @@
+{%- comment -%}
+  Preise, direkt mit Shop-Produkten verknüpft (empfohlen: Abo-Produkte, z. B. mit „Shopify Subscriptions“).
+  Ist ein Produkt gewählt, kommen Preis und Abo-Plan von Shopify; der Button legt den Plan direkt in den Warenkorb.
+  Ohne Produkt wird der eingetragene Preis angezeigt und der Button zeigt ehrlich „noch nicht verfügbar“.
+{%- endcomment -%}
+<section class="qa-section" id="{{ section.settings.anchor | default: 'preise' }}" data-qa-pricing>
+  <div class="qa-container">
+    <div class="qa-head qa-head--center">
+      {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
+      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+      {%- if section.settings.sub != blank -%}<p class="qa-lead" data-reveal style="--rd: 120">{{ section.settings.sub | escape }}</p>{%- endif -%}
+    </div>
+
+    <div class="qa-plans" data-thread-anchor="pricing">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign p = block.settings.product
+          assign variant = p.selected_or_first_available_variant
+          assign plan = nil
+          if p.selling_plan_groups.size > 0
+            assign plan = p.selling_plan_groups.first.selling_plans.first
+          endif
+          assign alloc = nil
+          if plan
+            for a in variant.selling_plan_allocations
+              if a.selling_plan.id == plan.id
+                assign alloc = a
+              endif
+            endfor
+          endif
+        -%}
+        <div class="qa-card qa-plan{% if block.settings.featured %} qa-plan--featured{% endif %}" data-reveal style="--rd: {{ forloop.index0 | times: 120 }}" {{ block.shopify_attributes }}>
+          {%- if block.settings.badge != blank -%}<span class="qa-plan__badge">{{ block.settings.badge | escape }}</span>{%- endif -%}
+          <div>
+            <h3 class="qa-plan__name">{{ block.settings.name | default: p.title | escape }}</h3>
+            {%- if block.settings.tagline != blank -%}<p class="qa-muted">{{ block.settings.tagline | escape }}</p>{%- endif -%}
+          </div>
+          <div class="qa-plan__price">
+            {%- if alloc -%}
+              <b>{{ alloc.price | money_without_trailing_zeros }}</b><span>/ {{ block.settings.period | escape }}</span>
+            {%- elsif p != blank -%}
+              <b>{{ variant.price | money_without_trailing_zeros }}</b><span>/ {{ block.settings.period | escape }}</span>
+            {%- else -%}
+              <b>{{ block.settings.fallback_price | escape }}</b><span>/ {{ block.settings.period | escape }}</span>
+            {%- endif -%}
+          </div>
+          <ul class="qa-features">
+            {%- assign feats = block.settings.features | newline_to_br | split: '<br />' -%}
+            {%- for f in feats -%}
+              {%- assign t = f | strip -%}
+              {%- if t != blank -%}<li><span class="qa-check">{% render 'icon', name: 'check' %}</span><span>{{ t | escape }}</span></li>{%- endif -%}
+            {%- endfor -%}
+          </ul>
+          {%- if p != blank and variant.available -%}
+            <form action="{{ routes.cart_add_url }}" method="post" data-quick-add>
+              <input type="hidden" name="id" value="{{ variant.id }}">
+              <input type="hidden" name="quantity" value="1">
+              {%- if plan -%}<input type="hidden" name="selling_plan" value="{{ plan.id }}">{%- endif -%}
+              <button class="qa-btn {% if block.settings.featured %}qa-btn--primary{% else %}qa-btn--dark{% endif %} qa-btn--lg qa-btn--block" type="submit">
+                <span class="qa-spinner" aria-hidden="true"></span>
+                {{- block.settings.button | default: 'Jetzt starten' | escape }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+              </button>
+            </form>
+            <a class="qa-btn qa-btn--ghost qa-btn--sm" href="{{ p.url }}">{{ 'pricing.details' | t }}</a>
+            {%- if plan -%}<p class="qa-note" style="text-align: center">{{ plan.name | escape }}</p>{%- endif -%}
+          {%- else -%}
+            <span class="qa-btn qa-btn--lg qa-btn--block" aria-disabled="true">{{ 'pricing.not_available' | t }}</span>
+            {%- if request.design_mode -%}<p class="qa-note">{{ 'pricing.editor_hint' | t }}</p>{%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+    {%- if section.settings.note != blank -%}
+      <p class="qa-plans__note" data-reveal>{{ section.settings.note | escape }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Preise",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "Sprungmarke", "default": "preise" },
+    { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "Preise" },
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "Zwei Pläne. Klare Mengen." },
+    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Jeder Plan enthält Videos und Shorts pro Monat. Shorts erscheinen auf allen Plattformen, die du wählst, und zählen dabei nur einmal." },
+    { "type": "textarea", "id": "note", "label": "Hinweis", "default": "Vorläufige Preise. Keine Garantie für Reichweite, Einnahmen oder die Zulassung zum YouTube-Partnerprogramm." }
+  ],
+  "blocks": [
+    {
+      "type": "plan",
+      "name": "Plan",
+      "settings": [
+        { "type": "product", "id": "product", "label": "Plan-Produkt", "info": "Empfohlen: Abo-Produkt. Preis und Abo-Plan kommen dann direkt aus Shopify." },
+        { "type": "text", "id": "name", "label": "Name", "default": "Starter" },
+        { "type": "text", "id": "tagline", "label": "Kurzbeschreibung", "default": "Für den Einstieg in einen festen Takt." },
+        { "type": "text", "id": "fallback_price", "label": "Preis ohne Produkt", "default": "60 €" },
+        { "type": "text", "id": "period", "label": "Zeitraum", "default": "Monat" },
+        { "type": "textarea", "id": "features", "label": "Leistungen (eine Zeile pro Punkt)", "default": "15 Videos à 7 Minuten\n30 Shorts\nYouTube, Instagram & TikTok\nFreigabe-Inbox, Kalender, Medien" },
+        { "type": "text", "id": "button", "label": "Button-Text", "default": "Starter wählen" },
+        { "type": "text", "id": "badge", "label": "Hervorhebung" },
+        { "type": "checkbox", "id": "featured", "label": "Hervorheben", "default": false }
+      ]
+    }
+  ],
+  "max_blocks": 3,
+  "presets": [
+    {
+      "name": "Preise",
+      "blocks": [
+        { "type": "plan", "settings": { "name": "Starter", "tagline": "Für den Einstieg in einen festen Takt.", "fallback_price": "60 €", "features": "15 Videos à 7 Minuten\n30 Shorts\nYouTube, Instagram & TikTok\nFreigabe-Inbox, Kalender, Medien", "button": "Starter wählen" } },
+        { "type": "plan", "settings": { "name": "Studio", "tagline": "Für mehr Takt und längere Videos.", "fallback_price": "100 €", "features": "30 Videos à 10 Minuten\n30 Shorts\nYouTube, Instagram & TikTok\nFreigabe-Inbox, Kalender, Medien", "button": "Studio wählen", "badge": "Mehr Takt", "featured": true } }
+      ]
+    }
+  ]
+}
+{% endschema %}

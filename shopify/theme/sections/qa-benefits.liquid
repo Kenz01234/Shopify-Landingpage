@@ -1,0 +1,97 @@
+<section class="qa-section" id="{{ section.settings.anchor | default: 'vorteile' }}">
+  <div class="qa-container">
+    <div class="qa-head">
+      {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
+      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+    </div>
+
+    <div class="qa-split">
+      <div class="qa-card qa-split__col" data-reveal="left">
+        <h3 class="qa-h3"><span class="qa-plat qa-plat--lg" style="background: var(--surface-3); color: var(--ink)">{% render 'icon', name: 'user' %}</span>{{ section.settings.you_title | escape }}</h3>
+        <ul class="qa-features">
+          {%- assign you = section.settings.you_items | newline_to_br | split: '<br />' -%}
+          {%- for line in you -%}
+            {%- assign t = line | strip -%}
+            {%- if t != blank -%}<li><span class="qa-check">{% render 'icon', name: 'check' %}</span><span>{{ t | escape }}</span></li>{%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+      <div class="qa-card qa-split__col qa-split__col--quest" data-reveal="right" data-thread-anchor="benefits">
+        <h3 class="qa-h3"><span class="qa-plat qa-plat--lg" style="background: var(--coral)">{% render 'icon', name: 'bolt' %}</span>{{ section.settings.quest_title | escape }}</h3>
+        <ul class="qa-features">
+          {%- assign quest = section.settings.quest_items | newline_to_br | split: '<br />' -%}
+          {%- for line in quest -%}
+            {%- assign t = line | strip -%}
+            {%- if t != blank -%}<li><span class="qa-check">{% render 'icon', name: 'check' %}</span><span>{{ t | escape }}</span></li>{%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="qa-benefits">
+        {%- for block in section.blocks -%}
+          <div class="qa-card qa-benefit" data-reveal data-tilt style="--rd: {{ forloop.index0 | times: 80 }}" {{ block.shopify_attributes }}>
+            <span class="qa-benefit__icon">{% render 'icon', name: block.settings.icon %}</span>
+            <h3 class="qa-h3" style="font-size: 20px">{{ block.settings.title | escape }}</h3>
+            <p>{{ block.settings.text | escape }}</p>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Du & Quest",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "Sprungmarke", "default": "vorteile" },
+    { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "Arbeitsteilung" },
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "Du entscheidest. Quest erledigt den Rest." },
+    { "type": "text", "id": "you_title", "label": "Titel links", "default": "Das machst du" },
+    { "type": "textarea", "id": "you_items", "label": "Punkte links (eine Zeile pro Punkt)", "default": "Nische und Vorbild-Kanäle wählen\nUploadplan festlegen\nErgebnisse prüfen – ändern oder freigeben" },
+    { "type": "text", "id": "quest_title", "label": "Titel rechts", "default": "Das macht Quest" },
+    { "type": "textarea", "id": "quest_items", "label": "Punkte rechts (eine Zeile pro Punkt)", "default": "Themen, Recherche und Skript\nKI-Stimme, Schnitt, Musik, Untertitel\nShorts im Hochformat aus jedem Video\nAutomatische Prüfung vor deiner Freigabe\nUpload auf YouTube, Instagram und TikTok zum Termin" }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Vorteil",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Symbol",
+          "options": [
+            { "value": "eye", "label": "Auge" },
+            { "value": "mic", "label": "Mikrofon" },
+            { "value": "calendar", "label": "Kalender" },
+            { "value": "shield", "label": "Schild" },
+            { "value": "layers", "label": "Ebenen" },
+            { "value": "sparkles", "label": "Funken" },
+            { "value": "clock", "label": "Uhr" },
+            { "value": "globe", "label": "Globus" }
+          ],
+          "default": "eye"
+        },
+        { "type": "text", "id": "title", "label": "Titel", "default": "Ohne Gesicht" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Keine Kamera, kein Auftritt." }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Du & Quest",
+      "blocks": [
+        { "type": "benefit", "settings": { "icon": "eye", "title": "Ohne Gesicht", "text": "Keine Kamera, kein Auftritt – der Kanal lebt von Themen, nicht von dir vor der Linse." } },
+        { "type": "benefit", "settings": { "icon": "mic", "title": "Ohne Einsprechen", "text": "Eine KI-Stimme spricht deine Skripte. Du hörst nur noch Probe." } },
+        { "type": "benefit", "settings": { "icon": "calendar", "title": "Fester Takt", "text": "Videos und Shorts erscheinen verlässlich zu deinen Terminen." } },
+        { "type": "benefit", "settings": { "icon": "shield", "title": "Volle Kontrolle", "text": "Nichts geht online, bevor du freigibst. Änderungen erzeugen eine neue Version." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,39 @@
+<div class="qa-container qa-page-hero">
+  <h1 class="qa-h1" data-split>{{ 'search.title' | t }}</h1>
+  <form class="qa-search-form" action="{{ routes.search_url }}" method="get" role="search" style="margin-top: 24px">
+    <label class="qa-visually-hidden" for="qa-search-q">{{ 'search.label' | t }}</label>
+    <input class="qa-input" id="qa-search-q" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}" autofocus>
+    <input type="hidden" name="options[prefix]" value="last">
+    <button class="qa-btn qa-btn--primary" type="submit">{% render 'icon', name: 'search' %}<span class="qa-visually-hidden">{{ 'search.submit' | t }}</span></button>
+  </form>
+</div>
+<div class="qa-container" style="padding-bottom: clamp(64px, 10vw, 120px)">
+  {%- if search.performed -%}
+    {%- paginate search.results by 12 -%}
+      <p class="qa-muted" style="margin-bottom: 20px">{{ 'search.results' | t: count: search.results_count, terms: search.terms }}</p>
+      {%- if search.results_count == 0 -%}
+        <p class="qa-lead">{{ 'search.none' | t }}</p>
+      {%- else -%}
+        <ul class="qa-results">
+          {%- for item in search.results -%}
+            <li>
+              <a class="qa-result" href="{{ item.url }}">
+                {%- if item.featured_image -%}{{ item.featured_image | image_url: width: 160 | image_tag: loading: 'lazy', alt: '' }}{%- endif -%}
+                <span>
+                  <span class="qa-result__type">{{ item.object_type | replace: 'product', 'Produkt' | replace: 'article', 'Artikel' | replace: 'page', 'Seite' }}</span>
+                  <span style="display: block; font-weight: 700">{{ item.title | escape }}</span>
+                  {%- if item.object_type == 'product' -%}<span class="qa-muted">{{ item.price | money }}</span>{%- endif -%}
+                </span>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+      {%- render 'pagination', paginate: paginate -%}
+    {%- endpaginate -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{ "name": "Suche", "settings": [] }
+{% endschema %}

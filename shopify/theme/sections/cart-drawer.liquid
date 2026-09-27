@@ -1,0 +1,68 @@
+{%- comment -%}
+  Warenkorb als Seitenpanel. Wird nach jeder Änderung über die Section Rendering API neu geladen
+  (/?sections=cart-drawer), damit Preise, Rabatte und Abo-Pläne immer von Shopify berechnet sind.
+{%- endcomment -%}
+<div class="qa-drawer" data-cart-drawer aria-hidden="true">
+  <div class="qa-drawer__backdrop" data-cart-close></div>
+  <div class="qa-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="qa-drawer-title" tabindex="-1">
+    <div class="qa-drawer__head">
+      <h2 id="qa-drawer-title">
+        {{- 'cart.title' | t }}
+        {%- if cart.item_count > 0 %} <span class="qa-muted">({{ cart.item_count }})</span>{% endif -%}
+      </h2>
+      <button class="qa-icon-btn" type="button" data-cart-close aria-label="{{ 'cart.close' | t }}">
+        {%- render 'icon', name: 'x' -%}
+      </button>
+    </div>
+
+    {%- if cart.item_count == 0 -%}
+      <div class="qa-drawer__body">
+        <div class="qa-cart-empty">
+          <svg viewBox="0 0 120 80" aria-hidden="true">
+            <path d="M6 60 C 30 60, 34 20, 60 20 S 92 64, 114 30" fill="none" stroke="var(--coral)" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 8"/>
+            <circle cx="60" cy="20" r="6" fill="var(--coral)"/>
+          </svg>
+          <p class="qa-h3">{{ 'cart.empty' | t }}</p>
+          <p class="qa-muted">{{ 'cart.empty_hint' | t }}</p>
+          <a class="qa-btn qa-btn--primary" href="{% render 'nav-href', link: '#preise' %}" data-cart-close-link>
+            {{- 'cart.to_plans' | t }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+          </a>
+        </div>
+      </div>
+    {%- else -%}
+      <form class="qa-drawer__body" action="{{ routes.cart_url }}" method="post" novalidate data-cart-form>
+        {%- render 'cart-lines' -%}
+      </form>
+      <div class="qa-drawer__foot">
+        {%- for d in cart.cart_level_discount_applications -%}
+          <div class="qa-subtotal qa-accent" style="font-size: 15px">
+            <span>{{ d.title | escape }}</span><span>−{{ d.total_allocated_amount | money }}</span>
+          </div>
+        {%- endfor -%}
+        <div class="qa-subtotal">
+          <span>{{ 'cart.subtotal' | t }}</span>
+          <span data-cart-subtotal>{{ cart.total_price | money_with_currency }}</span>
+        </div>
+        <p class="qa-note">
+          {%- if cart.taxes_included -%}{{ 'cart.taxes_included' | t }}{%- else -%}{{ 'cart.taxes_excluded' | t }}{%- endif %}
+          {{ 'cart.shipping_at_checkout' | t }}
+        </p>
+        {%- if settings.after_purchase_note != blank -%}
+          <div class="qa-note">{{ settings.after_purchase_note }}</div>
+        {%- endif -%}
+        <button class="qa-btn qa-btn--primary qa-btn--lg qa-btn--block" type="submit" name="checkout" form="qa-drawer-checkout">
+          {{- 'cart.checkout' | t }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+        </button>
+        <form id="qa-drawer-checkout" action="{{ routes.cart_url }}" method="post" hidden></form>
+        <a class="qa-btn qa-btn--ghost qa-btn--sm" href="{{ routes.cart_url }}">{{ 'cart.view' | t }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Warenkorb-Panel",
+  "settings": []
+}
+{% endschema %}
