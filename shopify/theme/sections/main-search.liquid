@@ -1,39 +1,75 @@
-<div class="qa-container qa-page-hero">
-  <h1 class="qa-h1" data-split>{{ 'search.title' | t }}</h1>
-  <form class="qa-search-form" action="{{ routes.search_url }}" method="get" role="search" style="margin-top: 24px">
-    <label class="qa-visually-hidden" for="qa-search-q">{{ 'search.label' | t }}</label>
-    <input class="qa-input" id="qa-search-q" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}" autofocus>
-    <input type="hidden" name="options[prefix]" value="last">
-    <button class="qa-btn qa-btn--primary" type="submit">{% render 'icon', name: 'search' %}<span class="qa-visually-hidden">{{ 'search.submit' | t }}</span></button>
-  </form>
-</div>
-<div class="qa-container" style="padding-bottom: clamp(64px, 10vw, 120px)">
-  {%- if search.performed -%}
-    {%- paginate search.results by 12 -%}
-      <p class="qa-muted" style="margin-bottom: 20px">{{ 'search.results' | t: count: search.results_count, terms: search.terms }}</p>
-      {%- if search.results_count == 0 -%}
-        <p class="qa-lead">{{ 'search.none' | t }}</p>
-      {%- else -%}
-        <ul class="qa-results">
-          {%- for item in search.results -%}
-            <li>
-              <a class="qa-result" href="{{ item.url }}">
-                {%- if item.featured_image -%}{{ item.featured_image | image_url: width: 160 | image_tag: loading: 'lazy', alt: '' }}{%- endif -%}
-                <span>
-                  <span class="qa-result__type">{{ item.object_type | replace: 'product', 'Produkt' | replace: 'article', 'Artikel' | replace: 'page', 'Seite' }}</span>
-                  <span style="display: block; font-weight: 700">{{ item.title | escape }}</span>
-                  {%- if item.object_type == 'product' -%}<span class="qa-muted">{{ item.price | money }}</span>{%- endif -%}
-                </span>
-              </a>
-            </li>
-          {%- endfor -%}
-        </ul>
-      {%- endif -%}
-      {%- render 'pagination', paginate: paginate -%}
-    {%- endpaginate -%}
-  {%- endif -%}
+{%- liquid
+  assign products = search.results | where: 'object_type', 'product'
+  assign others = search.results | where: 'object_type', 'page'
+  assign articles = search.results | where: 'object_type', 'article'
+  assign terms_list = section.settings.suggestions | split: ','
+-%}
+<div class="qa-searchpage">
+  <div class="qa-container qa-page-hero qa-searchpage__hero">
+    <p class="qa-eyebrow" data-reveal>{{ 'search.title' | t }}</p>
+    <h1 class="qa-h1" data-split>
+      {%- if search.performed -%}„{{ search.terms | escape }}“{%- else -%}{{ section.settings.heading | escape }}{%- endif -%}
+    </h1>
+    <form class="qa-search__form qa-searchpage__form" action="{{ routes.search_url }}" method="get" role="search" data-reveal>
+      {%- render 'icon', name: 'search' -%}
+      <label class="qa-visually-hidden" for="qa-search-q">{{ 'search.label' | t }}</label>
+      <input id="qa-search-q" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}" autocomplete="off">
+      <input type="hidden" name="options[prefix]" value="last">
+      <button class="qa-btn qa-btn--primary qa-btn--sm" type="submit">{{ 'search.submit' | t }}</button>
+    </form>
+    {%- if terms_list.size > 0 -%}
+      <div class="qa-search__chips qa-searchpage__chips" data-reveal>
+        {%- for term in terms_list -%}
+          {%- assign t = term | strip -%}
+          {%- if t != blank -%}<a href="{{ routes.search_url }}?q={{ t | url_encode }}&amp;options%5Bprefix%5D=last">{{ t | escape }}</a>{%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  <div class="qa-container" style="padding-bottom: clamp(64px, 10vw, 120px)">
+    {%- if search.performed -%}
+      {%- paginate search.results by 24 -%}
+        <p class="qa-muted qa-searchpage__count">{{ 'search.results' | t: count: search.results_count, terms: search.terms }}</p>
+        {%- if search.results_count == 0 -%}
+          <div class="qa-searchpage__empty" data-reveal>
+            <svg viewBox="0 0 120 80" aria-hidden="true"><path d="M6 60 C 30 60, 34 20, 60 20" fill="none" stroke="var(--coral)" stroke-width="3" stroke-linecap="round"/><path d="M74 26 C 90 40, 96 64, 114 30" fill="none" stroke="var(--coral)" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 8"/></svg>
+            <p class="qa-h3">{{ 'search.none' | t }}</p>
+            <p class="qa-muted">{{ 'search.start_hint' | t }}</p>
+          </div>
+        {%- else -%}
+          {%- if products.size > 0 -%}
+            <h2 class="qa-searchpage__h">{{ 'search.products' | t }}</h2>
+            <div class="qa-grid qa-grid--4">
+              {%- for p in products -%}
+                {%- render 'product-card', product: p, index: forloop.index0 -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+          {%- if others.size > 0 or articles.size > 0 -%}
+            <h2 class="qa-searchpage__h">{{ 'search.more' | t }}</h2>
+            <ul class="qa-results">
+              {%- for item in others -%}
+                <li><a class="qa-result" href="{{ item.url }}"><span><span class="qa-result__type">{{ 'search.type_page' | t }}</span><span class="qa-result__title">{{ item.title | escape }}</span><span class="qa-muted">{{ item.content | strip_html | truncate: 120 }}</span></span>{% render 'icon', name: 'arrow-right' %}</a></li>
+              {%- endfor -%}
+              {%- for item in articles -%}
+                <li><a class="qa-result" href="{{ item.url }}">{%- if item.image -%}{{ item.image | image_url: width: 160 | image_tag: loading: 'lazy', alt: '' }}{%- endif -%}<span><span class="qa-result__type">{{ 'search.type_article' | t }}</span><span class="qa-result__title">{{ item.title | escape }}</span><span class="qa-muted">{{ item.excerpt_or_content | strip_html | truncate: 120 }}</span></span>{% render 'icon', name: 'arrow-right' %}</a></li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        {%- endif -%}
+        {%- render 'pagination', paginate: paginate -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
 </div>
 
 {% schema %}
-{ "name": "Suche", "settings": [] }
+{
+  "name": "Suche",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Überschrift ohne Suchbegriff", "default": "Was suchst du?" },
+    { "type": "text", "id": "suggestions", "label": "Vorschläge (kommagetrennt)", "default": "Starter, Studio, Shorts, TikTok, Freigabe" }
+  ]
+}
 {% endschema %}

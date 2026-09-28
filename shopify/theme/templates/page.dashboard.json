@@ -18,10 +18,11 @@
         "anchor": "dashboard",
         "eyebrow": "Vorschau",
         "heading": "So sieht dein Kundenbereich aus.",
-        "sub": "Freigaben, Kalender und Kontingent auf einen Blick – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt.",
-        "greeting": "Hallo! Dein Loop auf einen Blick",
-        "url_label": "Quest Agent – Kundenbereich",
-        "caption": "Vorschau mit Beispieldaten. Tabs anklicken zum Ausprobieren."
+        "sub": "Pipeline, Freigaben, Kalender, Analytics und deine Agents – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt.",
+        "greeting": "Hallo Alex! Dein Loop auf einen Blick",
+        "url_label": "Quest Agent",
+        "caption": "Vorschau mit Beispieldaten – alles anklickbar: Seitenleiste, Freigabe, Kalender, Analytics, Agents und der Chat.",
+        "tour": true
       }
     }
   },

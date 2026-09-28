@@ -88,9 +88,11 @@
       "settings": {
         "anchor": "loop",
         "eyebrow": "Der Quest-Loop",
-        "heading": "Von der Idee bis zum Upload. Du scrollst, Quest arbeitet.",
+        "heading": "Von der Idee bis zum Upload. Quest arbeitet, du gibst frei.",
         "sub": "Einmal eingerichtet, läuft jeder Schritt automatisch – nur die Freigabe bleibt bei dir.",
-        "step_height": 65,
+        "autoplay": true,
+        "step_seconds": 3.5,
+        "skip_link": "#dashboard",
         "device_label": "Quest Agent · Kosmos kompakt",
         "niche": "Weltall",
         "video_title": "Was, wenn es noch andere Welten gibt?",
@@ -202,10 +204,11 @@
         "anchor": "dashboard",
         "eyebrow": "Dein Dashboard",
         "heading": "Alles an einem Ort. Nichts ohne dein Okay.",
-        "sub": "Freigaben, Kalender und Kontingent auf einen Blick – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt.",
-        "greeting": "Hallo! Dein Loop auf einen Blick",
-        "url_label": "Quest Agent – Kundenbereich",
-        "caption": "Vorschau mit Beispieldaten. Tabs anklicken zum Ausprobieren."
+        "sub": "Pipeline, Freigaben, Kalender, Analytics und deine Agents – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt.",
+        "greeting": "Hallo Alex! Dein Loop auf einen Blick",
+        "url_label": "Quest Agent",
+        "caption": "Vorschau mit Beispieldaten – alles anklickbar: Seitenleiste, Freigabe, Kalender, Analytics, Agents und der Chat.",
+        "tour": true
       }
     },
     "benefits": {
@@ -398,8 +401,8 @@
     "hero",
     "marquee",
     "pipeline",
-    "platforms",
     "dashboard",
+    "platforms",
     "benefits",
     "pricing",
     "faq",

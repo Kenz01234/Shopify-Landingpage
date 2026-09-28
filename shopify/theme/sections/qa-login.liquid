@@ -1,0 +1,100 @@
+{%- comment -%}
+  Anmelden. Ist unter Theme-Einstellungen → Anmelden & Konto die Adresse der Quest-Agent-App eingetragen,
+  führt der Button direkt dorthin. Solange die App noch nicht online ist, zeigt die Seite das Anmeldeformular
+  als Vorschau: Die Felder haben keinen name, es wird also nichts übertragen, und ein Hinweis sagt das ehrlich.
+{%- endcomment -%}
+<section class="qa-login" data-qa-login>
+  <div class="qa-login__bg" aria-hidden="true"></div>
+  <div class="qa-container qa-login__grid">
+    <div class="qa-login__card" data-reveal>
+      <a class="qa-logo qa-login__logo" href="{{ routes.root_url }}">
+        {%- render 'logo-mark' -%}
+        <span class="qa-logo__word">Quest<span> Agent</span></span>
+      </a>
+      {%- if settings.login_url == blank and section.settings.soon_label != blank -%}
+        <span class="qa-pill qa-pill--coral qa-login__soon"><span class="qa-dot qa-dot--pulse" aria-hidden="true"></span>{{ section.settings.soon_label | escape }}</span>
+      {%- endif -%}
+      <h1 class="qa-h2 qa-login__title">{{ section.settings.heading | escape }}</h1>
+      {%- if section.settings.sub != blank -%}<p class="qa-muted">{{ section.settings.sub | escape }}</p>{%- endif -%}
+
+      {%- if settings.login_url != blank -%}
+        <a class="qa-btn qa-btn--primary qa-btn--lg qa-btn--block" href="{{ settings.login_url }}">
+          {{- section.settings.app_button | escape }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+        </a>
+      {%- else -%}
+        <form class="qa-login__form" action="#" method="get" novalidate data-login-form>
+          <label class="qa-field">
+            <span class="qa-label">E-Mail</span>
+            <span class="qa-inputwrap">{% render 'icon', name: 'mail' %}<input class="qa-input" type="email" autocomplete="email" placeholder="du@beispiel.de"></span>
+          </label>
+          <label class="qa-field">
+            <span class="qa-label">Passwort</span>
+            <span class="qa-inputwrap">
+              {%- render 'icon', name: 'lock' -%}
+              <input class="qa-input" type="password" autocomplete="current-password" placeholder="••••••••" data-pw>
+              <button class="qa-inputwrap__btn" type="button" data-pw-toggle aria-label="Passwort anzeigen" aria-pressed="false">{% render 'icon', name: 'eye' %}</button>
+            </span>
+          </label>
+          <div class="qa-login__row">
+            <label class="qa-check"><input type="checkbox"> Angemeldet bleiben</label>
+            <button type="button" class="qa-linkbtn" data-login-notice-open>Passwort vergessen?</button>
+          </div>
+          <button class="qa-btn qa-btn--primary qa-btn--lg qa-btn--block" type="submit">
+            {{- 'general.login' | t }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
+          </button>
+          <div class="qa-login__notice" data-login-notice role="status" hidden>
+            {%- render 'icon', name: 'sparkles' -%}
+            <span>{{ section.settings.notice | escape }} <a href="#{{ section.settings.demo_anchor | default: 'login-demo' }}" data-login-demo>{{ section.settings.demo_label | escape }}</a></span>
+          </div>
+        </form>
+      {%- endif -%}
+
+      <p class="qa-login__alt">{{ section.settings.no_account | escape }} <a href="{% render 'nav-href', link: section.settings.plans_link %}">{{ section.settings.plans_label | escape }}</a></p>
+      <ul class="qa-login__trust">
+        <li>{% render 'icon', name: 'lock' %} Verschlüsselte Verbindung</li>
+        <li>{% render 'icon', name: 'shield' %} Nichts geht ohne deine Freigabe online</li>
+      </ul>
+    </div>
+
+    <div class="qa-login__visual" aria-hidden="true">
+      <div class="qa-login__glow"></div>
+      <p class="qa-eyebrow" style="color: #ff8a80">{{ section.settings.visual_eyebrow | escape }}</p>
+      <p class="qa-login__vtitle">{{ section.settings.visual_heading | escape }}</p>
+      <ul class="qa-login__feats">
+        <li style="--i: 0">{% render 'icon', name: 'inbox' %}<span><b>Freigabe-Inbox</b><small>Jede Version prüfen, ändern, freigeben</small></span></li>
+        <li style="--i: 1">{% render 'icon', name: 'calendar' %}<span><b>Kalender</b><small>Uploads auf YouTube, Instagram &amp; TikTok</small></span></li>
+        <li style="--i: 2">{% render 'icon', name: 'chart' %}<span><b>Analytics</b><small>Aufrufe, Wiedergabezeit, Abonnenten</small></span></li>
+        <li style="--i: 3">{% render 'icon', name: 'bot' %}<span><b>Agents &amp; Chat</b><small>Sieh live, woran Quest gerade arbeitet</small></span></li>
+      </ul>
+      <div class="qa-login__tiles">
+        <div><small>Warten auf dich</small><b>3</b></div>
+        <div><small>In der Pipeline</small><b>5</b></div>
+        <div><small>Aufrufe · 28 T</small><b>48.200</b></div>
+      </div>
+      <span class="qa-pill qa-pill--demo qa-login__demo">{{ 'general.example' | t }}</span>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Anmelden",
+  "tag": "div",
+  "settings": [
+    { "type": "paragraph", "content": "Steht unter Theme-Einstellungen → Anmelden & Konto die Adresse der Quest-Agent-App, zeigt diese Seite statt des Formulars einen Button dorthin." },
+    { "type": "text", "id": "soon_label", "label": "Hinweis-Pill (solange keine App-Adresse eingetragen ist)", "default": "App startet in Kürze" },
+    { "type": "text", "id": "heading", "label": "Überschrift", "default": "Willkommen zurück." },
+    { "type": "text", "id": "sub", "label": "Unterzeile", "default": "Melde dich mit der E-Mail-Adresse an, mit der du deinen Plan gekauft hast." },
+    { "type": "text", "id": "app_button", "label": "Button zur App", "default": "Weiter zur Anmeldung" },
+    { "type": "textarea", "id": "notice", "label": "Hinweis beim Absenden (App noch nicht online)", "default": "Die Anmeldung öffnet, sobald die Quest-Agent-App online ist. Es wurde nichts übertragen." },
+    { "type": "text", "id": "demo_label", "label": "Link zur Vorschau", "default": "Dashboard-Vorschau ansehen ↓" },
+    { "type": "text", "id": "demo_anchor", "label": "Sprungmarke der Vorschau", "default": "login-demo" },
+    { "type": "text", "id": "no_account", "label": "Text „Noch kein Konto?“", "default": "Noch kein Konto?" },
+    { "type": "text", "id": "plans_label", "label": "Link-Text Pläne", "default": "Plan wählen" },
+    { "type": "text", "id": "plans_link", "label": "Link-Ziel Pläne", "default": "#preise" },
+    { "type": "text", "id": "visual_eyebrow", "label": "Rechte Seite – Oberzeile", "default": "Dein Kundenbereich" },
+    { "type": "text", "id": "visual_heading", "label": "Rechte Seite – Überschrift", "default": "Alles an einem Ort. Nichts ohne dein Okay." }
+  ],
+  "presets": [{ "name": "Anmelden" }]
+}
+{% endschema %}

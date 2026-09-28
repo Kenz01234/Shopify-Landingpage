@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "login": {
+      "type": "qa-login",
+      "settings": {}
+    },
+    "demo": {
+      "type": "qa-dashboard",
+      "settings": {
+        "anchor": "login-demo",
+        "eyebrow": "Vorschau",
+        "heading": "Einmal durchklicken.",
+        "sub": "So sieht dein Kundenbereich aus – Freigaben, Pipeline, Kalender, Analytics, Agents und der Quest-Chat. Alles mit Beispieldaten.",
+        "greeting": "Hallo Alex! Dein Loop auf einen Blick",
+        "url_label": "Quest Agent",
+        "tour": true,
+        "caption": "Vorschau mit Beispieldaten – alles anklickbar."
+      }
+    }
+  },
+  "order": [
+    "login",
+    "demo"
+  ]
+}

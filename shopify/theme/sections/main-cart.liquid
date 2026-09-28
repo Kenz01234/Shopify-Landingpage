@@ -39,6 +39,7 @@
           {{- 'cart.checkout' | t }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
         </button>
         <noscript><button class="qa-btn qa-btn--block" type="submit" name="update">{{ 'cart.update' | t }}</button></noscript>
+        {%- render 'cart-trust', steps: true -%}
         <a class="qa-btn qa-btn--ghost qa-btn--sm" href="{% render 'nav-href', link: '#preise' %}">{{ 'cart.continue' | t }}</a>
       </div>
     </form>

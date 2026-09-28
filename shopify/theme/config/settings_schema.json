@@ -99,7 +99,7 @@
         "type": "url",
         "id": "login_url",
         "label": "Link zur App-Anmeldung",
-        "info": "z. B. https://app.deine-domain.de/login – leer = Dashboard-Vorschau (/pages/dashboard)"
+        "info": "z. B. https://app.deine-domain.de/login – leer = Anmelde-Seite des Themes mit Dashboard-Vorschau (/collections/all?view=anmelden, keine Einrichtung nötig)"
       },
       {
         "type": "checkbox",

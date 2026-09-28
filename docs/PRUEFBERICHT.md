@@ -42,7 +42,7 @@ Die Einteilung ist streng:
 | `node scripts/build-project-zip.mjs` + Prüfung des entpackten ZIPs | ✅ 268 Dateien. Enthält kein `.env`, kein `node_modules`, kein `.next` und kein `generated/`. 0 Treffer für den Wert von `BETTER_AUTH_SECRET`. |
 | `node scripts/build-shopify-zip.mjs` | ✅ `quest-agent-shopify-sections.zip`, 98 KB |
 | `npm run shopify:theme` | ✅ `quest-agent-shopify-theme.zip`: das eigene Theme „Quest Agent“ mit 73 Dateien, 166 KB, hochladbar über „Theme hochladen“ |
-| `npm run shopify:theme:check` | ✅ **11 von 11** bestanden: Theme Check, Upload-Regeln, Rendern von 23 Seiten, Warenkorb/Abo/Kasse im Browser, Hell/Dunkel, Handy, ohne JS, Editor-Simulation, Bildrate. Einzelheiten in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft-weg-a). |
+| `npm run shopify:theme:check` | ✅ **13 von 13** bestanden, darunter:<br>• Theme Check und Upload-Regeln<br>• Rendern von 28 Seiten<br>• Warenkorb, Abo und Kasse im Browser<br>• Hero-Ablauf und automatischer Loop<br>• klickbares Dashboard mit Chat<br>• Anmelden ohne Datenversand, Suche mit Vorschlägen, Rechtstexte<br>• Handy, ohne JavaScript, Editor-Simulation, Bildrate<br>Einzelheiten in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft-weg-a). |
 | `npm run shopify:horizon` | ✅ `dist/horizon-quest-agent-theme.zip`, 1,4 MB. Enthält Shopify Horizon 4.2.0 von GitHub und die Section als Startseite. Nur für den eigenen Shop bestimmt (Horizon-Lizenz), daher nicht im Repository. |
 | `npm run shopify:check` | ✅ **20 von 20** bestanden (Section-Paket und Horizon). Einzelheiten in [shopify/INSTALLATION.md](../shopify/INSTALLATION.md#geprüft-weg-b-und-c). |
 
@@ -101,6 +101,10 @@ Die Einteilung ist streng:
   - **Produktseite:**
     - Eine ausverkaufte Startvariante blockierte die Beschriftung „In den Warenkorb“ für alle Varianten.
     - Der Streichpreis ließ sich nach einem Variantenwechsel nicht einblenden.
+- **Rückmeldung aus dem echten Shop (Screenshots des Auftraggebers).** Behoben:
+  - **Loop:** Er hakte beim Scrollen und dauerte lange. Er läuft jetzt zeitgesteuert von selbst, ist anklickbar, pausierbar und überspringbar; der lange Scrollweg ist entfallen.
+  - **Anmelden:** Der Button führte auf „Hier ist der Faden gerissen“ (404), weil die Seite „Dashboard“ im Shop nicht angelegt war. Jetzt gibt es eine eigene Anmelde-Seite, die ohne Einrichtung funktioniert.
+  - **Dashboard:** Nur drei Tabs waren klickbar. Jetzt öffnen sich alle Bereiche der Seitenleiste, dazu kommen Analytics, Agents und Chat. Das Dashboard steht jetzt vor „Ein Short, drei Plattformen“.
 
 ## Ungetestet (bewusst, fehlende Zugänge oder Auftrag)
 
@@ -149,6 +153,7 @@ Die Screenshots erzeugt `tests/e2e/screenshots.spec.ts` automatisch gegen die la
 | Übersicht, Produktion, Abo | `desktop-uebersicht.png`, `desktop-produktion.png`, `desktop-abo.png` | `mobil-uebersicht.png`, `mobil-produktion.png`, `mobil-abo.png` |
 | Shopify-Section mit Horizons CSS (ohne Horizons Header) | `shopify-horizon-desktop-hell.png` | `shopify-horizon-mobil-dunkel.png` |
 | Eigenes Shopify-Theme, Startseite (Hero, Loop, Plattformen, Dashboard, Preise) | `shopify-theme-desktop-hell-start-01-hero.png` … `-05-preise.png`, `shopify-theme-desktop-dunkel-start-01-hero.png` | `shopify-theme-mobil-dunkel-start-01-hero.png` |
+| Eigenes Shopify-Theme, Anmelde-Seite mit Dashboard-Vorschau | `shopify-theme-desktop-dunkel-anmelden.png` | – |
 | Eigenes Shopify-Theme, Produkt (Abo) und Warenkorb-Panel | `shopify-theme-desktop-hell-produkt-abo.png`, `shopify-theme-desktop-dunkel-warenkorb-panel.png` | `shopify-theme-mobil-hell-warenkorb-panel.png` |
 
 ## Erneut prüfen

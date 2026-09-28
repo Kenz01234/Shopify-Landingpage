@@ -194,8 +194,8 @@ export function sampleData() {
     "main-menu": { handle: "main-menu", title: "Hauptmenü", links: [link("Start", "/"), link("Pläne", "/collections/plaene"), link("Dashboard", "/pages/dashboard"), link("Kontakt", "/pages/kontakt")] },
     footer: {
       handle: "footer",
-      title: "Rechtliches",
-      links: [link("Impressum", "/pages/impressum"), link("Datenschutz", "/policies/privacy-policy"), link("AGB", "/policies/terms-of-service"), link("Widerruf", "/policies/refund-policy")],
+      title: "Mehr",
+      links: [link("Suche", "/search"), link("Blog", "/blogs/news"), link("Kontakt", "/pages/kontakt")],
     },
   };
   const article = (handle, title, days, excerpt) => ({
@@ -208,6 +208,8 @@ export function sampleData() {
     excerpt: `<p>${excerpt}</p>`,
     content: `<p>${excerpt}</p><h2>Was du mitnehmen kannst</h2><p>Plane feste Uploadtage, prüfe jedes Video in Ruhe und gib erst dann frei. So bleibt die Kontrolle bei dir.</p><ul><li>Uploadplan festlegen</li><li>Vorschau prüfen</li><li>Freigeben</li></ul>`,
     image: days === 3 ? img("qa-scene-ocean.svg", "Ozean") : null,
+    excerpt_or_content: `<p>${excerpt}</p>`,
+    object_type: "article",
     tags: [],
     comments_count: 0,
   });
@@ -251,7 +253,15 @@ export function sampleData() {
     addresses: [],
     default_address: null,
   };
-  return { products, collections, linklists, blog, pages, customer };
+  const policy = (handle, title, body) => ({ handle, title, url: `/policies/${handle}`, body });
+  const policies = [
+    policy("legal-notice", "Impressum", "<p><strong>Beispieltext.</strong> Hier stehen die Pflichtangaben deines Unternehmens (Name, Anschrift, Kontakt, Registereintrag, Umsatzsteuer-ID).</p>"),
+    policy("privacy-policy", "Datenschutzerklärung", "<h2>1. Verantwortliche Stelle</h2><p>Beispieltext – ersetze ihn in Shopify unter Einstellungen → Richtlinien.</p><h2>2. Welche Daten wir verarbeiten</h2><p>Bestelldaten, Kontaktdaten und Nutzungsdaten der App.</p>"),
+    policy("terms-of-service", "Allgemeine Geschäftsbedingungen", "<p>Beispieltext der AGB.</p>"),
+    policy("refund-policy", "Widerrufsrecht", "<p>Beispieltext zur Widerrufsbelehrung.</p>"),
+    policy("subscription-policy", "Kündigungsrichtlinie", "<p>Abos verlängern sich monatlich und sind jederzeit zum Ende des Abrechnungszeitraums kündbar (Beispieltext).</p>"),
+  ];
+  return { products, collections, linklists, blog, pages, customer, policies };
 }
 
 /* ---------------------------------------------------------------- Warenkorb */
@@ -572,6 +582,7 @@ export function createShop({ themeDir = THEME_DIR, settingsOverrides = {}, secti
         customer_accounts_optional: true,
         enabled_payment_types: ["visa", "master", "paypal", "apple_pay", "klarna"],
         password_message: "Wir öffnen in Kürze.",
+        policies: data.policies,
       },
       settings,
       routes: {
@@ -672,11 +683,17 @@ export function createShop({ themeDir = THEME_DIR, settingsOverrides = {}, secti
 
   async function renderPage(req) {
     const t = req.template;
+    if (t.suffix) {
+      const base = `${t.directory ? `${t.directory}/` : ""}${t.name}.${t.suffix}`;
+      if (!fs.existsSync(path.join(themeDir, "templates", `${base}.json`)) && !fs.existsSync(path.join(themeDir, "templates", `${base}.liquid`))) t.suffix = null;
+    }
     const key = t.suffix ? `${t.directory ? `${t.directory}/` : ""}${t.name}.${t.suffix}` : `${t.directory ? `${t.directory}/` : ""}${t.name}`;
     const globals = globalsFor(req);
     let content;
     let layout = "theme";
-    if (fs.existsSync(path.join(themeDir, "templates", `${key}.liquid`))) {
+    if (req.content != null) {
+      content = req.content; // von Shopify selbst gerenderte Seiten (z. B. Richtlinien)
+    } else if (fs.existsSync(path.join(themeDir, "templates", `${key}.liquid`))) {
       content = await engine.parseAndRender(read(themeDir, "templates", `${key}.liquid`), {}, { globals });
       if (globals.__layout === "none") return content;
     } else {
@@ -741,13 +758,32 @@ function routeFor(pathname, url, shop) {
     return { template: T("collection"), title: c.title, objects: { collection: sorted } };
   }
   if (pathname === "/cart") return { template: T("cart"), title: "Warenkorb" };
+  if ((m = /^\/policies\/([\w-]+)$/.exec(pathname))) {
+    const pol = data.policies.find((x) => x.handle === m[1]);
+    if (!pol) return null;
+    // So liefert Shopify Richtlinienseiten aus: eigenes Markup innerhalb des Theme-Layouts
+    return {
+      template: T("policy"),
+      title: pol.title,
+      content: `<div class="shopify-policy__container"><div class="shopify-policy__title"><h1>${pol.title}</h1></div><div class="shopify-policy__body"><div class="rte">${pol.body}</div></div></div>`,
+    };
+  }
   if (pathname === "/search") {
     const terms = q.get("q") ?? "";
-    const results = terms ? data.products.filter((p) => (p.title + p.description).toLowerCase().includes(terms.toLowerCase())) : [];
+    const hit = (t) => t.toLowerCase().includes(terms.toLowerCase());
+    const results = terms
+      ? [
+          ...data.products.filter((p) => hit(p.title + p.description)).map((p) => ({ ...p, object_type: "product" })),
+          ...Object.values(data.pages)
+            .filter((pg) => hit(pg.title + pg.content))
+            .map((pg) => ({ ...pg, object_type: "page" })),
+          ...data.blog.articles.filter((a) => hit(a.title + a.content)),
+        ]
+      : [];
     return {
       template: T("search"),
       title: "Suche",
-      objects: { search: { performed: Boolean(terms), terms, results, results_count: results.length, types: ["product"] } },
+      objects: { search: { performed: Boolean(terms), terms, results, results_count: results.length, types: ["product", "page", "article"] } },
     };
   }
   if ((m = /^\/pages\/([\w-]+)$/.exec(pathname))) {
@@ -823,6 +859,25 @@ export function startPreview({ port = 4545, themeDir = THEME_DIR, settingsOverri
         return send(200, fs.readFileSync(file), MIME[path.extname(file)] ?? "application/octet-stream", { "Cache-Control": "no-cache" });
       }
       if (url.pathname === "/cart.js" || url.pathname === "/cart.json") return json(200, shop.cart.build());
+      if (url.pathname === "/search/suggest.json") {
+        // Nachbau der Predictive-Search-Antwort (resources.results.products/pages/articles)
+        const term = (url.searchParams.get("q") ?? "").toLowerCase();
+        const hit = (t) => t.toLowerCase().includes(term);
+        const d = shop.data;
+        return json(200, {
+          resources: {
+            results: {
+              products: d.products
+                .filter((p) => hit(p.title + p.description))
+                .map((p) => ({ title: p.title, url: p.url, handle: p.handle, price: (p.price / 100).toFixed(2), available: p.available, image: p.featured_image?.src ?? null, featured_image: p.featured_image ? { url: p.featured_image.src, alt: "" } : null })),
+              pages: Object.values(d.pages)
+                .filter((pg) => hit(pg.title + pg.content))
+                .map((pg) => ({ title: pg.title, url: pg.url, handle: pg.handle })),
+              articles: d.blog.articles.filter((a) => hit(a.title + a.content)).map((a) => ({ title: a.title, url: a.url, handle: a.handle, image: a.image?.src ?? null })),
+            },
+          },
+        });
+      }
       if (url.pathname === "/cart/add.js" || url.pathname === "/cart/add") {
         const r = await bodyRequest();
         const fd = await r.formData();
@@ -870,6 +925,8 @@ export function startPreview({ port = 4545, themeDir = THEME_DIR, settingsOverri
       }
       const sectionsParam = url.searchParams.get("sections");
       const route = routeFor(url.pathname, url, shop);
+      // ?view=xyz rendert wie bei Shopify das alternative Template (z. B. collection.anmelden)
+      if (route && url.searchParams.get("view")) route.template = { ...route.template, suffix: url.searchParams.get("view") };
       const ctx = route ? { ...route, origin, path: url.pathname, designMode } : { template: { name: "404", suffix: null, directory: null }, title: "Seite nicht gefunden", origin, path: url.pathname, designMode };
       if (sectionsParam) return json(200, await shop.renderSectionsFor(ctx, sectionsParam.split(",")));
       return send(route ? 200 : 404, await shop.renderPage(ctx));

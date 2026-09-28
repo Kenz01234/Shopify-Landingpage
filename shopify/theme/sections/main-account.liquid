@@ -66,7 +66,8 @@
       {%- else -%}
         <p>{{ 'account.hello' | t: name: customer.first_name }}</p>
         <p class="qa-muted">{{ 'account.app_hint' | t }}</p>
-        <a class="qa-btn qa-btn--primary" href="{{ settings.login_url | default: '/pages/dashboard' }}">{{ settings.login_label | default: 'Anmelden' | escape }}</a>
+        {%- assign login_default = routes.all_products_collection_url | append: '?view=anmelden' -%}
+        <a class="qa-btn qa-btn--primary" href="{{ settings.login_url | default: login_default }}">{{ settings.login_label | default: 'Anmelden' | escape }}</a>
         <h2 class="qa-h3" style="margin-top: 12px">{{ 'account.orders' | t }}</h2>
         {%- for o in customer.orders -%}
           <a class="qa-result" href="{{ o.customer_url }}"><span><b>{{ o.name }}</b> · {{ o.created_at | time_tag: format: 'date' }}</span><span style="margin-left: auto">{{ o.total_price | money }}</span></a>

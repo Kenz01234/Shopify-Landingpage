@@ -34,6 +34,16 @@
           </nav>
         {%- endif -%}
       {%- endfor -%}
+      {%- if section.settings.show_policies and shop.policies.size > 0 -%}
+        <nav aria-label="{{ section.settings.policies_title | default: 'Rechtliches' | escape }}">
+          <h2>{{ section.settings.policies_title | default: 'Rechtliches' | escape }}</h2>
+          <ul>
+            {%- for policy in shop.policies -%}
+              <li><a href="{{ policy.url }}">{{ policy.title | escape }}</a></li>
+            {%- endfor -%}
+          </ul>
+        </nav>
+      {%- endif -%}
     </div>
     <div class="qa-footer__bottom">
       <span>© {{ 'now' | date: '%Y' }} {{ shop.name | escape }}. {{ section.settings.legal_note | escape }}</span>
@@ -59,6 +69,9 @@
     { "type": "text", "id": "tagline", "label": "Kurzbeschreibung", "default": "Dein Faceless-Kanal. Läuft für dich – du behältst das letzte Wort." },
     { "type": "text", "id": "legal_note", "label": "Hinweis unten", "default": "Unabhängiges Produkt – keine Verbindung zu YouTube, Instagram oder TikTok." },
     { "type": "checkbox", "id": "show_payment", "label": "Zahlungsarten zeigen", "default": true },
+    { "type": "header", "content": "Rechtliches" },
+    { "type": "checkbox", "id": "show_policies", "label": "Rechtstexte automatisch verlinken", "default": true, "info": "Zeigt alle unter Einstellungen → Richtlinien hinterlegten Texte (z. B. Impressum, Datenschutz, AGB, Widerruf)." },
+    { "type": "text", "id": "policies_title", "label": "Überschrift", "default": "Rechtliches" },
     { "type": "text", "id": "big_word", "label": "Großer Schriftzug", "default": "Quest Agent" }
   ],
   "blocks": [

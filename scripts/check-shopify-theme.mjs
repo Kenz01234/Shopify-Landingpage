@@ -188,6 +188,11 @@ const ROUTES = [
   ["/account/activate", 200],
   ["/password", 200],
   ["/gift_cards/preview", 200],
+  ["/collections/all?view=anmelden", 200],
+  ["/policies/legal-notice", 200],
+  ["/policies/privacy-policy", 200],
+  ["/search?q=freigabe", 200],
+  ["/search?q=gibtesnicht", 200],
   ["/gibt-es-nicht", 404],
 ];
 {
@@ -297,6 +302,102 @@ async function newPage(opts = {}) {
   await ctx.close();
 }
 {
+  // Startseite: Hero-Ablauf, Loop läuft von selbst und ist bedienbar, Dashboard komplett klickbar
+  const { ctx, page: p } = await newPage();
+  const fails = [];
+  const expect = (name, cond) => cond || fails.push(name);
+  await p.goto(B + "/");
+  const phase0 = await p.evaluate(() => document.querySelector("[data-hero-stage]").dataset.phase);
+  await p.waitForFunction(() => document.querySelector("[data-hero-stage]").dataset.phase === "live", null, { timeout: 20000 }).catch(() => {});
+  await p.waitForTimeout(2200);
+  const heroNums = await p.evaluate(() => [...document.querySelectorAll(".qa-hero__kpis [data-hero-count]")].map((e) => e.textContent));
+  expect(`Hero: Phasen laufen (${phase0} → live) und Beispielzahlen zählen hoch (${heroNums.join(", ")})`, phase0 === "research" && heroNums.every((t) => t !== "0"));
+
+  await p.evaluate(() => document.querySelector("[data-qa-pipe] .qa-pipe__body").scrollIntoView());
+  await p.waitForTimeout(4600);
+  const idxAuto = await p.evaluate(() => document.querySelector("[data-qa-pipe]")._qa.idx);
+  expect("Loop: läuft ohne Scrollen von selbst weiter", idxAuto >= 1);
+  await p.locator("[data-step-btn]").nth(7).click();
+  await p.waitForTimeout(300);
+  const clicked = await p.evaluate(() => [document.querySelector("[data-qa-pipe]")._qa.idx, document.querySelectorAll("[data-scene].is-active")[0]?.getAttribute("data-scene")]);
+  expect("Loop: Schritt anklicken zeigt ihn sofort", clicked[0] === 7 && clicked[1] === "7");
+  await p.locator("[data-pipe-toggle]").click();
+  await p.waitForTimeout(4200);
+  const paused = await p.evaluate(() => [document.querySelector("[data-qa-pipe]")._qa.idx, document.querySelector("[data-qa-pipe]").classList.contains("is-paused")]);
+  expect("Loop: Pause hält an", paused[0] === 7 && paused[1]);
+  await p.locator("[data-pipe-next]").click();
+  expect("Loop: „Nächster Schritt“", (await p.evaluate(() => document.querySelector("[data-qa-pipe]")._qa.idx)) === 8);
+  await p.locator("[data-pipe-skip]").click();
+  await p.waitForTimeout(1200);
+  const skipped = await p.evaluate(() => document.querySelector("[data-qa-pipe]").getBoundingClientRect().bottom < 200);
+  expect("Loop: „Überspringen“ scrollt zum nächsten Bereich", skipped);
+
+  const views = ["overview", "systems", "production", "review", "calendar", "analytics", "agents", "connections", "plan"];
+  const shown = [];
+  for (const v of views) {
+    await p.locator(`.qa-dash__nav[data-dash-go="${v}"]`).click();
+    await p.waitForTimeout(120);
+    if (await p.evaluate((vv) => {
+      const el = document.querySelector(`[data-dash-view="${vv}"]`);
+      return el && el.classList.contains("is-on") && !el.hidden && el.getBoundingClientRect().height > 80;
+    }, v)) shown.push(v);
+  }
+  expect(`Dashboard: alle Bereiche der Seitenleiste öffnen (${shown.length}/${views.length})`, shown.length === views.length);
+  expect("Dashboard: Tour endet bei eigener Bedienung", !(await p.evaluate(() => document.querySelector("[data-qa-dash]")._qa.tour)));
+  await p.locator(".qa-dash__nav[data-dash-go='review']").click();
+  await p.locator("[data-dash-act='approve']").click();
+  await p.waitForTimeout(900);
+  const afterApprove = await p.evaluate(() => [document.querySelector("[data-dash-badge]").textContent.trim(), !!document.querySelector("[data-dash-newday] .qa-evt"), document.querySelector("[data-review-title]").textContent]);
+  expect("Dashboard: Freigeben zählt herunter, plant im Kalender ein, zeigt das nächste Video", afterApprove[0] === "2" && afterApprove[1] && !/Nachthimmel/.test(afterApprove[2]));
+  await p.locator(".qa-dash__nav[data-dash-go='analytics']").click();
+  await p.locator("[data-dash-act='range']").first().click();
+  await p.waitForTimeout(1300);
+  expect("Dashboard: Analytics-Zeitraum wechselt Zahlen und Verlauf", (await p.evaluate(() => [document.querySelector("[data-an='0']").textContent, document.querySelector("[data-chart-line]").getAttribute("d").split("L").length])).join() === "11.800,7");
+  await p.locator(".qa-dash__ask").click();
+  await p.locator(".qa-chat__chips button").nth(2).click();
+  await p.waitForFunction(() => { const m = [...document.querySelectorAll(".qa-msg--bot")]; return m.length > 1 && /Pipeline/.test(m[m.length - 1].textContent) && !document.querySelector(".qa-chat__chips button:disabled"); }, null, { timeout: 8000 }).catch(() => {});
+  const chat = await p.evaluate(() => [document.querySelectorAll(".qa-msg--me").length, document.querySelectorAll(".qa-job").length]);
+  expect("Dashboard: Chat beantwortet die Frage und legt den Auftrag in die Pipeline", chat[0] === 1 && chat[1] === 6);
+  fails.forEach((f) => console.log(`   ✗ ${f}`));
+  check("Startseite: Hero, automatischer Loop, klickbares Dashboard mit Chat", fails.length === 0 && p.errors.length === 0, p.errors.join("; "));
+  await ctx.close();
+}
+{
+  // Anmelden (ohne Einrichtung), Suche mit Vorschlägen, Rechtstexte im Footer
+  const { ctx, page: p } = await newPage();
+  const fails = [];
+  const expect = (name, cond) => cond || fails.push(name);
+  const requests = [];
+  p.on("request", (r) => requests.push(r.url() + " " + (r.postData() || "")));
+  await p.goto(B + "/");
+  const loginHref = await p.locator(".qa-header__login").getAttribute("href");
+  expect("Header „Anmelden“ führt zur Anmelde-Seite des Themes", /view=anmelden/.test(loginHref));
+  await p.goto(B + loginHref);
+  await p.fill("[data-login-form] input[type=email]", "test@example.com");
+  await p.fill("[data-login-form] input[type=password]", "geheim123");
+  requests.length = 0;
+  await p.locator("[data-login-form] button[type=submit]").click();
+  await p.waitForTimeout(400);
+  expect("Anmelden: Hinweis erscheint, solange die App nicht online ist", await p.locator("[data-login-notice]").isVisible());
+  expect("Anmelden: Zugangsdaten werden nirgendwohin gesendet", !requests.some((r) => /test@example|geheim123/.test(r)) && p.url().endsWith("view=anmelden"));
+  expect("Anmelden: Dashboard-Vorschau auf derselben Seite", (await p.locator("#login-demo [data-dash]").count()) === 1);
+  await p.goto(B + "/");
+  await p.locator("[data-search-open]").first().click();
+  await p.waitForTimeout(200);
+  expect("Suche: Overlay öffnet mit Fokus im Feld", await p.evaluate(() => document.activeElement?.matches("[data-search-input]")));
+  await p.keyboard.type("studio");
+  await p.waitForSelector(".qa-search__hit[href='/products/quest-agent-studio']", { timeout: 4000 }).catch(() => {});
+  expect("Suche: Live-Vorschläge mit Produkt", (await p.locator(".qa-search__hit[href='/products/quest-agent-studio']").count()) === 1);
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(300);
+  expect("Suche: Escape schließt", await p.evaluate(() => document.querySelector("[data-search-overlay]").hidden));
+  const policyLinks = await p.locator(".qa-footer a[href^='/policies/']").count();
+  expect(`Footer: Rechtstexte automatisch verlinkt (${policyLinks})`, policyLinks >= 4);
+  fails.forEach((f) => console.log(`   ✗ ${f}`));
+  check("Anmelden ohne Einrichtung, Suche mit Vorschlägen, Rechtliches", fails.length === 0 && p.errors.length === 0, p.errors.join("; "));
+  await ctx.close();
+}
+{
   // Handy: keine Seite darf seitlich scrollen (sonst wird z. B. das Warenkorb-Panel abgeschnitten)
   const { ctx, page } = await newPage({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true });
   await fetch(B + "/__reset");
@@ -309,7 +410,7 @@ async function newPage(opts = {}) {
     await page.waitForTimeout(200);
     const w = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
     if (w[0] > w[1]) wide.push(`${route}: ${w[0]} px statt ${w[1]} px`);
-    // Texte brauchen Abstand zum Bildschirmrand (laufende Bänder und Wischleisten ausgenommen).
+    // Texte brauchen Abstand zum Bildschirmrand (laufende Bänder, Wischleisten und das Dashboard mit eigenem Scrollbereich ausgenommen).
     // Vorher einmal durchscrollen, damit Einblend-Effekte abgeschlossen sind.
     const h = await page.evaluate(() => document.documentElement.scrollHeight);
     for (let yy = 0; yy < h; yy += 500) {
@@ -319,7 +420,7 @@ async function newPage(opts = {}) {
     await page.waitForTimeout(900);
     const edge = await page.evaluate(() =>
       [...document.querySelectorAll("#MainContent :is(h1, h2, h3, p, li, label, .qa-btn)")]
-        .filter((el) => !el.closest(".qa-marquee, .qa-platforms__phones, [data-cart-drawer], [aria-hidden='true']"))
+        .filter((el) => !el.closest(".qa-marquee, .qa-platforms__phones, .qa-pipe__steps, .qa-hero__phases, .qa-dash, [data-cart-drawer], [aria-hidden='true']"))
         .filter((el) => {
           const r = el.getBoundingClientRect();
           return r.width > 0 && r.height > 0 && (r.left < 10 || r.right > document.documentElement.clientWidth - 10);
@@ -381,7 +482,7 @@ async function newPage(opts = {}) {
     await new Promise((r) => setTimeout(r, 900));
     const after = document.documentElement.dataset.theme;
     // Dashboard-Tabs funktionieren nach dem Neuladen
-    const tab = document.querySelector("[data-dash-tab='calendar']");
+    const tab = document.querySelector(".qa-dash__nav[data-dash-go='calendar']");
     tab?.click();
     const calOn = document.querySelector("[data-dash-view='calendar']")?.classList.contains("is-on");
     // Block auswählen (FAQ-Frage wird geöffnet)
@@ -444,6 +545,8 @@ if (shotDir) {
     ["blog", "/blogs/news"],
     ["konto", "/account/login"],
     ["passwort", "/password"],
+    ["anmelden", "/collections/all?view=anmelden"],
+    ["rechtliches", "/policies/privacy-policy"],
     ["404", "/gibt-es-nicht"],
   ];
   let n = 0;
@@ -454,7 +557,7 @@ if (shotDir) {
     await page.screenshot({ path: path.join(shotDir, `${dev}-${scheme}-start-01-hero.png`) });
     n++;
     const spots = [
-      ["02-loop", "#loop", 0.35],
+      ["02-loop", "#loop .qa-pipe__body", null],
       ["03-plattformen", ".qa-platforms__phones", null],
       ["04-dashboard", "[data-qa-dash]", null],
       ["05-preise", "[data-qa-pricing]", null],
@@ -465,8 +568,6 @@ if (shotDir) {
         ([s, f]) => {
           const el = document.querySelector(s);
           if (!el) return null;
-          const track = f !== null ? el.querySelector(".qa-pipe__track") : null;
-          if (track) return track.getBoundingClientRect().top + scrollY + (track.offsetHeight - innerHeight) * f;
           return el.getBoundingClientRect().top + scrollY - (s.includes("phones") ? 110 : 60);
         },
         [sel, frac],
@@ -474,7 +575,7 @@ if (shotDir) {
       if (y === null) continue;
       await page.evaluate((yy) => window.scrollTo(0, yy), y);
       // Plattformen: warten, bis die Upload-Animation durchgelaufen ist
-      await page.waitForTimeout(name === "03-plattformen" ? 3200 : 1400);
+      await page.waitForTimeout(name === "03-plattformen" ? 3200 : name === "02-loop" ? 2600 : 1400);
       await page.screenshot({ path: path.join(shotDir, `${dev}-${scheme}-start-${name}.png`) });
       n++;
     }

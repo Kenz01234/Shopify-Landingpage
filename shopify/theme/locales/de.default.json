@@ -17,7 +17,8 @@
     "page": "Seite {{ page }}",
     "payment_methods": "Zahlungsarten",
     "example": "Beispiel",
-    "preview": "Vorschau"
+    "preview": "Vorschau",
+    "login": "Anmelden"
   },
   "theme": {
     "toggle": "Farbmodus wechseln",
@@ -28,12 +29,23 @@
   "hero": {
     "stage_label": "Beispiel: Ein Video entsteht und erscheint auf YouTube, Instagram und TikTok",
     "status_default": "Recherche läuft …",
-    "steps": "Recherche läuft …|Skript wird geschrieben …|KI-Stimme spricht …|Video wird geschnitten …|Shorts entstehen …|Wartet auf deine Freigabe|Eingeplant auf 3 Plattformen",
     "example": "Beispiel",
     "float_video": "Video · Mi, 18:00",
     "float_short": "Short · heute, 12:00",
     "float_ok": "Von dir freigegeben",
-    "float_ok_sub": "Version 2 · geprüft"
+    "float_ok_sub": "Version 2 · geprüft",
+    "phase_labels": "Recherche läuft …|Skript wird geschrieben …|KI-Stimme spricht …|Video wird geschnitten …|Automatische Prüfung …|Wartet auf deine Freigabe|Upload auf 3 Plattformen …|Online – Zahlen laufen ein",
+    "phases": "Recherche|Skript|Stimme|Schnitt|Prüfung|Freigabe|Upload",
+    "script_1": "Irgendwo da draußen kreist vielleicht ein Planet,",
+    "script_2": "auf dem es regnet – aus Wasser, genau wie hier.",
+    "check_audio": "Ton ausgeglichen",
+    "check_rights": "Rechte geklärt",
+    "views": "Aufrufe",
+    "stats_title": "Analytics · 28 Tage",
+    "kpi_views": "Aufrufe",
+    "kpi_watch": "Wiedergabezeit",
+    "kpi_subs": "Abonnenten",
+    "kpi_ctr": "Klickrate"
   },
   "pipeline": {
     "system": "Dein System",
@@ -62,7 +74,11 @@
     "publish": "Upload zum Termin",
     "online": "online",
     "publish_note": "Beispielansicht. Veröffentlicht wird erst nach deiner Freigabe und nur auf verbundenen Plattformen.",
-    "scroll_hint": "Weiter scrollen"
+    "steps_label": "Schritte des Quest-Loops",
+    "pause": "Pause",
+    "play": "Abspielen",
+    "next": "Nächster Schritt",
+    "skip": "Überspringen"
   },
   "platforms": {
     "uploading": "Upload läuft …",
@@ -118,7 +134,14 @@
     "decrease": "Menge von {{ title }} verringern",
     "increase": "Menge von {{ title }} erhöhen",
     "added": "Im Warenkorb",
-    "error": "Das hat nicht geklappt. Bitte erneut versuchen."
+    "error": "Das hat nicht geklappt. Bitte erneut versuchen.",
+    "trust_1": "Sichere Zahlung über Shopify",
+    "trust_2": "Abo jederzeit kündbar",
+    "trust_3": "Nichts geht ohne deine Freigabe online",
+    "next_title": "So geht es nach dem Kauf weiter",
+    "next_1": "Kasse abschließen",
+    "next_2": "In der App mit derselben E-Mail anmelden",
+    "next_3": "System einrichten – ab dann läuft der Loop"
   },
   "collections": {
     "all": "Alle Produkte",
@@ -138,7 +161,19 @@
       "one": "{{ count }} Ergebnis für „{{ terms }}“",
       "other": "{{ count }} Ergebnisse für „{{ terms }}“"
     },
-    "none": "Nichts gefunden. Versuch es mit einem anderen Begriff."
+    "none": "Nichts gefunden. Versuch es mit einem anderen Begriff.",
+    "overlay_label": "Shop durchsuchen",
+    "close": "Suche schließen",
+    "popular": "Beliebt",
+    "all_results": "Alle Ergebnisse für „{{ terms }}“",
+    "no_hits": "Keine Treffer – versuch es mit einem anderen Begriff.",
+    "loading": "Suche läuft …",
+    "type_product": "Produkt",
+    "type_page": "Seite",
+    "type_article": "Artikel",
+    "products": "Produkte",
+    "more": "Seiten & Beiträge",
+    "start_hint": "Tipp: Suche nach einem Plan, einer Plattform oder einem Thema."
   },
   "contact": {
     "name": "Name",
@@ -182,5 +217,8 @@
     "title": "Geschenkkarte",
     "inactive": "Diese Geschenkkarte ist nicht mehr gültig.",
     "shop": "Zum Shop"
+  },
+  "footer": {
+    "policies": "Rechtliches"
   }
 }

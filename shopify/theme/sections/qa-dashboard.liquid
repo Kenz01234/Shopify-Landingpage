@@ -1,126 +1,424 @@
+{%- comment -%}
+  Dashboard-Vorschau: eine klickbare Nachbildung des Kundenbereichs mit Beispieldaten.
+  Alle Bereiche der Seitenleiste sind anklickbar, Freigabe/Kalender/Analytics/Agents/Chat reagieren.
+  Solange niemand selbst klickt, führt eine automatische Tour durch die Bereiche.
+  Nichts davon ist mit echten Konten verbunden – alles ist als Vorschau/Beispiel markiert.
+{%- endcomment -%}
 {%- liquid
   assign scene_space = 'qa-scene-space.svg' | asset_url
   assign scene_history = 'qa-scene-history.svg' | asset_url
   assign scene_ocean = 'qa-scene-ocean.svg' | asset_url
+  assign scene_tech = 'qa-scene-tech.svg' | asset_url
+  assign sid = section.id
 -%}
-<section class="qa-section qa-section--tint" id="{{ section.settings.anchor | default: 'dashboard' }}" data-qa-dash data-section-id="{{ section.id }}">
+<section
+  class="qa-section qa-section--tint"
+  id="{{ section.settings.anchor | default: 'dashboard' }}"
+  data-qa-dash
+  data-section-id="{{ sid }}"
+  data-tour="{{ section.settings.tour }}"
+>
   <div class="qa-container">
-    <div class="qa-head qa-head--center">
-      {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
-      <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
-      {%- if section.settings.sub != blank -%}<p class="qa-lead" data-reveal style="--rd: 120">{{ section.settings.sub | escape }}</p>{%- endif -%}
-    </div>
+    {%- if section.settings.heading != blank -%}
+      <div class="qa-head qa-head--center">
+        {%- if section.settings.eyebrow != blank -%}<p class="qa-eyebrow" data-reveal>{{ section.settings.eyebrow | escape }}</p>{%- endif -%}
+        <h2 class="qa-h2" data-split>{{ section.settings.heading | escape }}</h2>
+        {%- if section.settings.sub != blank -%}<p class="qa-lead" data-reveal style="--rd: 120">{{ section.settings.sub | escape }}</p>{%- endif -%}
+      </div>
+    {%- endif -%}
 
-    <div class="qa-dash" data-dash data-thread-anchor="dashboard">
+    <div class="qa-dash" data-dash data-thread-anchor="dashboard" data-view="overview">
       <div class="qa-dash__chrome">
         <span class="qa-device__dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="qa-dash__url">{{ section.settings.url_label | escape }}</span>
+        <span class="qa-dash__url">{{ section.settings.url_label | escape }} <span data-dash-crumb>/ Übersicht</span></span>
+        <button class="qa-dash__tour" type="button" data-dash-act="tour-stop" hidden data-dash-tourpill>
+          <span class="qa-dot qa-dot--pulse" aria-hidden="true"></span> Tour läuft · selbst klicken
+        </button>
         <span class="qa-pill qa-pill--demo">{{ 'general.preview' | t }}</span>
       </div>
-      <div class="qa-dash__app">
-        <aside class="qa-dash__side" aria-hidden="true">
-          <span class="qa-logo">{% render 'logo-mark' %}<span class="qa-logo__word">Quest<span> Agent</span></span></span>
-          <span class="qa-dash__nav" data-dash-nav="overview">{% render 'icon', name: 'grid' %} Übersicht</span>
-          <span class="qa-dash__nav">{% render 'icon', name: 'layers' %} Systeme</span>
-          <span class="qa-dash__nav">{% render 'icon', name: 'film' %} Produktion</span>
-          <span class="qa-dash__nav" data-dash-nav="review">{% render 'icon', name: 'inbox' %} Freigaben <i data-dash-badge>3</i></span>
-          <span class="qa-dash__nav" data-dash-nav="calendar">{% render 'icon', name: 'calendar' %} Kalender</span>
-          <span class="qa-dash__nav">{% render 'icon', name: 'plug' %} Verbindungen</span>
-          <span class="qa-dash__nav">{% render 'icon', name: 'card' %} Abo</span>
-        </aside>
 
-        <div class="qa-dash__main">
-          <div class="qa-dash__tabs" role="tablist" aria-label="{{ 'dashboard.tabs' | t }}">
-            <button type="button" role="tab" id="{{ section.id }}-t-overview" aria-controls="{{ section.id }}-v-overview" aria-selected="true" data-dash-tab="overview">{{ 'dashboard.tab_overview' | t }}</button>
-            <button type="button" role="tab" id="{{ section.id }}-t-review" aria-controls="{{ section.id }}-v-review" aria-selected="false" tabindex="-1" data-dash-tab="review">{{ 'dashboard.tab_review' | t }}</button>
-            <button type="button" role="tab" id="{{ section.id }}-t-calendar" aria-controls="{{ section.id }}-v-calendar" aria-selected="false" tabindex="-1" data-dash-tab="calendar">{{ 'dashboard.tab_calendar' | t }}</button>
+      <div class="qa-dash__app">
+        <nav class="qa-dash__side" aria-label="Bereiche der Vorschau">
+          <span class="qa-logo qa-dash__brand">{% render 'logo-mark' %}<span class="qa-logo__word">Quest<span> Agent</span></span></span>
+          <button type="button" class="qa-dash__nav is-on" data-dash-go="overview" aria-current="page">{% render 'icon', name: 'grid' %}<span>Übersicht</span></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="systems">{% render 'icon', name: 'layers' %}<span>Systeme</span></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="production">{% render 'icon', name: 'film' %}<span>Pipeline</span><i class="qa-dash__count">5</i></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="review">{% render 'icon', name: 'inbox' %}<span>Freigaben</span><i data-dash-badge>3</i></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="calendar">{% render 'icon', name: 'calendar' %}<span>Kalender</span></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="analytics">{% render 'icon', name: 'chart' %}<span>Analytics</span></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="agents">{% render 'icon', name: 'bot' %}<span>Agents</span><i class="qa-dash__live" aria-hidden="true"></i></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="connections">{% render 'icon', name: 'plug' %}<span>Verbindungen</span></button>
+          <button type="button" class="qa-dash__nav" data-dash-go="plan">{% render 'icon', name: 'card' %}<span>Abo</span></button>
+          <div class="qa-dash__me">
+            <span class="qa-avatar"></span>
+            <span><b>Alex</b><small>Studio · Kosmos kompakt</small></span>
+          </div>
+        </nav>
+
+        <div class="qa-dash__main" data-dash-main>
+          <div class="qa-dash__top">
+            <span class="qa-dash__search">{% render 'icon', name: 'search' %} Suchen …</span>
+            <button type="button" class="qa-dash__icon" data-dash-go="review" aria-label="Benachrichtigungen">{% render 'icon', name: 'bell' %}<i data-dash-badge>3</i></button>
+            <button type="button" class="qa-btn qa-btn--sm qa-btn--dark qa-dash__ask" data-dash-act="chat-open">{% render 'icon', name: 'chat' %} Quest fragen</button>
           </div>
 
-          {%- comment -%} Übersicht {%- endcomment -%}
-          <div class="qa-dash__view is-on" role="tabpanel" id="{{ section.id }}-v-overview" aria-labelledby="{{ section.id }}-t-overview" data-dash-view="overview">
+          {%- comment -%} ───────────── Übersicht ───────────── {%- endcomment -%}
+          <div class="qa-dash__view is-on" data-dash-view="overview" role="region" aria-label="Übersicht">
             <h3 class="qa-dash__h">{{ section.settings.greeting | escape }}</h3>
             <div class="qa-kpis">
-              <div class="qa-kpi"><small>Warten auf dich</small><b data-count="3">3</b></div>
-              <div class="qa-kpi"><small>In Produktion</small><b data-count="2">2</b></div>
-              <div class="qa-kpi"><small>Nächste Veröffentlichung</small><b style="font-size: 20px">Mi 18:00</b></div>
-              <div class="qa-kpi"><small>Diesen Monat online</small><b data-count="17">17</b></div>
+              <button type="button" class="qa-kpi" data-dash-go="review"><small>Warten auf dich</small><b data-count="3">3</b><em>zur Freigabe →</em></button>
+              <button type="button" class="qa-kpi" data-dash-go="production"><small>In der Pipeline</small><b data-count="5">5</b><em>Live-Status →</em></button>
+              <button type="button" class="qa-kpi" data-dash-go="calendar"><small>Nächster Upload</small><b>Mi 18:00</b><em>Kalender →</em></button>
+              <button type="button" class="qa-kpi" data-dash-go="analytics"><small>Aufrufe · 28 Tage</small><b><span data-count="48200">48.200</span></b><em class="qa-up">+18 % →</em></button>
             </div>
             <div class="qa-dash__cols">
               <div class="qa-panel">
                 <h4>Wartet auf deine Freigabe</h4>
                 <div class="qa-item">
-                  <span class="qa-thumb"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>
-                  <span class="qa-item__t"><b>Was, wenn es noch andere Welten gibt?</b><span>{% render 'platform-icon', platform: 'youtube' %} Video · Mi 18:00</span></span>
-                  <span class="qa-mini-btn">Prüfen</span>
+                  <span class="qa-thumb qa-thumb--v"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900" style="object-position: 40% 50%"></span>
+                  <span class="qa-item__t"><b>Warum ist der Nachthimmel dunkel?</b><span>{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %} Short · Do 12:00</span></span>
+                  <button type="button" class="qa-mini-btn" data-dash-act="open-review" data-i="0">Prüfen</button>
                 </div>
                 <div class="qa-item">
-                  <span class="qa-thumb qa-thumb--v"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>
-                  <span class="qa-item__t"><b>Warum ist der Nachthimmel dunkel?</b><span>{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %} Short · Do 12:00</span></span>
-                  <span class="qa-mini-btn">Prüfen</span>
+                  <span class="qa-thumb"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>
+                  <span class="qa-item__t"><b>Was, wenn es noch andere Welten gibt?</b><span>{% render 'platform-icon', platform: 'youtube' %} Video · Mi 18:00</span></span>
+                  <button type="button" class="qa-mini-btn" data-dash-act="open-review" data-i="1">Prüfen</button>
                 </div>
                 <div class="qa-item">
                   <span class="qa-thumb"><img src="{{ scene_history }}" alt="" loading="lazy" width="1600" height="900"></span>
                   <span class="qa-item__t"><b>Wie die Seidenstraße die Welt verband</b><span>{% render 'platform-icon', platform: 'youtube' %} Video · Do 19:00</span></span>
-                  <span class="qa-mini-btn">Prüfen</span>
+                  <button type="button" class="qa-mini-btn" data-dash-act="open-review" data-i="2">Prüfen</button>
                 </div>
               </div>
               <div class="qa-panel">
-                <h4>Plan &amp; Kontingent</h4>
-                <div class="qa-meter">Longform · 4 von 30<div class="qa-meter__bar"><span style="--w: 13%"></span></div></div>
-                <div class="qa-meter">Shorts · 9 von 30<div class="qa-meter__bar"><span style="--w: 30%"></span></div></div>
-                <h4 style="margin-top: 16px">Zuletzt online</h4>
-                <div class="qa-item">
-                  <span class="qa-thumb qa-thumb--v"><img src="{{ scene_ocean }}" alt="" loading="lazy" width="1600" height="900"></span>
-                  <span class="qa-item__t"><b>Die leuchtenden Tiere der Tiefsee</b><span>{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %} online</span></span>
+                <h4>Aufrufe · letzte 7 Tage</h4>
+                <div class="qa-bars" aria-hidden="true">
+                  {%- assign bars = '42,55,48,70,64,88,76' | split: ',' -%}
+                  {%- assign days = 'Mo,Di,Mi,Do,Fr,Sa,So' | split: ',' -%}
+                  {%- for b in bars -%}
+                    <span style="--h: {{ b }}; --i: {{ forloop.index0 }}"><i></i><small>{{ days[forloop.index0] }}</small></span>
+                  {%- endfor -%}
                 </div>
+                <h4 style="margin-top: 14px">Plan &amp; Kontingent</h4>
+                <div class="qa-meter">Videos · 4 von 30<div class="qa-meter__bar"><span style="--w: 13%"></span></div></div>
+                <div class="qa-meter">Shorts · 9 von 30 <small class="qa-muted">(zählen je Short einmal, egal auf wie vielen Plattformen)</small><div class="qa-meter__bar"><span style="--w: 30%"></span></div></div>
               </div>
             </div>
           </div>
 
-          {%- comment -%} Freigabe {%- endcomment -%}
-          <div class="qa-dash__view" role="tabpanel" id="{{ section.id }}-v-review" aria-labelledby="{{ section.id }}-t-review" data-dash-view="review" hidden>
-            <h3 class="qa-dash__h">Prüfen &amp; freigeben</h3>
-            <div class="qa-review">
-              <div class="qa-review__video"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900" style="object-position: 40% 50%"></div>
-              <div style="display: grid; gap: 10px; align-content: start">
-                <div class="qa-fieldmock"><small>Titel</small>Warum ist der Nachthimmel dunkel? #shorts</div>
-                <div class="qa-fieldmock"><small>Beitragstext für Instagram &amp; TikTok</small>Eigentlich müsste der Himmel nachts hell sein …<br>#Astronomie #Weltall</div>
-                <div class="qa-fieldmock"><small>Automatische Prüfung</small><span class="qa-pill qa-pill--ok">6 von 6 bestanden</span></div>
-                <small class="qa-muted" style="font-weight: 700">Wird veröffentlicht auf</small>
-                <div class="qa-chips">
-                  <span class="qa-chip">{% render 'platform-icon', platform: 'youtube' %}</span>
-                  <span class="qa-chip">{% render 'platform-icon', platform: 'instagram' %}</span>
-                  <span class="qa-chip">{% render 'platform-icon', platform: 'tiktok' %}</span>
-                  <span class="qa-chip">Do, 12:00</span>
+          {%- comment -%} ───────────── Systeme ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="systems" role="region" aria-label="Systeme" hidden>
+            <h3 class="qa-dash__h">Deine Systeme</h3>
+            <div class="qa-sys">
+              <div class="qa-sys__card is-active" data-sys>
+                <div class="qa-sys__head">
+                  <span class="qa-thumb"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>
+                  <span><b>Kosmos kompakt</b><small>Weltall &amp; Wissen · Deutsch</small></span>
+                  <button type="button" class="qa-switch" role="switch" aria-checked="true" aria-label="System aktiv" data-dash-act="sys-toggle"><i></i></button>
                 </div>
-                <div class="qa-approve__btns" style="position: relative">
-                  <span class="qa-btn qa-btn--sm">Überarbeiten</span>
-                  <span class="qa-approve__ok" data-dash-approve style="--press: 1">{% render 'icon', name: 'check' %} Freigeben &amp; einplanen</span>
-                  <span class="qa-cursor" data-dash-cursor style="right: 30%; bottom: -8px; opacity: 0">{% render 'icon', name: 'cursor' %}</span>
-                </div>
+                <dl class="qa-sys__facts">
+                  <div><dt>Videos</dt><dd>Mo · Mi · Fr, 18:00 · 7 min</dd></div>
+                  <div><dt>Shorts</dt><dd>täglich 12:00</dd></div>
+                  <div><dt>Plattformen</dt><dd>{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</dd></div>
+                  <div><dt>Vorbilder</dt><dd>@vorbild-kosmos, @wissen-kompakt</dd></div>
+                  <div><dt>Stimme</dt><dd>Ruhig &amp; erzählend</dd></div>
+                  <div><dt>Freigabe</dt><dd>jede Version vor dem Upload</dd></div>
+                </dl>
+                <span class="qa-sys__state" data-sys-state>aktiv · nächster Upload Mi 18:00</span>
               </div>
+              <div class="qa-sys__card" data-sys>
+                <div class="qa-sys__head">
+                  <span class="qa-thumb"><img src="{{ scene_history }}" alt="" loading="lazy" width="1600" height="900"></span>
+                  <span><b>Vergessene Geschichte</b><small>Geschichte · Deutsch</small></span>
+                  <button type="button" class="qa-switch" role="switch" aria-checked="false" aria-label="System aktiv" data-dash-act="sys-toggle"><i></i></button>
+                </div>
+                <dl class="qa-sys__facts">
+                  <div><dt>Videos</dt><dd>Di · Do, 19:00 · 10 min</dd></div>
+                  <div><dt>Shorts</dt><dd>—</dd></div>
+                  <div><dt>Plattformen</dt><dd>{% render 'platform-icon', platform: 'youtube' %}</dd></div>
+                  <div><dt>Stimme</dt><dd>Tief &amp; ruhig</dd></div>
+                </dl>
+                <span class="qa-sys__state" data-sys-state>pausiert</span>
+              </div>
+              <button type="button" class="qa-sys__new" data-dash-act="toast" data-msg="In der App führt dich ein Assistent in 5 Schritten zum neuen System.">
+                {% render 'icon', name: 'plus' %}<b>Neues System</b><small>Nische, Vorbilder, Uploadplan – in 5 Schritten</small>
+              </button>
             </div>
           </div>
 
-          {%- comment -%} Kalender {%- endcomment -%}
-          <div class="qa-dash__view" role="tabpanel" id="{{ section.id }}-v-calendar" aria-labelledby="{{ section.id }}-t-calendar" data-dash-view="calendar" hidden>
-            <h3 class="qa-dash__h">Kalender</h3>
-            <div class="qa-week">
-              <div class="qa-week__day">MO 28<div class="qa-evt" style="--c: var(--ok)">18:00 · Welten?<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}</span></div></div>
-              <div class="qa-week__day">DI 29<div class="qa-evt">12:00 · Schwarzes Loch<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</span></div></div>
-              <div class="qa-week__day is-today">MI 30<div class="qa-evt">18:00 · Welten?<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}</span></div></div>
-              <div class="qa-week__day" data-dash-newday>DO 1</div>
-              <div class="qa-week__day">FR 2<div class="qa-evt" style="--c: var(--warn)">18:00 · Nachthimmel<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}</span></div></div>
-              <div class="qa-week__day">SA 3<div class="qa-evt">12:00 · Tiefsee<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}</span></div></div>
-              <div class="qa-week__day">SO 4</div>
+          {%- comment -%} ───────────── Pipeline ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="production" role="region" aria-label="Pipeline" hidden>
+            <h3 class="qa-dash__h">Pipeline <small class="qa-dash__live-label"><i class="qa-dash__live"></i> live</small></h3>
+            <div class="qa-stages" aria-hidden="true">
+              <span>Recherche <b>1</b></span><span>Skript <b>1</b></span><span>Schnitt <b>1</b></span><span>Prüfung <b>1</b></span><span class="is-hot">Freigabe <b>1</b></span>
             </div>
-            <template data-dash-newevt>
-              <div class="qa-evt is-new">12:00 · Nachthimmel<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</span></div>
+            <div class="qa-jobs" data-dash-jobs>
+              <div class="qa-job" data-progress="34" data-stage="Recherche">
+                <span class="qa-thumb"><img src="{{ scene_tech }}" alt="" loading="lazy" width="1600" height="900"></span>
+                <span class="qa-job__t"><b>Schwarze Löcher – was passiert am Rand?</b><small>Video · Recherche-Agent sammelt Quellen</small></span>
+                <span class="qa-job__p"><span class="qa-job__stage">Recherche</span><span class="qa-job__bar"><i></i></span><small data-job-pct>34 %</small></span>
+              </div>
+              <div class="qa-job" data-progress="58" data-stage="Skript">
+                <span class="qa-thumb"><img src="{{ scene_history }}" alt="" loading="lazy" width="1600" height="900"></span>
+                <span class="qa-job__t"><b>Wie die Seidenstraße die Welt verband</b><small>Video · Skript-Agent schreibt Kapitel 3 von 5</small></span>
+                <span class="qa-job__p"><span class="qa-job__stage">Skript</span><span class="qa-job__bar"><i></i></span><small data-job-pct>58 %</small></span>
+              </div>
+              <div class="qa-job" data-progress="76" data-stage="Schnitt">
+                <span class="qa-thumb qa-thumb--v"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>
+                <span class="qa-job__t"><b>Kometen: Boten aus der Urzeit</b><small>Short · Untertitel und Musik</small></span>
+                <span class="qa-job__p"><span class="qa-job__stage">Schnitt</span><span class="qa-job__bar"><i></i></span><small data-job-pct>76 %</small></span>
+              </div>
+              <div class="qa-job" data-progress="91" data-stage="Prüfung">
+                <span class="qa-thumb qa-thumb--v"><img src="{{ scene_ocean }}" alt="" loading="lazy" width="1600" height="900"></span>
+                <span class="qa-job__t"><b>Die leuchtenden Tiere der Tiefsee</b><small>Short · 3 Plattformen</small></span>
+                <span class="qa-job__p"><span class="qa-job__stage">Prüfung</span><span class="qa-job__bar"><i></i></span><small data-job-pct>91 %</small></span>
+              </div>
+              <div class="qa-job is-ready" data-progress="100" data-stage="Freigabe">
+                <span class="qa-thumb"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>
+                <span class="qa-job__t"><b>Was, wenn es noch andere Welten gibt?</b><small>Video · Prüfung 6/6 bestanden</small></span>
+                <span class="qa-job__p"><button type="button" class="qa-mini-btn qa-mini-btn--coral" data-dash-act="open-review" data-i="1">Freigeben</button></span>
+              </div>
+            </div>
+            <template data-dash-newjob>
+              <div class="qa-job is-new" data-progress="3" data-stage="Recherche">
+                <span class="qa-thumb"><img src="{{ scene_tech }}" alt="" loading="lazy" width="1600" height="900"></span>
+                <span class="qa-job__t"><b>Schwarze Löcher – kurz erklärt</b><small>Short · gerade im Chat beauftragt</small></span>
+                <span class="qa-job__p"><span class="qa-job__stage">Recherche</span><span class="qa-job__bar"><i></i></span><small data-job-pct>3 %</small></span>
+              </div>
             </template>
           </div>
 
-          <div class="qa-dash__toast" data-dash-toast role="status">{% render 'icon', name: 'check' %} Eingeplant für Do, 12:00 · 3 Plattformen</div>
+          {%- comment -%} ───────────── Freigaben ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="review" role="region" aria-label="Freigaben" hidden>
+            <div class="qa-queue" role="tablist" aria-label="Wartet auf Freigabe">
+              <button type="button" role="tab" class="qa-queue__item is-on" aria-selected="true" data-dash-act="review-item" data-i="0"
+                data-title="Warum ist der Nachthimmel dunkel?" data-kind="short" data-when="Do, 12:00" data-img="{{ scene_space }}"
+                data-yt="Warum ist der Nachthimmel dunkel? #shorts #weltall"
+                data-ig="Eigentlich müsste der Himmel nachts hell sein … 🌌 Warum er es nicht ist? #astronomie #weltall"
+                data-tt="Der Nachthimmel dürfte gar nicht dunkel sein 🤯 #space #wissen #fyp"
+              ><span class="qa-thumb qa-thumb--v"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900" style="object-position: 40% 50%"></span>Nachthimmel<small>Short</small></button>
+              <button type="button" role="tab" class="qa-queue__item" aria-selected="false" data-dash-act="review-item" data-i="1"
+                data-title="Was, wenn es noch andere Welten gibt?" data-kind="video" data-when="Mi, 18:00" data-img="{{ scene_space }}"
+                data-yt="Was, wenn es noch andere Welten gibt? | Exoplaneten erklärt"
+                data-ig="—" data-tt="—"
+              ><span class="qa-thumb"><img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900"></span>Welten?<small>Video</small></button>
+              <button type="button" role="tab" class="qa-queue__item" aria-selected="false" data-dash-act="review-item" data-i="2"
+                data-title="Wie die Seidenstraße die Welt verband" data-kind="video" data-when="Do, 19:00" data-img="{{ scene_history }}"
+                data-yt="Wie die Seidenstraße die Welt verband | Vergessene Geschichte"
+                data-ig="—" data-tt="—"
+              ><span class="qa-thumb"><img src="{{ scene_history }}" alt="" loading="lazy" width="1600" height="900"></span>Seidenstraße<small>Video</small></button>
+            </div>
+
+            <div class="qa-review" data-review>
+              <div class="qa-player" data-player data-kind="short">
+                <img src="{{ scene_space }}" alt="" loading="lazy" width="1600" height="900" data-review-img>
+                <div class="qa-player__subs" aria-hidden="true"><span>Eigentlich müsste der Himmel</span><span>nachts hell sein …</span></div>
+                <button type="button" class="qa-player__play" data-dash-act="play" aria-label="Vorschau abspielen">{% render 'icon', name: 'play', class: 'qa-i-play' %}{% render 'icon', name: 'pause', class: 'qa-i-pause' %}</button>
+                <div class="qa-player__bar"><i></i></div>
+                <div class="qa-player__ver" role="group" aria-label="Version">
+                  <button type="button" data-dash-act="version" data-v="1">V1</button>
+                  <button type="button" class="is-on" data-dash-act="version" data-v="2">V2</button>
+                </div>
+              </div>
+              <div class="qa-review__side">
+                <div class="qa-fieldmock"><small>Titel</small><span data-review-title>Warum ist der Nachthimmel dunkel?</span></div>
+                <div class="qa-fieldmock">
+                  <small>Beitragstext je Plattform</small>
+                  <div class="qa-seg" role="group" aria-label="Plattform">
+                    <button type="button" class="is-on" data-dash-act="cap" data-p="yt">{% render 'platform-icon', platform: 'youtube' %} YouTube</button>
+                    <button type="button" data-dash-act="cap" data-p="ig">{% render 'platform-icon', platform: 'instagram' %} Instagram</button>
+                    <button type="button" data-dash-act="cap" data-p="tt">{% render 'platform-icon', platform: 'tiktok' %} TikTok</button>
+                  </div>
+                  <p class="qa-review__cap" data-review-cap>Warum ist der Nachthimmel dunkel? #shorts #weltall</p>
+                </div>
+                <div class="qa-fieldmock">
+                  <small>Automatische Prüfung · <span class="qa-pos">6 von 6 bestanden</span></small>
+                  <ul class="qa-minichecks">
+                    <li>Länge 0:48</li><li>Ton ausgeglichen</li><li>Untertitel synchron</li><li>Rechte geklärt</li><li>Hook in 2 Sek.</li><li>Titel vollständig</li>
+                  </ul>
+                </div>
+                <div class="qa-review__row">
+                  <span class="qa-muted">Veröffentlichen auf</span>
+                  <button type="button" class="qa-toggle is-on" data-dash-act="plat" aria-pressed="true">{% render 'platform-icon', platform: 'youtube' %}</button>
+                  <button type="button" class="qa-toggle is-on" data-dash-act="plat" aria-pressed="true">{% render 'platform-icon', platform: 'instagram' %}</button>
+                  <button type="button" class="qa-toggle is-on" data-dash-act="plat" aria-pressed="true">{% render 'platform-icon', platform: 'tiktok' %}</button>
+                  <span class="qa-chip qa-chip--sm">{% render 'icon', name: 'clock' %} <span data-review-when>Do, 12:00</span></span>
+                </div>
+                <div class="qa-revise" data-revise hidden>
+                  <div class="qa-fieldmock"><small>Was soll anders werden?</small>Hook kürzer, Musik etwas leiser.</div>
+                  <button type="button" class="qa-btn qa-btn--sm" data-dash-act="revise-send">Neue Version anfordern</button>
+                </div>
+                <div class="qa-approve__btns">
+                  <button type="button" class="qa-btn qa-btn--sm" data-dash-act="revise">Überarbeiten</button>
+                  <button type="button" class="qa-approve__ok" data-dash-act="approve" data-dash-approve>{% render 'icon', name: 'check' %} Freigeben &amp; einplanen</button>
+                </div>
+              </div>
+            </div>
+            <div class="qa-empty" data-review-empty hidden>{% render 'icon', name: 'check' %}<b>Alles freigegeben.</b><span>Neue Videos erscheinen hier, sobald die Prüfung durch ist.</span></div>
+          </div>
+
+          {%- comment -%} ───────────── Kalender ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="calendar" role="region" aria-label="Kalender" hidden>
+            <h3 class="qa-dash__h">Kalender <small class="qa-muted">KW 40</small></h3>
+            <div class="qa-week">
+              <div class="qa-week__day"><span>MO 28</span><button type="button" class="qa-evt" style="--c: var(--ok)" data-dash-act="evt" data-info="Mo, 18:00 · Die leuchtenden Tiere der Tiefsee · online auf YouTube, Instagram und TikTok">18:00 · Tiefsee<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</span></button></div>
+              <div class="qa-week__day"><span>DI 29</span><button type="button" class="qa-evt" style="--c: var(--ok)" data-dash-act="evt" data-info="Di, 12:00 · Kometen: Boten aus der Urzeit · online">12:00 · Kometen<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'tiktok' %}</span></button></div>
+              <div class="qa-week__day is-today"><span>MI 30</span><button type="button" class="qa-evt" data-dash-act="evt" data-info="Mi, 18:00 · Was, wenn es noch andere Welten gibt? · wartet auf deine Freigabe">18:00 · Welten?<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}</span></button></div>
+              <div class="qa-week__day" data-dash-newday><span>DO 1</span></div>
+              <div class="qa-week__day"><span>FR 2</span><button type="button" class="qa-evt" style="--c: var(--warn)" data-dash-act="evt" data-info="Fr, 18:00 · Schwarze Löcher – was passiert am Rand? · in Produktion (Recherche)">18:00 · Schwarze Löcher<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}</span></button></div>
+              <div class="qa-week__day"><span>SA 3</span><button type="button" class="qa-evt" style="--c: var(--warn)" data-dash-act="evt" data-info="Sa, 12:00 · Kurzclip aus „Seidenstraße“ · in Produktion">12:00 · Seidenstraße<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}</span></button></div>
+              <div class="qa-week__day"><span>SO 4</span></div>
+            </div>
+            <p class="qa-cal__detail" data-cal-detail>Tipp: Termin anklicken für Details.</p>
+            <div class="qa-legend"><span style="--c: var(--ok)">online</span><span style="--c: var(--violet)">freigegeben / geplant</span><span style="--c: var(--warn)">in Produktion</span></div>
+            <template data-dash-newevt>
+              <button type="button" class="qa-evt is-new" data-dash-act="evt" data-info="Do, 12:00 · Warum ist der Nachthimmel dunkel? · gerade von dir freigegeben – YouTube, Instagram und TikTok">12:00 · Nachthimmel<span class="qa-plats">{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</span></button>
+            </template>
+          </div>
+
+          {%- comment -%} ───────────── Analytics ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="analytics" role="region" aria-label="Analytics" hidden>
+            <div class="qa-dash__hrow">
+              <h3 class="qa-dash__h">Analytics <span class="qa-pill qa-pill--demo">Beispielwerte</span></h3>
+              <div class="qa-seg" role="group" aria-label="Zeitraum">
+                <button type="button" data-dash-act="range" data-k="11800,486,164,69" data-s="20,26,22,31,28,37,34">7 Tage</button>
+                <button type="button" class="is-on" data-dash-act="range" data-k="48200,1930,612,68" data-s="12,15,13,18,17,22,21,26,24,29,31,30,36,41">28 Tage</button>
+                <button type="button" data-dash-act="range" data-k="131000,5240,1880,64" data-s="4,6,7,9,8,12,14,13,17,20,22,25,24,29,33,36,41,44">90 Tage</button>
+              </div>
+            </div>
+            <div class="qa-kpis">
+              <div class="qa-kpi"><small>Aufrufe</small><b data-an="0">48.200</b><em class="qa-up">+18 %</em></div>
+              <div class="qa-kpi"><small>Wiedergabezeit</small><b><span data-an="1">1.930</span> h</b><em class="qa-up">+11 %</em></div>
+              <div class="qa-kpi"><small>Abonnenten</small><b>+<span data-an="2">612</span></b><em class="qa-up">+9 %</em></div>
+              <div class="qa-kpi"><small>Klickrate</small><b><span data-an="3" data-decimals="1">6,8</span> %</b><em>Ø Kanal 5,1 %</em></div>
+            </div>
+            <div class="qa-dash__cols">
+              <div class="qa-panel">
+                <h4>Aufrufe im Verlauf</h4>
+                <svg class="qa-chart" viewBox="0 0 600 180" aria-hidden="true" data-chart>
+                  <g class="qa-chart__grid"><path d="M0 45H600M0 90H600M0 135H600"/></g>
+                  <path class="qa-chart__area" data-chart-area d=""/>
+                  <path class="qa-chart__line" data-chart-line d="" pathLength="1"/>
+                </svg>
+              </div>
+              <div class="qa-panel">
+                <h4>Nach Plattform</h4>
+                <div class="qa-psplit">
+                  <div>{% render 'platform-icon', platform: 'youtube' %} YouTube <b>58 %</b><span class="qa-meter__bar"><span style="--w: 58%"></span></span></div>
+                  <div>{% render 'platform-icon', platform: 'tiktok' %} TikTok <b>27 %</b><span class="qa-meter__bar"><span style="--w: 27%"></span></span></div>
+                  <div>{% render 'platform-icon', platform: 'instagram' %} Instagram <b>15 %</b><span class="qa-meter__bar"><span style="--w: 15%"></span></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="qa-panel">
+              <h4>Top-Videos</h4>
+              <div class="qa-table">
+                <div><span>Die leuchtenden Tiere der Tiefsee</span><span>{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'instagram' %}{% render 'platform-icon', platform: 'tiktok' %}</span><b>20.100</b><small>Ø 0:38</small></div>
+                <div><span>Was, wenn es noch andere Welten gibt?</span><span>{% render 'platform-icon', platform: 'youtube' %}</span><b>18.400</b><small>Ø 4:51</small></div>
+                <div><span>Warum ist der Nachthimmel dunkel?</span><span>{% render 'platform-icon', platform: 'youtube' %}{% render 'platform-icon', platform: 'tiktok' %}</span><b>9.700</b><small>Ø 0:41</small></div>
+              </div>
+            </div>
+          </div>
+
+          {%- comment -%} ───────────── Agents ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="agents" role="region" aria-label="Agents" hidden>
+            <h3 class="qa-dash__h">Agents <small class="qa-dash__live-label"><i class="qa-dash__live"></i> arbeiten gerade</small></h3>
+            <div class="qa-agents">
+              <button type="button" class="qa-agent is-busy" data-dash-act="agent" data-a="Recherche">{% render 'icon', name: 'search' %}<b>Recherche</b><small>Quellen zu „Schwarze Löcher“ prüfen</small><em>arbeitet</em></button>
+              <button type="button" class="qa-agent is-busy" data-dash-act="agent" data-a="Skript">{% render 'icon', name: 'wand' %}<b>Skript</b><small>Kapitel 3 „Seidenstraße“ schreiben</small><em>arbeitet</em></button>
+              <button type="button" class="qa-agent" data-dash-act="agent" data-a="Stimme">{% render 'icon', name: 'mic' %}<b>Stimme</b><small>Ruhig &amp; erzählend · bereit</small><em>bereit</em></button>
+              <button type="button" class="qa-agent is-busy" data-dash-act="agent" data-a="Schnitt">{% render 'icon', name: 'film' %}<b>Schnitt</b><small>„Kometen“ rendern · 76 %</small><em>arbeitet</em></button>
+              <button type="button" class="qa-agent" data-dash-act="agent" data-a="Prüfung">{% render 'icon', name: 'shield' %}<b>Prüfung</b><small>Letzte Prüfung: 6/6 bestanden</small><em>bereit</em></button>
+              <button type="button" class="qa-agent is-wait" data-dash-act="agent" data-a="Upload">{% render 'icon', name: 'upload' %}<b>Upload</b><small>Nächster Upload Mi 18:00 · wartet auf Freigabe</small><em>wartet</em></button>
+            </div>
+            <div class="qa-panel">
+              <h4>Aktivität <small class="qa-muted" data-log-filter></small></h4>
+              <ol class="qa-log" data-log aria-live="off">
+                <li data-a="Prüfung"><time>09:41</time><b>Prüfung</b> Lautstärke angeglichen (−14 LUFS)</li>
+                <li data-a="Schnitt"><time>09:39</time><b>Schnitt</b> Untertitel für „Kometen“ synchronisiert</li>
+                <li data-a="Recherche"><time>09:36</time><b>Recherche</b> Bildrechte geprüft: 12 von 12 frei nutzbar</li>
+              </ol>
+              <template data-log-pool>
+                <li data-a="Recherche"><b>Recherche</b> 4 Quellen zum Ereignishorizont gesichert</li>
+                <li data-a="Skript"><b>Skript</b> Hook-Variante B gewählt (stärkerer Einstieg)</li>
+                <li data-a="Schnitt"><b>Schnitt</b> Rendern „Kometen“: 84 %</li>
+                <li data-a="Prüfung"><b>Prüfung</b> „Tiefsee“-Short: 6 von 6 bestanden</li>
+                <li data-a="Skript"><b>Skript</b> Faktencheck: 2 Quellen ergänzt</li>
+                <li data-a="Upload"><b>Upload</b> Termin Mi 18:00 für YouTube bestätigt</li>
+                <li data-a="Stimme"><b>Stimme</b> Kapitel 2 „Seidenstraße“ eingesprochen</li>
+                <li data-a="Recherche"><b>Recherche</b> Archivbilder: Rechte geklärt</li>
+              </template>
+            </div>
+          </div>
+
+          {%- comment -%} ───────────── Verbindungen ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="connections" role="region" aria-label="Verbindungen" hidden>
+            <h3 class="qa-dash__h">Verbindungen</h3>
+            <div class="qa-conns">
+              <div class="qa-conn is-on">{% render 'platform-icon', platform: 'youtube', size: 'lg' %}<span><b>YouTube</b><small>Kanal „Kosmos kompakt“ · Uploads erlaubt</small></span><em>verbunden</em></div>
+              <div class="qa-conn is-on">{% render 'platform-icon', platform: 'instagram', size: 'lg' %}<span><b>Instagram</b><small>Professionelles Konto · Reels</small></span><em>verbunden</em></div>
+              <div class="qa-conn" data-conn>{% render 'platform-icon', platform: 'tiktok', size: 'lg' %}<span><b>TikTok</b><small data-conn-sub>Noch nicht verbunden</small></span><button type="button" class="qa-btn qa-btn--sm qa-btn--dark" data-dash-act="connect">Verbinden</button></div>
+            </div>
+            <p class="qa-note">{% render 'icon', name: 'lock' %} Zugänge werden verschlüsselt gespeichert und lassen sich jederzeit trennen. Hochgeladen wird nur, was du freigegeben hast.</p>
+          </div>
+
+          {%- comment -%} ───────────── Abo ───────────── {%- endcomment -%}
+          <div class="qa-dash__view" data-dash-view="plan" role="region" aria-label="Abo" hidden>
+            <h3 class="qa-dash__h">Abo</h3>
+            <div class="qa-dash__cols">
+              <div class="qa-panel qa-plancard">
+                <span class="qa-pill qa-pill--coral">Studio</span>
+                <p class="qa-plancard__price"><b>100 €</b> / Monat</p>
+                <p class="qa-muted">Über den Shop gekauft · verlängert sich am 20. Oktober</p>
+                <div class="qa-meter">Videos · 4 von 30<div class="qa-meter__bar"><span style="--w: 13%"></span></div></div>
+                <div class="qa-meter">Shorts · 9 von 30<div class="qa-meter__bar"><span style="--w: 30%"></span></div></div>
+                <button type="button" class="qa-btn qa-btn--sm" data-dash-act="toast" data-msg="Planwechsel und Kündigung laufen über dein Kundenkonto im Shop.">Plan ändern</button>
+              </div>
+              <div class="qa-panel">
+                <h4>Rechnungen</h4>
+                <div class="qa-table">
+                  <div><span>#1024 · 20.09.</span><span>Studio</span><b>100,00 €</b><small class="qa-pos">bezahlt</small></div>
+                  <div><span>#1003 · 20.08.</span><span>Studio</span><b>100,00 €</b><small class="qa-pos">bezahlt</small></div>
+                  <div><span>#0987 · 20.07.</span><span>Starter</span><b>60,00 €</b><small class="qa-pos">bezahlt</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        <span class="qa-cursor qa-dash__cursor" data-dash-cursor aria-hidden="true">{% render 'icon', name: 'cursor' %}</span>
+        <div class="qa-dash__toast" data-dash-toast role="status">{% render 'icon', name: 'check' %} <span data-toast-text></span></div>
+
+        {%- comment -%} ───────────── Chat ───────────── {%- endcomment -%}
+        <aside class="qa-chat" data-dash-chat aria-label="Quest-Chat" hidden>
+          <div class="qa-chat__head">
+            <span class="qa-plat" style="background: var(--ink); color: var(--bg)">{% render 'icon', name: 'bot' %}</span>
+            <span><b>Quest</b><small>dein Assistent · Vorschau</small></span>
+            <button type="button" class="qa-icon-btn" data-dash-act="chat-close" aria-label="Chat schließen">{% render 'icon', name: 'x' %}</button>
+          </div>
+          <div class="qa-chat__msgs" data-chat-msgs>
+            <p class="qa-msg qa-msg--bot">Hi Alex! Ich behalte deine Kanäle im Blick. Wähle unten eine Frage.</p>
+          </div>
+          <div class="qa-chat__chips">
+            <button type="button" data-dash-act="ask"
+              data-a="Diese Woche: Mi 18:00 „Welten?“ auf YouTube (wartet auf deine Freigabe), Do 12:00 „Nachthimmel“ als Short auf allen drei Plattformen und Fr 18:00 „Schwarze Löcher“ – das ist noch in der Recherche."
+            >Was steht diese Woche an?</button>
+            <button type="button" data-dash-act="ask"
+              data-a="„Die leuchtenden Tiere der Tiefsee“ hat in 7 Tagen 20.100 Aufrufe (Beispielwerte) – TikTok lief am besten. Die Klickrate liegt mit 7,4 % über deinem Schnitt."
+            >Wie lief das letzte Video?</button>
+            <button type="button" data-dash-act="ask" data-job="1"
+              data-a="Notiert! „Schwarze Löcher – kurz erklärt“ ist jetzt in der Pipeline. Die Recherche läuft, du bekommst das Short zur Freigabe, bevor irgendetwas online geht."
+            >Plane einen Short über Schwarze Löcher</button>
+            <button type="button" data-dash-act="ask"
+              data-a="Vor jeder Freigabe prüfe ich Länge, Lautstärke, Untertitel, Titel und Beschreibung, Bildrechte und den Hook in den ersten Sekunden. Erst wenn alles passt, landet es bei dir."
+            >Was prüfst du automatisch?</button>
+          </div>
+          <div class="qa-chat__input">
+            <span>Vorschau – wähle oben eine Frage</span>
+            {% render 'icon', name: 'send' %}
+          </div>
+        </aside>
       </div>
     </div>
     {%- if section.settings.caption != blank -%}
@@ -137,10 +435,11 @@
     { "type": "text", "id": "anchor", "label": "Sprungmarke", "default": "dashboard" },
     { "type": "text", "id": "eyebrow", "label": "Oberzeile", "default": "Dein Dashboard" },
     { "type": "text", "id": "heading", "label": "Überschrift", "default": "Alles an einem Ort. Nichts ohne dein Okay." },
-    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Freigaben, Kalender und Kontingent auf einen Blick – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt." },
-    { "type": "text", "id": "greeting", "label": "Begrüßung", "default": "Hallo! Dein Loop auf einen Blick" },
-    { "type": "text", "id": "url_label", "label": "Adresszeile", "default": "Quest Agent – Kundenbereich" },
-    { "type": "text", "id": "caption", "label": "Hinweis darunter", "default": "Vorschau mit Beispieldaten. Tabs anklicken zum Ausprobieren." }
+    { "type": "textarea", "id": "sub", "label": "Unterzeile", "default": "Pipeline, Freigaben, Kalender, Analytics und deine Agents – so sieht der Kundenbereich aus, den du nach dem Kauf nutzt." },
+    { "type": "text", "id": "greeting", "label": "Begrüßung", "default": "Hallo Alex! Dein Loop auf einen Blick" },
+    { "type": "text", "id": "url_label", "label": "Adresszeile", "default": "Quest Agent" },
+    { "type": "checkbox", "id": "tour", "label": "Automatische Tour", "default": true, "info": "Führt durch die Bereiche, bis Besucher:innen selbst klicken." },
+    { "type": "text", "id": "caption", "label": "Hinweis darunter", "default": "Vorschau mit Beispieldaten – alles anklickbar: Seitenleiste, Freigabe, Kalender, Analytics, Agents und der Chat." }
   ],
   "presets": [{ "name": "Dashboard-Vorschau" }]
 }

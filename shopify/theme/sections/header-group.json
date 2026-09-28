@@ -19,7 +19,7 @@
         "nav_pricing": { "type": "anchor", "settings": { "label": "Preise", "link": "#preise" } },
         "nav_faq": { "type": "anchor", "settings": { "label": "FAQ", "link": "#faq" } }
       },
-      "block_order": ["nav_loop", "nav_platforms", "nav_dashboard", "nav_pricing", "nav_faq"],
+      "block_order": ["nav_loop", "nav_dashboard", "nav_platforms", "nav_pricing", "nav_faq"],
       "settings": {
         "nav_source": "anchors",
         "menu": "main-menu",

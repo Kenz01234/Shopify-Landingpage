@@ -33,13 +33,16 @@
     </script>
 
     <title>
-      {{ page_title }}
+      {%- if template.suffix == 'anmelden' %}{{ 'general.login' | t }}{% else %}{{ page_title }}{% endif -%}
       {%- if current_tags %} &ndash; {{ current_tags | join: ', ' }}{% endif -%}
       {%- if current_page != 1 %} &ndash; {{ 'general.page' | t: page: current_page }}{% endif -%}
       {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
     </title>
     {%- if page_description -%}
       <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+    {%- if template.suffix == 'anmelden' -%}
+      <meta name="robots" content="noindex">
     {%- endif -%}
     {% render 'meta-tags' %}
 
@@ -103,6 +106,8 @@
         cart: {{ routes.cart_url | json }},
         cartAdd: {{ routes.cart_add_url | json }},
         cartChange: {{ routes.cart_change_url | json }},
+        search: {{ routes.search_url | json }},
+        predictiveSearch: {{ routes.predictive_search_url | json }},
         root: {{ routes.root_url | json }}
       };
       window.QA_STRINGS = {
@@ -110,7 +115,15 @@
         error: {{ 'cart.error' | t | json }},
         themeLight: {{ 'theme.light' | t | json }},
         themeDark: {{ 'theme.dark' | t | json }},
-        themeSystem: {{ 'theme.system' | t | json }}
+        themeSystem: {{ 'theme.system' | t | json }},
+        searchAll: {{ 'search.all_results' | t: terms: '%s' | json }},
+        searchNone: {{ 'search.no_hits' | t | json }},
+        searchLoading: {{ 'search.loading' | t | json }},
+        searchTypes: {
+          product: {{ 'search.type_product' | t | json }},
+          page: {{ 'search.type_page' | t | json }},
+          article: {{ 'search.type_article' | t | json }}
+        }
       };
     </script>
   </body>

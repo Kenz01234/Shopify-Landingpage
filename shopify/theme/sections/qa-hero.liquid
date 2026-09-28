@@ -18,9 +18,9 @@
       </span>
     </h1>
     {%- if section.settings.sub != blank -%}
-      <p class="qa-lead qa-hero__sub" data-intro style="--d: 520">{{ section.settings.sub | escape }}</p>
+      <p class="qa-lead qa-hero__sub" data-intro style="--d: 360">{{ section.settings.sub | escape }}</p>
     {%- endif -%}
-    <div class="qa-hero__ctas" data-intro style="--d: 680">
+    <div class="qa-hero__ctas" data-intro style="--d: 460">
       {%- if section.settings.cta1_label != blank -%}
         <a class="qa-btn qa-btn--primary qa-btn--lg" href="{% render 'nav-href', link: section.settings.cta1_link %}" data-magnetic>
           {{- section.settings.cta1_label | escape }} {% render 'icon', name: 'arrow-right', class: 'qa-btn__arrow' %}
@@ -34,13 +34,17 @@
       {%- endif -%}
     </div>
     {%- if section.settings.note != blank -%}
-      <p class="qa-hero__note" data-intro style="--d: 820">{{ section.settings.note | escape }}</p>
+      <p class="qa-hero__note" data-intro style="--d: 560">{{ section.settings.note | escape }}</p>
     {%- endif -%}
 
-    <div class="qa-hero__stage" data-intro style="--d: 760" data-hero-stage aria-label="{{ 'hero.stage_label' | t }}" role="img">
+    {%- comment -%}
+      Beispiel-Ablauf, der beim Öffnen sofort startet und sich wiederholt: Recherche → Skript → Stimme → Schnitt →
+      Prüfung → Freigabe → Upload → danach zählen Beispiel-Statistiken hoch. Alle Werte sind als Beispiel markiert.
+    {%- endcomment -%}
+    <div class="qa-hero__stage" data-intro style="--d: 480" data-hero-stage data-phase="research" aria-label="{{ 'hero.stage_label' | t }}" role="img">
       <div class="qa-pill qa-hero__status">
-        <span class="qa-dot qa-dot--pulse" aria-hidden="true" style="color: var(--coral)"></span>
-        <span data-qa-status data-steps="{{ 'hero.steps' | t | escape }}">{{ 'hero.status_default' | t }}</span>
+        <span class="qa-dot qa-dot--pulse" aria-hidden="true"></span>
+        <span data-qa-status data-labels="{{ 'hero.phase_labels' | t | escape }}">{{ 'hero.status_default' | t }}</span>
       </div>
       <div class="qa-hero__video">
         {%- if section.settings.image != blank -%}
@@ -48,30 +52,87 @@
         {%- else -%}
           <img src="{{ scene_file | asset_url }}" alt="" width="1600" height="900" fetchpriority="high">
         {%- endif -%}
+        <div class="qa-hero__scan" aria-hidden="true"></div>
         {%- if section.settings.video_title != blank -%}
           <div class="qa-preview__title">{{ section.settings.video_title | escape }}</div>
         {%- endif -%}
+        <div class="qa-hero__layer qa-hero__layer--script" aria-hidden="true">
+          <span style="--i: 0">{{ 'hero.script_1' | t }}</span>
+          <span style="--i: 1">{{ 'hero.script_2' | t }}</span>
+        </div>
+        <div class="qa-hero__layer qa-hero__layer--voice" aria-hidden="true">
+          {%- for i in (0..23) -%}
+            {%- assign h = i | times: 37 | modulo: 61 | plus: 25 -%}
+            <i style="--i: {{ i }}; --h: {{ h }}"></i>
+          {%- endfor -%}
+        </div>
+        <div class="qa-hero__layer qa-hero__layer--edit" aria-hidden="true">
+          <span style="--w: 3; --i: 0"></span><span style="--w: 2; --i: 1"></span><span style="--w: 4; --i: 2; --c: var(--violet)"></span><span style="--w: 2; --i: 3; --c: var(--ok)"></span>
+        </div>
+        <div class="qa-hero__layer qa-hero__layer--check" aria-hidden="true">
+          <span>{% render 'icon', name: 'check' %} 7:12 min</span>
+          <span>{% render 'icon', name: 'check' %} {{ 'hero.check_audio' | t }}</span>
+          <span>{% render 'icon', name: 'check' %} {{ 'hero.check_rights' | t }}</span>
+        </div>
         <div class="qa-hero__video-ui">
           {%- render 'icon', name: 'play' -%}
           <div class="qa-hero__video-bar"><span></span></div>
           <span>{{ 'hero.example' | t }}</span>
         </div>
       </div>
-      <div class="qa-float qa-float--yt qa-float-anim" style="--d: 0" data-parallax="-0.08">
+
+      <ol class="qa-hero__phases" aria-hidden="true">
+        {%- assign phases = 'hero.phases' | t | split: '|' -%}
+        {%- for ph in phases -%}
+          <li style="--i: {{ forloop.index0 }}">{{ ph }}</li>
+        {%- endfor -%}
+      </ol>
+
+      <div class="qa-float qa-float--yt" style="--d: 0" data-parallax="-0.08">
         {% render 'platform-icon', platform: 'youtube', size: 'lg' %}
-        <span>YouTube<small>{{ 'hero.float_video' | t }}</small></span>
+        <span>
+          YouTube
+          <small class="qa-when-planned">{{ 'hero.float_video' | t }}</small>
+          <small class="qa-when-live"><b data-hero-count="18400">0</b> {{ 'hero.views' | t }}</small>
+        </span>
       </div>
-      <div class="qa-float qa-float--ig qa-float-anim" style="--d: 150" data-parallax="-0.14">
+      <div class="qa-float qa-float--ig" style="--d: 150" data-parallax="-0.14">
         {% render 'platform-icon', platform: 'instagram', size: 'lg' %}
-        <span>Instagram Reels<small>{{ 'hero.float_short' | t }}</small></span>
+        <span>
+          Instagram Reels
+          <small class="qa-when-planned">{{ 'hero.float_short' | t }}</small>
+          <small class="qa-when-live"><b data-hero-count="9700">0</b> {{ 'hero.views' | t }}</small>
+        </span>
       </div>
-      <div class="qa-float qa-float--tt qa-float-anim" style="--d: 300" data-parallax="-0.05">
+      <div class="qa-float qa-float--tt" style="--d: 300" data-parallax="-0.05">
         {% render 'platform-icon', platform: 'tiktok', size: 'lg' %}
-        <span>TikTok<small>{{ 'hero.float_short' | t }}</small></span>
+        <span>
+          TikTok
+          <small class="qa-when-planned">{{ 'hero.float_short' | t }}</small>
+          <small class="qa-when-live"><b data-hero-count="20100">0</b> {{ 'hero.views' | t }}</small>
+        </span>
       </div>
-      <div class="qa-float qa-float--ok qa-float-anim" style="--d: 450" data-parallax="-0.11">
+      <div class="qa-float qa-float--ok" style="--d: 450" data-parallax="-0.11">
         <span class="qa-plat qa-plat--lg" style="background: var(--ok)">{% render 'icon', name: 'check' %}</span>
         <span>{{ 'hero.float_ok' | t }}<small>{{ 'hero.float_ok_sub' | t }}</small></span>
+      </div>
+
+      <div class="qa-hero__stats" data-parallax="-0.06">
+        <div class="qa-hero__stats-head">
+          {%- render 'icon', name: 'trend' -%}
+          <b>{{ 'hero.stats_title' | t }}</b>
+          <span class="qa-pill qa-pill--demo">{{ 'hero.example' | t }}</span>
+        </div>
+        <div class="qa-hero__kpis">
+          <div><small>{{ 'hero.kpi_views' | t }}</small><b><span data-hero-count="48200">0</span></b></div>
+          <div><small>{{ 'hero.kpi_watch' | t }}</small><b><span data-hero-count="1930">0</span> h</b></div>
+          <div><small>{{ 'hero.kpi_subs' | t }}</small><b>+<span data-hero-count="612">0</span></b></div>
+          <div><small>{{ 'hero.kpi_ctr' | t }}</small><b><span data-hero-count="68" data-decimals="1">0</span> %</b></div>
+        </div>
+        <svg class="qa-hero__spark" viewBox="0 0 240 56" aria-hidden="true">
+          <path class="qa-hero__spark-fill" d="M0 52 L20 48 L40 50 L60 42 L80 44 L100 34 L120 36 L140 26 L160 28 L180 18 L200 20 L220 10 L240 6 L240 56 L0 56 Z"/>
+          <path class="qa-hero__spark-line" pathLength="1" d="M0 52 L20 48 L40 50 L60 42 L80 44 L100 34 L120 36 L140 26 L160 28 L180 18 L200 20 L220 10 L240 6"/>
+        </svg>
       </div>
     </div>
   </div>

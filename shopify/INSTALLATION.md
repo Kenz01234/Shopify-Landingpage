@@ -15,13 +15,16 @@ Es gibt drei Wege. Alle lassen deinen veröffentlichten Shop unverändert, bis d
 **Enthalten:**
 
 - **Startseite:**
-  - Intro mit Animation beim Öffnen, Laufband und scroll-gesteuertem Loop in neun Schritten (Nische → Recherche → Skript → KI-Stimme → Schnitt → Shorts → Prüfung → Freigabe → Upload)
-  - die Plattformen YouTube, Instagram und TikTok als Handys mit Upload-Animation
-  - eine Dashboard-Vorschau, die sich selbst bedient (Freigabe, Kalender)
+  - **Intro:** Das Beispielvideo durchläuft sofort beim Öffnen alle Phasen (Recherche → Skript → Stimme → Schnitt → Prüfung → Freigabe → Upload). Danach zählen Beispiel-Analytics hoch (Aufrufe, Wiedergabezeit, Abonnenten, Klickrate), als „Beispiel“ gekennzeichnet.
+  - **Loop in neun Schritten:** läuft von selbst durch, sobald er sichtbar ist. Jeder Schritt ist anklickbar, dazu gibt es Pause, „Nächster Schritt“ und „Überspringen“. Es gibt keinen langen Scrollweg mehr.
+  - **Dashboard-Vorschau:** Alle Bereiche der Seitenleiste sind klickbar: Übersicht, Systeme, Pipeline (live), Freigaben mit Player, Versionen, Beitragstexten je Plattform und Prüfung, Kalender, Analytics, Agents mit Live-Protokoll, Verbindungen und Abo. Dazu kommt der **Quest-Chat** mit Beispielfragen. Eine automatische Tour zeigt alles, bis man selbst klickt.
+  - die Plattformen YouTube, Instagram und TikTok als Handys mit Upload-Fortschritt
   - Vorteile, Preise mit Kauf-Buttons, FAQ und Abschluss
   - ein „roter Faden“, der beim Scrollen mitläuft
-- **Header:** Hell/Dunkel-Umschalter, Suche, **Anmelden** (führt zur App, nicht zum Shop-Konto), Warenkorb mit Zähler, mobiles Menü.
-- **Warenkorb:** als Seitenpanel (AJAX, ohne Neuladen) und als eigene Seite. Die Preise berechnet immer Shopify.
+- **Header:** Hell/Dunkel-Umschalter, **Suche mit Live-Vorschlägen**, **Anmelden** (führt zur App, nicht zum Shop-Konto), Warenkorb mit Zähler, mobiles Menü.
+- **Anmelden-Seite:** Anmeldeformular und darunter das klickbare Dashboard. Sie funktioniert ohne Einrichtung, siehe unten.
+- **Warenkorb:** als Seitenpanel (AJAX, ohne Neuladen) und als eigene Seite, mit „So geht es nach dem Kauf weiter“. Die Preise berechnet immer Shopify.
+- **Rechtliches:** Der Footer verlinkt automatisch alle Texte aus *Einstellungen → Richtlinien*, zum Beispiel Impressum, Datenschutz, AGB und Widerruf. Die Rechtstext-Seiten sind im Theme-Design gestaltet.
 - **Produktseite:** Abo-Optionen (Selling Plans), Varianten, Galerie, „Direkt zur Kasse“ und optional Express-Zahlung.
 - **Weitere Seiten:** Kollektionen, Suche, Kontakt, Blog/Artikel, Kundenkonto, Passwortseite, 404, Geschenkkarte.
 
@@ -33,12 +36,15 @@ Es gibt drei Wege. Alle lassen deinen veröffentlichten Shop unverändert, bis d
 
 ### Einrichten (einmalig)
 
-1. **Seite „Dashboard“ anlegen** (für den Button *Anmelden*, solange die App noch nicht online ist):
-   - **Onlineshop → Seiten → Seite hinzufügen**, Titel „Dashboard“
-   - rechts unter *Theme-Vorlage* `page.dashboard` wählen
-   - Die Adresse muss `/pages/dashboard` lauten.
+1. **Anmelden – nichts anzulegen:**
+   - *Anmelden* führt ohne weitere Einrichtung zur Anmelde-Seite des Themes (`/collections/all?view=anmelden`). Die Vorlage heißt im Editor „Kollektion · anmelden“.
+   - Solange die App nicht online ist, sagt die Seite das beim Absenden offen. Es wird nichts übertragen.
    - Sobald die App gehostet ist, trägst du ihre Anmelde-Adresse unter **Anpassen → Theme-Einstellungen → Anmelden & Konto → Link zur App-Anmeldung** ein. Dann führt *Anmelden* direkt dorthin.
-2. **Kontaktseite:** Seite „Kontakt“ mit Theme-Vorlage `page.contact` anlegen. **Rechtstexte** (Impressum, Datenschutz, AGB, Widerruf) legst du unter **Einstellungen → Richtlinien** an, dann verlinkst du sie im Menü „Footer“.
+   - Frühere Anleitungen nannten eine Seite „Dashboard“ mit der Vorlage `page.dashboard`. Diese Seite ist nicht mehr nötig; die Vorlage gibt es aber weiterhin, wenn du sie zusätzlich nutzen willst.
+2. **Rechtstexte:**
+   - Impressum, Datenschutzerklärung, AGB, Widerrufsrecht und die **Kündigungsrichtlinie** legst du unter **Einstellungen → Richtlinien** an. Die Kündigungsrichtlinie braucht Shopify für Abos.
+   - Der Footer verlinkt sie automatisch in der Spalte „Rechtliches“.
+   - **Kontaktseite:** Seite „Kontakt“ mit der Theme-Vorlage `page.contact` anlegen.
 3. **Pläne als Abo-Produkte:**
    - Die App **Shopify Subscriptions** installieren.
    - Zwei Produkte anlegen, **Starter** und **Studio**, jeweils mit **SKU** (z. B. `QA-STARTER`, `QA-STUDIO`) und einem monatlichen Abo-Plan.
@@ -77,15 +83,21 @@ Die Navigation im Header besteht aus **Sprungmarken** (z. B. `#preise`), die von
 
 ### Geprüft (Weg A)
 
-`npm run shopify:theme:check` – **11 von 11 bestanden**:
+`npm run shopify:theme:check` – **alle 13 Prüfungen bestanden** (davon eine Messung der Bildrate als Richtwert):
 
 - **Shopify Theme Check** (offizielles Werkzeug, alle Theme-Dateien): 0 Befunde.
-- **Upload-Regeln:** 26 Sections und 22 Templates, inklusive Section-Gruppen und globaler Einstellungen. Geprüft werden:
+- **Upload-Regeln:** 27 Sections und 23 Templates, inklusive Section-Gruppen und globaler Einstellungen. Geprüft werden:
   - Typen und Standardwerte
   - Blöcke und Presets
   - URL-Felder: Sprungmarken wie `#preise` liegen bewusst in Textfeldern, weil Shopify sie in URL-Feldern ablehnt.
 - **Keine Zugangsdaten** im Theme.
-- **Rendern:** 23 Seiten, darunter alle Kundenkonto-Vorlagen, Passwort und Geschenkkarte. Geprüft ist auch der Zustand ohne verknüpfte Produkte.
+- **Rendern:** 28 Seiten, darunter:
+  - die Anmelde-Seite
+  - Rechtstexte
+  - Suche mit und ohne Treffer
+  - alle Kundenkonto-Vorlagen, Passwort und Geschenkkarte
+
+  Geprüft ist auch der Zustand ohne verknüpfte Produkte.
 - **Browser:**
   - Keine JavaScript-Fehler.
   - Warenkorb: Schnellkauf mit Abo-Plan, Menge ändern, Entfernen, Section Rendering auf der Warenkorbseite.
@@ -93,12 +105,29 @@ Die Navigation im Header besteht aus **Sprungmarken** (z. B. `#preise`), die von
   - „Direkt zur Kasse“ führt mit dem Abo zur Kasse.
   - Hell/Dunkel wechselt sichtbar und bleibt gespeichert.
   - Mobiles Menü: Der Schließen-Knopf ist nicht verdeckt.
+  - **Hero:** Die Phasen laufen durch, danach zählen die Beispielzahlen hoch.
+  - **Loop:**
+    - läuft ohne Scrollen von selbst weiter
+    - ein angeklickter Schritt erscheint sofort
+    - Pause hält an
+    - „Nächster Schritt“ geht einen Schritt weiter
+    - „Überspringen“ springt zum nächsten Bereich
+  - **Dashboard:**
+    - Alle 9 Bereiche öffnen sich.
+    - Eigenes Klicken beendet die Tour.
+    - Freigeben zählt die offenen Freigaben herunter und plant das Video im Kalender ein.
+    - Der Analytics-Zeitraum wechselt Zahlen und Verlauf.
+    - Der Chat antwortet und legt den gewünschten Auftrag in die Pipeline.
+  - **Anmelden:** Der Hinweis erscheint, und E-Mail und Passwort werden nachweislich nirgendwohin gesendet.
+  - **Suche:** Das Overlay öffnet mit Live-Vorschlägen und schließt mit Escape.
+  - **Footer:** Die Rechtstexte sind verlinkt.
 - **Handy (360 px):** Keine Seite scrollt seitlich, und alle Texte haben Abstand zum Rand.
 - **Ohne JavaScript und mit reduzierter Bewegung** bleibt nichts unsichtbar.
 - **Theme-Editor-Simulation:**
   - Alle Sections werden entladen und neu geladen.
   - Das Skript wird erneut ausgeführt, ohne dass sich etwas doppelt registriert.
-  - Die Dashboard-Tabs funktionieren danach, und ein ausgewählter FAQ-Block klappt auf.
+  - Die Dashboard-Navigation funktioniert danach, und ein ausgewählter FAQ-Block klappt auf.
+  - Ein im Editor ausgewählter Loop-Schritt wird angezeigt und angehalten.
 - **Scroll-Bildrate** (Richtwert, headless ohne Grafikkarte): etwa 55 Bilder pro Sekunde beim Durchscrollen der Startseite.
 
 **Nicht geprüft:** Die Prüfungen liefen nicht in einem echten Shop, denn in dieser Umgebung gibt es keinen Shopify-Zugang. Die lokale Vorschau bildet Shopify mit LiquidJS nach. Ungetestet sind deshalb:
@@ -107,6 +136,7 @@ Die Navigation im Header besteht aus **Sprungmarken** (z. B. `#preise`), die von
 - der echte Theme-Editor
 - echte Selling Plans und der Checkout
 - Shopifys Zahlungs-Icons
+- die Anmelde-Seite über `?view=anmelden`. Shopify-Doku und Vorschau sprechen dafür, dass alternative Templates so aufgerufen werden, im echten Shop geprüft ist es aber nicht.
 
 Nach dem Hochladen bitte die Vorschau prüfen und eine eventuelle Fehlermeldung wörtlich weitergeben.
 

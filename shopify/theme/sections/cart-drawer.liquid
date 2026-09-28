@@ -55,6 +55,7 @@
         </button>
         <form id="qa-drawer-checkout" action="{{ routes.cart_url }}" method="post" hidden></form>
         <a class="qa-btn qa-btn--ghost qa-btn--sm" href="{{ routes.cart_url }}">{{ 'cart.view' | t }}</a>
+        {%- render 'cart-trust', steps: false -%}
       </div>
     {%- endif -%}
   </div>

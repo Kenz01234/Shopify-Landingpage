@@ -5,17 +5,36 @@
     "footer": {
       "type": "footer",
       "blocks": {
-        "menu_main": { "type": "menu", "settings": { "title": "Shop", "menu": "main-menu" } },
-        "menu_footer": { "type": "menu", "settings": { "title": "Rechtliches", "menu": "footer" } }
+        "menu_main": {
+          "type": "menu",
+          "settings": {
+            "title": "Shop",
+            "menu": "main-menu"
+          }
+        },
+        "menu_footer": {
+          "type": "menu",
+          "settings": {
+            "title": "Mehr",
+            "menu": "footer"
+          }
+        }
       },
-      "block_order": ["menu_main", "menu_footer"],
+      "block_order": [
+        "menu_main",
+        "menu_footer"
+      ],
       "settings": {
         "tagline": "Dein Faceless-Kanal. Läuft für dich – du behältst das letzte Wort.",
         "legal_note": "Unabhängiges Produkt – keine Verbindung zu YouTube, Instagram oder TikTok.",
         "show_payment": true,
-        "big_word": "Quest Agent"
+        "big_word": "Quest Agent",
+        "show_policies": true,
+        "policies_title": "Rechtliches"
       }
     }
   },
-  "order": ["footer"]
+  "order": [
+    "footer"
+  ]
 }

@@ -1,0 +1,18 @@
+{%- comment -%}
+  Vertrauenszeile und „So geht es weiter“ im Warenkorb. Aufruf: {% render 'cart-trust', steps: true %}
+{%- endcomment -%}
+<ul class="qa-trust">
+  <li>{% render 'icon', name: 'lock' %} {{ 'cart.trust_1' | t }}</li>
+  <li>{% render 'icon', name: 'refresh' %} {{ 'cart.trust_2' | t }}</li>
+  <li>{% render 'icon', name: 'shield' %} {{ 'cart.trust_3' | t }}</li>
+</ul>
+{%- if steps -%}
+  <div class="qa-nextsteps">
+    <p class="qa-label">{{ 'cart.next_title' | t }}</p>
+    <ol>
+      <li><span>1</span>{{ 'cart.next_1' | t }}</li>
+      <li><span>2</span>{{ 'cart.next_2' | t }}</li>
+      <li><span>3</span>{{ 'cart.next_3' | t }}</li>
+    </ol>
+  </div>
+{%- endif -%}
